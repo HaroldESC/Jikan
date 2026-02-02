@@ -1,4 +1,3 @@
-// core/wheel/PieChart.jsx
 import { timeToMinutes, minutesToTime } from '../../utils/time';
 
 const CENTER = 200;
@@ -33,8 +32,8 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
     const sortedSchedule = [...schedule].sort((a, b) => a.start - b.start);
 
     sortedSchedule.forEach((item) => {
-      const itemStartMinutes = item.start * 60; // Convertir horas a minutos
-      const itemEndMinutes = item.end * 60;
+      const itemStartMinutes = Math.round(item.start * 60); // Convertir horas decimales a minutos
+      const itemEndMinutes = Math.round(item.end * 60);
 
       // Si hay un hueco antes de esta actividad, añadir tiempo vacío
       if (currentMinutes < itemStartMinutes) {
@@ -86,7 +85,22 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
   const formatTime = (hours) => {
     const hour = Math.floor(hours);
     const minutes = Math.round((hours - hour) * 60);
-    return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    // Manejar caso donde minutos son 60 (por redondeo)
+    let adjustedHour = hour;
+    let adjustedMinutes = minutes;
+    
+    if (minutes === 60) {
+      adjustedHour = hour + 1;
+      adjustedMinutes = 0;
+    }
+    
+    // Manejar caso donde la hora es 24 (medianoche)
+    if (adjustedHour === 24) {
+      adjustedHour = 0;
+    }
+    
+    return `${adjustedHour.toString().padStart(2, '0')}:${adjustedMinutes.toString().padStart(2, '0')}`;
   };
 
   const renderSlices = () =>
@@ -123,7 +137,7 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
         );
       }
 
-      const showLabel = durationHours >= 0.5; // Mostrar etiqueta si dura 30 min o más
+      const showLabel = durationHours >= 0.25; // Mostrar etiqueta si dura 15 min o más (reducido de 0.5 a 0.25)
       
       const sliceContent = (
         <>
@@ -131,7 +145,7 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
             d={path} 
             fill={item.color}
             stroke="white"
-            strokeWidth="3"
+            strokeWidth="2"
             opacity={item.isEmpty ? "0.4" : "1"}
           />
 
@@ -142,7 +156,7 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
                 y={item.isFullDay ? label.y : label.y - 5}
                 textAnchor="middle"
                 fill={item.isFullDay ? "#9ca3af" : "white"}
-                fontSize={item.isFullDay ? "22" : "18"}
+                fontSize={item.isFullDay ? "20" : "16"}
                 fontWeight="bold"
                 style={{ 
                   textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
@@ -155,10 +169,10 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
               {!item.isFullDay && (
                 <text
                   x={label.x}
-                  y={label.y + 15}
+                  y={label.y + 14}
                   textAnchor="middle"
                   fill="white"
-                  fontSize="14"
+                  fontSize="12"
                   fontWeight="500"
                   style={{ 
                     textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
@@ -209,10 +223,54 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
             {formatTime(item.start)} - {formatTime(item.end)}
             {'\n'}
             {item.description || 'Sin descripción'}
+            {'\n'}
+            Duración: {Math.floor(durationHours)}h {Math.round((durationHours % 1) * 60)}m
           </title>
         </g>
       );
     });
+
+  // Función para generar las marcas de hora en el borde
+  const renderHourMarks = () => {
+    const marks = [];
+    for (let i = 0; i < 24; i++) {
+      const angle = (i / 24) * 360 - 90;
+      const point = polarToCartesian(angle, RADIUS + 10);
+      const labelPoint = polarToCartesian(angle, RADIUS - 20);
+      
+      marks.push(
+        <g key={`hour-${i}`}>
+          {/* Línea del marcador */}
+          <line
+            x1={CENTER + (RADIUS - 5) * Math.cos((angle * Math.PI) / 180)}
+            y1={CENTER + (RADIUS - 5) * Math.sin((angle * Math.PI) / 180)}
+            x2={CENTER + (RADIUS + 5) * Math.cos((angle * Math.PI) / 180)}
+            y2={CENTER + (RADIUS + 5) * Math.sin((angle * Math.PI) / 180)}
+            stroke="#64748b"
+            strokeWidth="1"
+            opacity="0.3"
+          />
+          
+          {/* Etiqueta de hora cada 2 horas para evitar sobrecarga */}
+          {i % 2 === 0 && (
+            <text
+              x={labelPoint.x}
+              y={labelPoint.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill="#64748b"
+              fontSize="10"
+              fontWeight="500"
+              opacity="0.6"
+            >
+              {`${i.toString().padStart(2, '0')}:00`}
+            </text>
+          )}
+        </g>
+      );
+    }
+    return marks;
+  };
 
   return (
     <svg 
@@ -220,6 +278,9 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
       className="wheel-svg"
       style={{ width: '100%', height: 'auto' }}
     >
+      {/* Marcas de hora en el borde */}
+      {renderHourMarks()}
+      
       {/* Segmentos del horario */}
       {renderSlices()}
 
