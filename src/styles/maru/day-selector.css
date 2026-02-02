@@ -22,6 +22,12 @@
   transition: .2s;
   background: rgba(255,255,255,0.1);
   color: white;
+  position: relative;
+}
+
+.day-btn--desktop {
+  padding: .75rem 0;
+  max-height: 3rem;
 }
 
 .day-btn:hover {
@@ -33,6 +39,47 @@
   color: #312e81;
   font-weight: 700;
   box-shadow: 0 10px 25px rgba(0,0,0,.2);
+}
+
+/* Estilo para el día actual */
+.day-btn--today {
+  position: relative;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.day-btn--active.day-btn--today {
+  box-shadow: 
+    0 10px 25px rgba(0,0,0,.2),
+    0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.today-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: rgb(59, 130, 246);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+/* Para móvil, el punto va abajo */
+.day-selector__mobile-grid .today-dot {
+  bottom: 4px;
+}
+
+/* Para escritorio, el punto va al lado del texto */
+.day-selector__desktop-grid .today-dot {
+  position: static;
+  margin-left: 4px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .day-indicator {
@@ -66,9 +113,4 @@
   padding: 0 1rem;
   max-width: 64rem;
   margin-bottom: 1rem;
-}
-
-.day-btn--desktop {
-  padding: .75rem 0;
-  max-height: 3rem;
 }
