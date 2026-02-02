@@ -10,7 +10,17 @@ const TOTAL_MINUTES = 24 * 60; // 1440 minutos en un día
 
 const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
 
-  /**
+  // Función para determinar si el día es hoy
+  const isToday = (dayName) => {
+  const daysMap = {
+    'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3,
+    'Jueves': 4, 'Viernes': 5, 'Sábado': 6
+  };
+    const today = new Date().getDay();
+    return daysMap[dayName] === today;
+  };
+
+    /**
    * Crea un horario completo de 24 horas con espacios vacíos
    */
   const createFullSchedule = (schedule) => {
@@ -298,7 +308,7 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
 
       <text
         x={CENTER}
-        y={CENTER - 5}
+        y={isToday(currentDay) ? CENTER - 8 : CENTER}
         textAnchor="middle"
         dominantBaseline="middle"
         fill="#1e293b"
@@ -308,16 +318,18 @@ const PieChart = ({ schedule, currentDay, onActivitySelect }) => {
         {currentDay}
       </text>
       
-      <text
-        x={CENTER}
-        y={CENTER + 18}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="#64748b"
-        fontSize="12"
-      >
-        24 horas
-      </text>
+      {isToday(currentDay) && (
+        <text
+          x={CENTER}
+          y={CENTER + 16}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="#64748b"
+          fontSize="12"
+        >
+          Hoy
+        </text>
+      )}
     </svg>
   );
 };

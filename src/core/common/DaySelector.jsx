@@ -6,6 +6,15 @@
 
 const DaySelector = ({ days, currentDay, onSelectDay }) => {
 
+  const isToday = (dayName) => {
+  const daysMap = {
+    'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3,
+    'Jueves': 4, 'Viernes': 5, 'Sábado': 6
+  };
+  const today = new Date().getDay();
+  return daysMap[dayName] === today;
+};
+
   const getShortLabel = (day) => {
     const lower = day.toLowerCase();
 
@@ -27,12 +36,24 @@ const DaySelector = ({ days, currentDay, onSelectDay }) => {
             return (
               <div key={day} className="relative pb-3">
                 <button
+                  key={day}
                   onClick={() => onSelectDay(day)}
-                  className={`day-btn ${isActive ? 'day-btn--active' : ''}`}
+                  className={`
+                    px-4 py-2 rounded-xl font-medium transition-all duration-300
+                    ${currentDay === day 
+                      ? 'bg-white text-gray-900 shadow-lg' 
+                      : 'bg-white/10 text-white hover:bg-white/20'
+                    }
+                    ${isToday(day) ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}
+                  `}
                 >
-                  {getShortLabel(day)}
+                  <div className="flex items-center gap-2">
+                    {day}
+                    {isToday(day) && (
+                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                    )}
+                  </div>
                 </button>
-
                 {isActive && (
                   <div className="day-indicator" />
                 )}
@@ -56,9 +77,21 @@ const DaySelector = ({ days, currentDay, onSelectDay }) => {
               <button
                 key={day}
                 onClick={() => onSelectDay(day)}
-                className={`day-btn day-btn--desktop ${isActive ? 'day-btn--active' : ''}`}
+                className={`
+                  px-4 py-2 rounded-xl font-medium transition-all duration-300
+                  ${currentDay === day 
+                    ? 'bg-white text-gray-900 shadow-lg' 
+                    : 'bg-white/10 text-white hover:bg-white/20'
+                  }
+                  ${isToday(day) ? 'ring-2 ring-blue-400 ring-opacity-50' : ''}
+                `}
               >
-                {day}
+                <div className="flex items-center gap-2">
+                  {day}
+                  {isToday(day) && (
+                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
+                  )}
+                </div>
               </button>
             );
           })}
