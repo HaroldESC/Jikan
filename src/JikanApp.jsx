@@ -44,7 +44,12 @@ const decimalToTimeString = (decimal) => {
 
 const App = ({ user }) => {
   // Estados principales
-  const [currentDay, setCurrentDay] = useState('Lunes');
+  const [currentDay, setCurrentDay] = useState(() => {
+    // Obtener el día actual en español
+    const daysInSpanish = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const today = new Date().getDay();
+    return daysInSpanish[today];
+  });
   const [view, setView] = useState('main'); // 'main' | 'detail' | 'edit'
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [editingActivity, setEditingActivity] = useState(null);
