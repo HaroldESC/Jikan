@@ -8,7 +8,47 @@
 import { useState } from 'react';
 import { ChevronLeft, Clock, Calendar, FileText, AlertCircle } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
-import { timeToMinutes, formatDuration, formatHour } from '../../utils/time';
+
+// Función para convertir horas decimales a string legible
+const formatHour = (decimalHour) => {
+  const hours = Math.floor(decimalHour);
+  const minutes = Math.round((decimalHour - hours) * 60);
+  
+  // Manejar caso donde minutos son 60 (por redondeo)
+  let adjustedHour = hours;
+  let adjustedMinutes = minutes;
+  
+  if (minutes === 60) {
+    adjustedHour = hours + 1;
+    adjustedMinutes = 0;
+  }
+  
+  // Manejar caso donde la hora es 24 (medianoche)
+  if (adjustedHour === 24) {
+    adjustedHour = 0;
+  }
+  
+  return `${adjustedHour.toString().padStart(2, '0')}:${adjustedMinutes.toString().padStart(2, '0')}`;
+};
+
+// Función para formatear duración
+const formatDuration = (decimalHours) => {
+  const hours = Math.floor(decimalHours);
+  const minutes = Math.round((decimalHours - hours) * 60);
+  
+  if (hours === 0) {
+    return `${minutes}m`;
+  } else if (minutes === 0) {
+    return `${hours}h`;
+  } else {
+    return `${hours}h ${minutes}m`;
+  }
+};
+
+// Función para convertir decimal a minutos
+const decimalToMinutes = (decimalHours) => {
+  return Math.round(decimalHours * 60);
+};
 
 const DetailView = ({
   activity,
@@ -45,9 +85,12 @@ const DetailView = ({
   const activityColor = activity.color || '#7c5cff';
   const isEmpty = activity.isEmpty || false;
 
-  // Calcular duración en minutos
-  const startMinutes = timeToMinutes(activity.start);
-  const endMinutes = timeToMinutes(activity.end);
+  // Calcular duración en horas decimales
+  const durationHours = activity.end - activity.start;
+  
+  // Convertir a minutos para estadísticas
+  const startMinutes = decimalToMinutes(activity.start);
+  const endMinutes = decimalToMinutes(activity.end);
   const durationMinutes = endMinutes - startMinutes;
 
   // Formatear horas para mostrar
@@ -55,7 +98,55 @@ const DetailView = ({
   const formattedEnd = formatHour(activity.end);
 
   // Calcular porcentaje del día
-  const percentageOfDay = ((durationMinutes / (24 * 60)) * 100).toFixed(1);
+  const percentageOfDay = ((durationHours / 24) * 100).toFixed(1);
+
+  // Calcular tiempo restante si la actividad está en curso
+  const isCurrentActivity = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeDecimal = currentHour + (currentMinute / 60);
+    
+    return currentTimeDecimal >= activity.start && currentTimeDecimal < activity.end;
+  };
+
+  const getTimeRemaining = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeDecimal = currentHour + (currentMinute / 60);
+    
+    if (currentTimeDecimal < activity.start) {
+      // Actividad futura
+      const timeUntilStart = activity.start - currentTimeDecimal;
+      const startHour = Math.floor(timeUntilStart);
+      const startMinutes = Math.round((timeUntilStart - startHour) * 60);
+      
+      if (startHour > 0 && startMinutes > 0) {
+        return `Comienza en ${startHour}h ${startMinutes}m`;
+      } else if (startHour > 0) {
+        return `Comienza en ${startHour}h`;
+      } else {
+        return `Comienza en ${startMinutes}m`;
+      }
+    } else if (currentTimeDecimal < activity.end) {
+      // Actividad en curso
+      const timeRemaining = activity.end - currentTimeDecimal;
+      const remainingHour = Math.floor(timeRemaining);
+      const remainingMinutes = Math.round((timeRemaining - remainingHour) * 60);
+      
+      if (remainingHour > 0 && remainingMinutes > 0) {
+        return `Termina en ${remainingHour}h ${remainingMinutes}m`;
+      } else if (remainingHour > 0) {
+        return `Termina en ${remainingHour}h`;
+      } else {
+        return `Termina en ${remainingMinutes}m`;
+      }
+    }
+    return null;
+  };
+
+  const timeRemainingText = getTimeRemaining();
 
   return (
     <div
@@ -94,9 +185,15 @@ const DetailView = ({
               {activityName}
             </h2>
 
-            <p className="text-xl text-white/80 mb-4">
+            <p className="text-xl text-white/80 mb-2">
               {formattedStart} - {formattedEnd}
             </p>
+            
+            {timeRemainingText && (
+              <p className="text-lg text-white/70 mb-4">
+                {timeRemainingText}
+              </p>
+            )}
 
             {isEmpty && (
               <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm">
@@ -124,16 +221,54 @@ const DetailView = ({
             >
               <div className="space-y-4">
                 <div className="text-2xl font-bold">
-                  {formatDuration(durationMinutes)}
+                  {formatDuration(durationHours)}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/10 rounded-lg p-3 text-center">
-                    <div className="text-sm opacity-75">Total minutos</div>
-                    <div className="text-lg font-semibold">{durationMinutes}</div>
+                    <div className="text-sm opacity-75">Horas totales</div>
+                    <div className="text-lg font-semibold">
+                      {durationHours.toFixed(2)} h
+                    </div>
                   </div>
+                  <div className="bg-white/10 rounded-lg p-3 text-center">
+                    <div className="text-sm opacity-75">Minutos totales</div>
+                    <div className="text-lg font-semibold">
+                      {durationMinutes} m
+                    </div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/10 rounded-lg p-3 text-center">
                     <div className="text-sm opacity-75">Porcentaje del día</div>
                     <div className="text-lg font-semibold">{percentageOfDay}%</div>
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-3 text-center">
+                    <div className="text-sm opacity-75">Estado</div>
+                    <div className="text-lg font-semibold">
+                      {isCurrentActivity() ? 'En curso' : 'Programada'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </DetailBlock>
+
+            <DetailBlock 
+              title="Horarios exactos" 
+              icon={<Clock size={18} />}
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-white/10 rounded-lg p-4 text-center">
+                  <div className="text-sm opacity-75">Hora de inicio</div>
+                  <div className="text-lg font-semibold">{formattedStart}</div>
+                  <div className="text-xs opacity-60 mt-1">
+                    {activity.start.toFixed(2)} horas
+                  </div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-4 text-center">
+                  <div className="text-sm opacity-75">Hora de fin</div>
+                  <div className="text-lg font-semibold">{formattedEnd}</div>
+                  <div className="text-xs opacity-60 mt-1">
+                    {activity.end.toFixed(2)} horas
                   </div>
                 </div>
               </div>
@@ -145,6 +280,9 @@ const DetailView = ({
             >
               <div className="bg-white/10 rounded-lg p-4 text-center">
                 <p className="text-xl font-semibold">{day}</p>
+                <p className="text-sm opacity-75 mt-2">
+                  Horario configurado para este día específico
+                </p>
               </div>
             </DetailBlock>
 
