@@ -28,6 +28,20 @@ import { useTheme } from './hooks/useTheme';
 import { DAYS_OF_WEEK, INITIAL_REMINDERS } from './utils/index';
 import { useActivities } from './hooks/useActivities';
 
+// Función auxiliar para convertir hora a decimal
+const timeToDecimal = (timeString) => {
+  if (!timeString) return 0;
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours + (minutes / 60);
+};
+
+// Función auxiliar para formatear decimal a string HH:MM
+const decimalToTimeString = (decimal) => {
+  const hours = Math.floor(decimal);
+  const minutes = Math.round((decimal - hours) * 60);
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+};
+
 const App = ({ user }) => {
   // Estados principales
   const [currentDay, setCurrentDay] = useState('Lunes');
@@ -38,12 +52,14 @@ const App = ({ user }) => {
   const [editingActivityIndex, setEditingActivityIndex] = useState(null);
   const [showCopyModal, setShowCopyModal] = useState(false);
   const [tempActivity, setTempActivity] = useState({
-    start: 9,
-    end: 10,
+    start: 9, // hora decimal (ej: 9.5 = 9:30)
+    end: 10, // hora decimal (ej: 10.25 = 10:15)
     activity: '',
     description: '',
     color: '#7c5cff',
   });
+  const [tempStartTime, setTempStartTime] = useState('09:00');
+  const [tempEndTime, setTempEndTime] = useState('10:00');
   
   const { schedules, loading, reload } = useActivities(user);
   const [reminders] = useState(INITIAL_REMINDERS);
@@ -94,8 +110,8 @@ const App = ({ user }) => {
       // 2. Insertar las nuevas actividades (copias del día fuente)
       const newActivities = sourceActivities.map(activity => ({
         day_of_week: targetDay,
-        start_time: `${activity.start.toString().padStart(2, '0')}:00`,
-        end_time: `${activity.end.toString().padStart(2, '0')}:00`,
+        start_time: decimalToTimeString(activity.start),
+        end_time: decimalToTimeString(activity.end),
         title: activity.title,
         description: activity.description || '',
         color: activity.color || '#7c5cff',
@@ -156,8 +172,8 @@ const App = ({ user }) => {
 
     const payload = {
       day_of_week: day,
-      start_time: `${updatedActivity.start.toString().padStart(2, '0')}:00`,
-      end_time: `${updatedActivity.end.toString().padStart(2, '0')}:00`,
+      start_time: decimalToTimeString(updatedActivity.start),
+      end_time: decimalToTimeString(updatedActivity.end),
       title: updatedActivity.activity,
       description: updatedActivity.description,
       color: updatedActivity.color,
@@ -196,13 +212,22 @@ const App = ({ user }) => {
     setEditingDay(day);
     setEditingActivity(null);
     setEditingActivityIndex(null);
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = Math.floor(now.getMinutes() / 15) * 15; // Redondear a cuartos de hora
+    
+    const startTimeStr = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
+    const endTimeStr = `${currentHour.toString().padStart(2, '0')}:${(currentMinute + 30).toString().padStart(2, '0')}`;
+    
     setTempActivity({
-      start: 9,
-      end: 10,
+      start: timeToDecimal(startTimeStr),
+      end: timeToDecimal(endTimeStr),
       activity: '',
       description: '',
       color: '#7c5cff',
     });
+    setTempStartTime(startTimeStr);
+    setTempEndTime(endTimeStr);
     setView('edit');
   };
 
@@ -211,6 +236,9 @@ const App = ({ user }) => {
     setEditingDay(day);
     setEditingActivity(activity);
     setEditingActivityIndex(index);
+    const startTimeStr = decimalToTimeString(activity.start);
+    const endTimeStr = decimalToTimeString(activity.end);
+    
     setTempActivity({
       start: activity.start,
       end: activity.end,
@@ -218,6 +246,8 @@ const App = ({ user }) => {
       description: activity.description || '',
       color: activity.color || '#7c5cff',
     });
+    setTempStartTime(startTimeStr);
+    setTempEndTime(endTimeStr);
     setView('edit');
   };
 
@@ -225,9 +255,11 @@ const App = ({ user }) => {
    * Obtiene la actividad actual según la hora y el día seleccionado
    */
   const getCurrentActivity = () => {
-    const hours = currentTime.getHours();
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    const currentTimeDecimal = currentHour + (currentMinute / 60);
     const schedule = schedules[currentDay] || [];
-    return schedule.find(item => hours >= item.start && hours < item.end);
+    return schedule.find(item => currentTimeDecimal >= item.start && currentTimeDecimal < item.end);
   };
 
   const currentActivity = getCurrentActivity();
@@ -254,6 +286,24 @@ const App = ({ user }) => {
   const handleBackToMain = () => {
     setView('main');
     setSelectedActivity(null);
+  };
+
+  // Manejar cambio de hora de inicio
+  const handleStartTimeChange = (timeString) => {
+    setTempStartTime(timeString);
+    setTempActivity({
+      ...tempActivity,
+      start: timeToDecimal(timeString)
+    });
+  };
+
+  // Manejar cambio de hora de fin
+  const handleEndTimeChange = (timeString) => {
+    setTempEndTime(timeString);
+    setTempActivity({
+      ...tempActivity,
+      end: timeToDecimal(timeString)
+    });
   };
 
   // Vista de detalles
@@ -356,31 +406,29 @@ const App = ({ user }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold mb-2">Hora de inicio</label>
-                  <select
-                    value={tempActivity.start}
-                    onChange={(e) => setTempActivity({...tempActivity, start: parseInt(e.target.value)})}
+                  <input
+                    type="time"
+                    value={tempStartTime}
+                    onChange={(e) => handleStartTimeChange(e.target.value)}
                     className="w-full bg-white/10 rounded-lg p-3 text-white border border-white/20 focus:border-white/50 focus:outline-none cursor-pointer"
-                  >
-                    {Array.from({length: 24}, (_, i) => (
-                      <option key={i} value={i} className="bg-gray-800">
-                        {i.toString().padStart(2, '0')}:00
-                      </option>
-                    ))}
-                  </select>
+                    step="300" // 5 minutos (300 segundos)
+                  />
+                  <p className="text-xs mt-1 opacity-75">
+                    Selecciona hora y minutos
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-2">Hora de fin</label>
-                  <select
-                    value={tempActivity.end}
-                    onChange={(e) => setTempActivity({...tempActivity, end: parseInt(e.target.value)})}
+                  <input
+                    type="time"
+                    value={tempEndTime}
+                    onChange={(e) => handleEndTimeChange(e.target.value)}
                     className="w-full bg-white/10 rounded-lg p-3 text-white border border-white/20 focus:border-white/50 focus:outline-none cursor-pointer"
-                  >
-                    {Array.from({length: 25}, (_, i) => (
-                      <option key={i} value={i} className="bg-gray-800">
-                        {i.toString().padStart(2, '0')}:00
-                      </option>
-                    ))}
-                  </select>
+                    step="300" // 5 minutos (300 segundos)
+                  />
+                  <p className="text-xs mt-1 opacity-75">
+                    Selecciona hora y minutos
+                  </p>
                 </div>
               </div>
 
@@ -388,7 +436,22 @@ const App = ({ user }) => {
               <div className="bg-white/10 rounded-lg p-4 text-center">
                 <p className="text-sm opacity-75">Duración total</p>
                 <p className="text-2xl font-bold">
-                  {tempActivity.end - tempActivity.start} hora{tempActivity.end - tempActivity.start !== 1 ? 's' : ''}
+                  {(() => {
+                    const duration = tempActivity.end - tempActivity.start;
+                    const hours = Math.floor(duration);
+                    const minutes = Math.round((duration - hours) * 60);
+                    
+                    if (hours > 0 && minutes > 0) {
+                      return `${hours}h ${minutes}m`;
+                    } else if (hours > 0) {
+                      return `${hours}h`;
+                    } else {
+                      return `${minutes}m`;
+                    }
+                  })()}
+                </p>
+                <p className="text-sm opacity-75 mt-1">
+                  {tempStartTime} - {tempEndTime}
                 </p>
               </div>
 
