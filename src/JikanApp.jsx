@@ -18,6 +18,7 @@ import Reminders from './core/stats/Reminders';
 import Daily from './core/stats/Daily';
 import Header from './core/common/Header';
 import CopyDayModal from './core/common/CopyDayModal';
+import { getCurrentDay } from './utils/dates';
 
 // Iconos
 import { ChevronLeft, Plus, Trash2, Copy } from 'lucide-react';
@@ -44,12 +45,7 @@ const decimalToTimeString = (decimal) => {
 
 const App = ({ user }) => {
   // Estados principales
-  const [currentDay, setCurrentDay] = useState(() => {
-    // Obtener el día actual en español
-    const daysInSpanish = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const today = new Date().getDay();
-    return daysInSpanish[today];
-  });
+  const [currentDay, setCurrentDay] = useState(getCurrentDay());
   const [view, setView] = useState('main'); // 'main' | 'detail' | 'edit'
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [editingActivity, setEditingActivity] = useState(null);

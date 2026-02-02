@@ -1,4 +1,7 @@
-import { timeToMinutes, minutesToTime } from '../../utils/time';
+/*
+  Componente PieChart para representar un horario de 24 horas en un gráfico circular.
+  Muestra actividades y tiempos libres, permitiendo interacción con las actividades.
+*/
 
 const CENTER = 200;
 const RADIUS = 180;
