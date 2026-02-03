@@ -176,8 +176,13 @@ const DetailView = ({
 
           {/* Header */}
           <div className="text-center mb-8">
+
+            <div className="bg-white/10 rounded-lg p-4 text-center">
+              <p className="text-xl font-semibold">{day}</p>
+            </div>
+
             <div
-              className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-white/20"
+              className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-white/20 my-6"
               style={{ backgroundColor: activityColor }}
             />
 
@@ -206,6 +211,8 @@ const DetailView = ({
           {/* Secciones */}
           <div className="space-y-6">
 
+            
+
             <DetailBlock 
               title="Descripción" 
               icon={<FileText size={18} />}
@@ -215,6 +222,7 @@ const DetailView = ({
               </p>
             </DetailBlock>
 
+            {/* Inicio-fin */}
             <DetailBlock 
               title="Horarios exactos" 
               icon={<Clock size={18} />}
@@ -237,18 +245,6 @@ const DetailView = ({
               </div>
             </DetailBlock>
 
-            <DetailBlock 
-              title="Día" 
-              icon={<Calendar size={18} />}
-            >
-              <div className="bg-white/10 rounded-lg p-4 text-center">
-                <p className="text-xl font-semibold">{day}</p>
-                <p className="text-sm opacity-75 mt-2">
-                  Horario configurado para este día específico
-                </p>
-              </div>
-            </DetailBlock>
-
             {/* Notas personales (opcional) */}
             <DetailBlock 
               title="Notas personales" 
@@ -264,7 +260,6 @@ const DetailView = ({
               <div className="flex justify-end mt-2">
                 <button
                   onClick={() => {
-                    // Aquí podrías guardar las notas
                     alert('Notas guardadas (función pendiente)');
                   }}
                   className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition text-sm"
@@ -274,6 +269,8 @@ const DetailView = ({
                 </button>
               </div>
             </DetailBlock>
+            
+            
 
           </div>
         </div>
