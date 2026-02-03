@@ -216,43 +216,6 @@ const DetailView = ({
             </DetailBlock>
 
             <DetailBlock 
-              title="Duración" 
-              icon={<Clock size={18} />}
-            >
-              <div className="space-y-4">
-                <div className="text-2xl font-bold">
-                  {formatDuration(durationHours)}
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/10 rounded-lg p-3 text-center">
-                    <div className="text-sm opacity-75">Horas totales</div>
-                    <div className="text-lg font-semibold">
-                      {durationHours.toFixed(2)} h
-                    </div>
-                  </div>
-                  <div className="bg-white/10 rounded-lg p-3 text-center">
-                    <div className="text-sm opacity-75">Minutos totales</div>
-                    <div className="text-lg font-semibold">
-                      {durationMinutes} m
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-white/10 rounded-lg p-3 text-center">
-                    <div className="text-sm opacity-75">Porcentaje del día</div>
-                    <div className="text-lg font-semibold">{percentageOfDay}%</div>
-                  </div>
-                  <div className="bg-white/10 rounded-lg p-3 text-center">
-                    <div className="text-sm opacity-75">Estado</div>
-                    <div className="text-lg font-semibold">
-                      {isCurrentActivity() ? 'En curso' : 'Programada'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </DetailBlock>
-
-            <DetailBlock 
               title="Horarios exactos" 
               icon={<Clock size={18} />}
             >
