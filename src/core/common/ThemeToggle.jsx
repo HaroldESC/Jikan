@@ -12,7 +12,7 @@ const ThemeToggle = ({ themeMode, onToggle }) => {
     switch (themeMode) {
       case 'light':
         return <Sun size={20} />;
-      case 'dark':
+      case 'night':
         return <Moon size={20} />;
       default:
         return <SunMoon size={20} />;
