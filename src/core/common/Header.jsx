@@ -18,18 +18,18 @@ const Header = ({ currentTime, themeMode, onToggleTheme }) => {
     <header className="app-header">
 
       <div className="app-header__top">
-        <div className="flex-1" />
-
-        <h1 className="app-header__title">
-          Jikan Maru
-        </h1>
-
-        <div className="flex-1 flex justify-end">
+        <div className="flex-1">
           <ThemeToggle
             themeMode={themeMode}
             onToggle={onToggleTheme}
           />
         </div>
+
+        <h1 className="app-header__title">
+          Jikan Maru
+        </h1>
+
+        <div className="flex-1" />
       </div>
 
       <div className="app-header__time">

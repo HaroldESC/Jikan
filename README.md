@@ -176,18 +176,19 @@ La aplicación es totalmente responsive y se adapta a:
 
 
 VERSIÓN 1.0 (Minimo funcional)
-	- [✓] Adecuar interfaz: Responsive para móvil y PC
+	- [✓] Interfaz adecuada: Responsive para móvil y PC
 	- [✓] Modo oscuro/claro manual: Selector independiente
 	- [✓] Editor y creador de actividades: Permitir adecuar actividades a las necesidades propias
 	- [✓] Sistema de login y registro
-	- [✓] Base de datos en la nube (Supabase) Sincronización multiplataforma para persistencia de datos
-	- [✓] Mejorar estadísticas diarias: Diferentes métricas de distribución de tiempo
+	- [✓] Base de datos en nube (Supabase) Sincronización multiplataforma para persistencia de datos
+	- [✓] Mejores estadísticas diarias: Diferentes métricas de distribución de tiempo
 
 VERSIÓN 2.0 (Funcionalidades Compentarias)
     - [ ] Integracion de distintos estilos
-    - [] Crear/eliminar recordatorios básicos
+    - [ ] Crear/eliminar recordatorios básicos
     - [ ] Productividad: Pomodoro Timer integrado en actividades
     - [ ] Opcion de olvidar contraseña
+    - [ ] Inicio de sesion con google u otros servicios
 	- [ ] Guardar datos localmente (localStorage)
 	- [ ] Notificaciones: Notificaciones de navegador (cambio de actividad)
 	- [ ] Importación/Exportación: Exportar/importar horarios (xlsx, pdf y otros formatos)
@@ -201,7 +202,7 @@ VERSIÓN 3.0 (Extras)
 
 ..,
 
-## 🤝 Contribución
+## Contribución
 
 Las contribuciones y sugerencias son bienvenidas. Para contribuir:
 
