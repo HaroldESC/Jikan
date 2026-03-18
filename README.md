@@ -199,6 +199,8 @@ VERSIÓN 3.0 (Extras)
     - [ ] Integración con calendario (Google Calendar)
     - [ ] Integracion con notas (Google Keep y/o notion)
 
+..,
+
 ## 🤝 Contribución
 
 Las contribuciones y sugerencias son bienvenidas. Para contribuir:
