@@ -42,7 +42,7 @@ const formatDuration = (decimalHours) => {
   }
 };
 
-const ActivityCard = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL" }) => {
+const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL" }) => {
   if (!activity) return null;
 
   // Usar title en lugar de activity para el nombre
@@ -211,4 +211,4 @@ const ActivityCard = ({ activity, currentDay, currentTime, label = "ACTIVIDAD AC
   );
 };
 
-export default ActivityCard;
+export default CardMaru;

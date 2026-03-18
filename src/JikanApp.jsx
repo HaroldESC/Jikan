@@ -13,7 +13,7 @@ import { supabase } from './lib/supabase';
 import PieChart from './core/wheel/PieChart';
 import DetailView from './core/activities/DetailView';
 import DaySelector from './core/common/DaySelector';
-import ActivityCard from './core/activities/Card';
+import CardMaru from './core/activities/CardMaru';
 import Reminders from './core/stats/Reminders';
 import Daily from './core/stats/Daily';
 import Header from './core/common/Header';
@@ -545,7 +545,7 @@ const App = ({ user }) => {
           <div className="space-y-4 lg:overflow-auto lg:max-h-[calc(100vh-200px)] custom-scrollbar">
             {/* Actividad actual */}
             {currentDay === getCurrentDay() && currentActivity && (
-              <ActivityCard 
+              <CardMaru
                 activity={currentActivity}
                 currentDay={currentDay}
                 currentTime={currentTime}

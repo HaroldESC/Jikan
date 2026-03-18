@@ -4,10 +4,13 @@
  * Encabezado de la aplicación con título, hora actual y control de tema.
  */
 
+import { useState } from 'react';
 import { Clock } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import { SettingsButton, SettingsModal } from './Settings';
 
 const Header = ({ currentTime, themeMode, onToggleTheme }) => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const timeString = currentTime.toLocaleTimeString('es-ES', {
     hour: '2-digit',
@@ -29,13 +32,21 @@ const Header = ({ currentTime, themeMode, onToggleTheme }) => {
           Jikan Maru
         </h1>
 
-        <div className="flex-1" />
+        <div className="flex-1 flex justify-end">
+          <SettingsButton
+            onClick={() => setIsSettingsOpen(true)}
+          />
+        </div>
       </div>
 
       <div className="app-header__time">
         <span>{timeString}</span>
       </div>
 
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
     </header>
   );
 };
