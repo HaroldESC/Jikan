@@ -544,15 +544,14 @@ const App = ({ user }) => {
           {/* Panel lateral */}
           <div className="space-y-4 lg:overflow-auto lg:max-h-[calc(100vh-200px)] custom-scrollbar">
             {/* Actividad actual */}
-            {currentActivity && (
-                <ActivityCard 
-                  activity={currentActivity}
-                  currentDay={currentDay}
-                  currentTime={currentTime}
-                  label="ACTIVIDAD ACTUAL"
-                />
+            {currentDay === getCurrentDay() && currentActivity && (
+              <ActivityCard 
+                activity={currentActivity}
+                currentDay={currentDay}
+                currentTime={currentTime}
+                label="ACTIVIDAD ACTUAL"
+              />
             )}
-
             {/* Estadísticas */}
             <Daily schedule={schedules[currentDay] || []} />
           </div>
