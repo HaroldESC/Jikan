@@ -176,12 +176,12 @@ La aplicación es totalmente responsive y se adapta a:
 
 
 VERSIÓN 1.0 (Minimo funcional)
-- [ ] Interfaz adecuada: Responsive para móvil y PC
-- [ ] Modo oscuro/claro manual: Selector independiente
-- [ ] Editor y creador de actividades: Permitir adecuar actividades a las necesidades propias
-- [ ] Sistema de login y registro
-- [ ] Base de datos en nube (Supabase) Sincronización multiplataforma para persistencia de datos
-- [ ] Mejores estadísticas diarias: Diferentes métricas de distribución de tiempo
+- [x] Interfaz adecuada: Responsive para móvil y PC
+- [x] Modo oscuro/claro manual: Selector independiente
+- [x] Editor y creador de actividades: Permitir adecuar actividades a las necesidades propias
+- [x] Sistema de login y registro
+- [x] Base de datos en nube (Supabase) Sincronización multiplataforma para persistencia de datos
+- [x] Mejores estadísticas diarias: Diferentes métricas de distribución de tiempo
 - [ ] Persistencia del tema elegido
 
 VERSIÓN 2.0 (Funcionalidades Compentarias)
