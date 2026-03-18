@@ -176,29 +176,30 @@ La aplicación es totalmente responsive y se adapta a:
 
 
 VERSIÓN 1.0 (Minimo funcional)
-	- [✓] Interfaz adecuada: Responsive para móvil y PC
-	- [✓] Modo oscuro/claro manual: Selector independiente
-	- [✓] Editor y creador de actividades: Permitir adecuar actividades a las necesidades propias
-	- [✓] Sistema de login y registro
-	- [✓] Base de datos en nube (Supabase) Sincronización multiplataforma para persistencia de datos
-	- [✓] Mejores estadísticas diarias: Diferentes métricas de distribución de tiempo
+- [ ] Interfaz adecuada: Responsive para móvil y PC
+- [ ] Modo oscuro/claro manual: Selector independiente
+- [ ] Editor y creador de actividades: Permitir adecuar actividades a las necesidades propias
+- [ ] Sistema de login y registro
+- [ ] Base de datos en nube (Supabase) Sincronización multiplataforma para persistencia de datos
+- [ ] Mejores estadísticas diarias: Diferentes métricas de distribución de tiempo
+- [ ] Persistencia del tema elegido
 
 VERSIÓN 2.0 (Funcionalidades Compentarias)
-    - [ ] Integracion de distintos estilos
-    - [ ] Crear/eliminar recordatorios básicos
-    - [ ] Productividad: Pomodoro Timer integrado en actividades
-    - [ ] Opcion de olvidar contraseña
-    - [ ] Inicio de sesion con google u otros servicios
-	- [ ] Guardar datos localmente (localStorage)
-	- [ ] Notificaciones: Notificaciones de navegador (cambio de actividad)
-	- [ ] Importación/Exportación: Exportar/importar horarios (xlsx, pdf y otros formatos)
+- [ ] Integracion de distintos estilos
+- [ ] Crear/eliminar recordatorios básicos
+- [ ] Productividad: Pomodoro Timer integrado en actividades
+- [ ] Opcion de olvidar contraseña
+- [ ] Inicio de sesion con google u otros servicios
+- [ ] Guardar datos localmente (localStorage)
+- [ ] Notificaciones: Notificaciones de navegador (cambio de actividad)
+- [ ] Importación/Exportación: Exportar/importar horarios (xlsx, pdf y otros formatos)
 
 VERSIÓN 3.0 (Extras)
-    - [ ] Multilingüe: Selector de idioma (Kanji, Español, Inglés)
-    - [ ] Estadísticas Ampliadas: Estadísticas semanales con gráficos
-	- [ ] Gráfico de distribución semanal por categorías
-    - [ ] Integración con calendario (Google Calendar)
-    - [ ] Integracion con notas (Google Keep y/o notion)
+- [ ] Multilingüe: Selector de idioma (Kanji, Español, Inglés)
+- [ ] Estadísticas Ampliadas: Estadísticas semanales con gráficos
+- [ ] Gráfico de distribución semanal por categorías
+- [ ] Integración con calendario (Google Calendar)
+- [ ] Integracion con notas (Google Keep y/o notion)
 
 ..,
 
