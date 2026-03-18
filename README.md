@@ -8,7 +8,7 @@ Alicación web moderna de gestión de horarios que visualiza tus actividades dia
 ![Vite](https://img.shields.io/badge/Vite-7.3.0-646CFF?style=flat-square&logo=vite)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1.18-06B6D4?style=flat-square&logo=tailwindcss)
 
-## 📋 Descripción
+## Descripción
 
 **Jikan** (時間 - "tiempo" en japonés) es una aplicación de planificación diaria que transforma cómo visualizas tu horario. En lugar de listas lineales, Jikan presenta tus actividades en una rueda circular interactiva, permitiéndote:
 
@@ -87,7 +87,7 @@ npm run build
 npm run preview
 ```
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 src/
