@@ -85,7 +85,7 @@ const CopyDayModal = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
           {DAYS_OF_WEEK.filter(day => day !== currentDay).map(day => {
             const activities = schedules[day] || [];
             const activityCount = activities.length;

@@ -292,7 +292,7 @@ const Daily = ({ schedule }) => {
       {/* Desglose por actividad */}
       <div className="mb-4 bg-white/5 rounded-xl p-4">
         <h4 className="text-sm font-medium text-white/70 mb-3">Distribución del tiempo</h4>
-        <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+        <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
           {Object.entries(activityStats)
             .sort(([, a], [, b]) => b - a) // Ordenar por duración descendente
             .map(([activity, hours], index) => {
