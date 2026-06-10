@@ -58,3 +58,7 @@ Desktop.ini
 # Archivos opcionales de npm
 .npm
 .yarn-integrity
+
+# Documentación local (no subir a GitHub)
+README_ES.md
+TECHNICAL_SPEC.md

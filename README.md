@@ -1,218 +1,216 @@
-# Jikan - Gestor de Horarios Circular 
-https://jikan-self.vercel.app/
+# Jikan (時間) — Circular Schedule Manager
 
-Alicación web moderna de gestión de horarios que visualiza tus actividades diarias en un formato de rueda interactiva. Planifica tu día de forma visual e intuitiva.
+[![Jikan Badge](https://img.shields.io/badge/Jikan-Schedule_Manager-blue?style=flat-square)](https://jikan-self.vercel.app)
+[![React](https://img.shields.io/badge/React-19.2.3-61DAFB?style=flat-square&logo=react)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-7.3.0-646CFF?style=flat-square&logo=vite)](https://vitejs.dev)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1.18-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com)
+[![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-![Jikan Badge](https://img.shields.io/badge/Jikan-Schedule_Manager-blue?style=flat-square)
-![React](https://img.shields.io/badge/React-19.2.3-61DAFB?style=flat-square&logo=react)
-![Vite](https://img.shields.io/badge/Vite-7.3.0-646CFF?style=flat-square&logo=vite)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1.18-06B6D4?style=flat-square&logo=tailwindcss)
+> **Jikan** (時間 — "time" in Japanese) is a modern web application for daily schedule management. It visualizes your activities in an interactive circular wheel, giving you an intuitive understanding of your day at a single glance.
 
-## Descripción
+🔗 **Live demo:** [jikan-self.vercel.app](https://jikan-self.vercel.app)
 
-**Jikan** (時間 - "tiempo" en japonés) es una aplicación de planificación diaria que transforma cómo visualizas tu horario. En lugar de listas lineales, Jikan presenta tus actividades en una rueda circular interactiva, permitiéndote:
+---
 
-- Visualizar el tiempo dedicado a cada actividad en un gráfico circular
-- Gestionar horarios para cada día de la semana
-- Establecer recordatorios para no olvidar actividades
-- Ver estadísticas diarias detalladas
-- Cambiar entre modo claro y oscuro
-- Sincronización en la nube con Supabase
+## Features
 
-## Características Principales
+### Core
 
-- **Visualización Circular**: Rueda visual intuitiva que muestra todas tus actividades del día
-- **Gestión de Actividades**: Crear, editar y eliminar actividades con duración personalizada
-- **Vista Detallada**: Inspecciona los detalles de cada actividad en una vista ampliada
-- **Copiar Horarios**: Duplica el horario de un día a otro con un solo clic
-- **Reminders**: Sistema de recordatorios para tus actividades (en desarrollo)
-- **Estadísticas**: Dashboard con estadísticas diarias y análisis
-- **Responsive**: Funciona perfectamente en desktop, tablet y dispositivos móviles
-- **Temas**: Alterna entre tema claro y oscuro según tus preferencias
-- **Sincronización en Tiempo Real**: Datos sincronizados con Supabase
+- **Circular Wheel Visualization** — 24-hour pie chart with clickable slices representing your daily activities
+- **Activity CRUD** — Create, edit, and delete activities with custom colors, descriptions, and time slots
+- **Daily Schedule per Day** — Independent schedules for each day of the week
+- **Copy Day** — Duplicate an entire day's schedule to another day in one click
+- **Statistics Dashboard** — Daily metrics: total time, averages, efficiency, activity distribution
+- **Reminders** — Basic reminder system for your activities
+- **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
+- **User Authentication** — Email/password login & registration via Supabase
+- **Cloud Sync** — Real-time data sync powered by Supabase (PostgreSQL + Realtime)
+- **Responsive Design** — Fully functional on mobile, tablet, and desktop
 
-## Requisitos Previos
+### Dual-Style Architecture (Planned — Maru + Sei)
 
-Si quieres tener o abrir el proyecto en local, asegúrate de tener instalado:
+Jikan's roadmap includes integrating **two visual styles** that share the same data layer:
 
-- **Node.js** (v16.0.0 o superior)
-- **npm** o **yarn** (gestor de paquetes)
-- Una cuenta en [Supabase](https://supabase.com)
+| Style | Aesthetic | CSS Approach | UX Pattern |
+|---|---|---|---|
+| **Maru** (丸) | Glassmorphism, gradients, frosted glass | Tailwind + custom CSS files | Full-page views, sidebar layout |
+| **Sei** (静) | Minimal flat design, solid colors | Tailwind only (zero custom CSS) | Mobile-first, card-based, bottom sheets |
 
-## Instalación
+Sei is currently a separate standalone project. Integration as an optional style within Jikan is planned for v2.0.
 
-### 1. Clonar el repositorio
+## Quick Start
 
 ```bash
-git clone https://github.com/tu-usuario/jikan.git
+# Clone
+git clone https://github.com/Harold-ESC/Jikan-Maru.git
 cd jikan
-```
 
-### 2. Instalar dependencias
-
-```bash
+# Install
 npm install
-```
 
-### 3. Configuración de Supabase
+# Environment
+cp .env.example .env.local
+# Fill in your Supabase credentials
 
-Crea un archivo `.env.local` en la raíz del proyecto:
-
-```env
-VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
-VITE_SUPABASE_ANON_KEY=tu-clave-anonima
-```
-
-Obtén estas credenciales desde tu dashboard de Supabase.
-
-## Uso
-
-### Modo Desarrollo
-
-```bash
+# Dev server
 npm run dev
 ```
 
-La aplicación se abrirá en `http://localhost:5173`
+### Prerequisites
 
-### Compilar para Producción
+- Node.js 18+
+- npm / yarn
+- Supabase account (free tier works)
 
-```bash
-npm run build
+### Environment Variables
+
+```env
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-### Vista Previa de Producción
+### Commands
 
-```bash
-npm run preview
-```
+| Command | Description |
+|---|---|
+| `npm run dev` | Start dev server (localhost:5173) |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
 
-## Estructura del Proyecto
-
-```
-src/
-├── core/                    # Componentes principales de la aplicación
-│   ├── LoginScreen.jsx     # Pantalla de autenticación
-│   ├── activities/         # Gestión de actividades
-│   │   ├── Card.jsx        # Tarjeta individual de actividad
-│   │   └── DetailView.jsx  # Vista detallada de actividad
-│   ├── common/             # Componentes compartidos
-│   │   ├── Header.jsx      # Encabezado
-│   │   ├── DaySelector.jsx # Selector de día
-│   │   ├── CopyDayModal.jsx
-│   │   └── ThemeToggle.jsx # Cambio de tema
-│   ├── stats/              # Estadísticas
-│   │   ├── Daily.jsx       # Estadísticas diarias
-│   │   └── Reminders.jsx   # Panel de recordatorios
-│   └── wheel/              # Visualización circular
-│       └── PieChart.jsx    # Gráfico tipo rueda
-├── hooks/                   # Hooks personalizados
-│   ├── useActivities.js    # Gestión de actividades
-│   ├── useSession.js       # Sesión de usuario
-│   ├── useTheme.js         # Tema de la aplicación
-│   └── useClock.js         # Reloj en tiempo real
-├── lib/                     # Librerías y configuración
-│   └── supabase.js        # Cliente de Supabase
-├── utils/                   # Funciones utilidad
-│   ├── dates.js            # Operaciones con fechas
-│   └── index.js            # Constantes y funciones
-├── styles/                  # Estilos CSS
-│   ├── maru/              # Tema Maru
-│   └── sei/               # Tema Sei
-├── assets/                 # Imágenes y recursos
-├── App.jsx                # Componente raíz
-├── JikanApp.jsx          # Lógica principal de la aplicación
-└── main.jsx              # Punto de entrada
-```
-
-## Stack Tecnológico
+## Tech Stack
 
 ### Frontend
-- **React** 19.2.3 - Librería UI
-- **Vite** 7.3.0 - Bundler y dev server
-- **Tailwind CSS** 4.1.18 - Framework CSS utilitario
-- **Lucide React** 0.562.0 - Iconografía
 
-### Backend & Base de Datos
-- **Supabase** - Backend as a Service
-  - PostgreSQL para datos
-  - Autenticación integrada
-  - Realtime subscriptions
+| Library | Version | Purpose |
+|---|---|---|
+| React | 19.2.3 | UI framework |
+| Vite | 7.3.0 | Bundler & dev server |
+| Tailwind CSS | 4.1.18 | Utility-first CSS |
+| Lucide React | 0.562.0 | Icons |
 
-### Herramientas de Desarrollo
-- **ESLint** - Linter
-- **PostCSS** - Procesador de CSS
-- **Autoprefixer** - Compatibilidad CSS
+### Backend & Database
 
-## Características de Diseño
+| Service | Purpose |
+|---|---|
+| Supabase Auth | Authentication (email/password) |
+| Supabase PostgreSQL | Data storage |
+| Supabase Realtime | Live sync |
 
-El proyecto pronto incluirá múltiples temas:
-- **Tema Maru**: Tema principal moderno (actual)
-- **Tema Sei**: Tema alternativo
+### Dev Tools
 
-### Componentes de Estilo
-- `activity-card.css` - Tarjetas de actividad
-- `day-selector.css` - Selector de día
-- `wheel.css` - Visualización circular
-- `theme-toggle.css` - Cambio de tema
-- `scrollbar.css` - Personalización de scrollbar
-- `reminders.css` - Panel de recordatorios
-- `stats.css` - Estadísticas
+- **ESLint** — Code linting
+- **PostCSS** + **Autoprefixer** — CSS processing
 
-## Seguridad
+## Project Structure
 
-- Autenticación mediante Supabase
-- Datos protegidos en base de datos PostgreSQL
-- Las credenciales de API se almacenan en variables de entorno
-
-## Responsividad
-
-La aplicación es totalmente responsive y se adapta a:
-- Dispositivos móviles (320px+)
-- Tablets (768px+)
-- Desktop (1024px+)
+```
+jikan/
+├── public/                  # Static assets
+├── src/
+│   ├── core/                # Main application components
+│   │   ├── activities/      # Activity cards, detail view, editor
+│   │   ├── common/          # Header, DaySelector, ThemeToggle, modals
+│   │   ├── stats/           # Statistics dashboard, reminders
+│   │   ├── wheel/           # SVG circular chart
+│   │   └── LoginScreen.jsx  # Authentication screen
+│   ├── hooks/               # Custom React hooks
+│   │   ├── useActivities.js # Activity CRUD operations
+│   │   ├── useSession.js    # User session management
+│   │   ├── useTheme.js      # Theme state (auto/light/dark)
+│   │   └── useClock.js      # Real-time clock
+│   ├── lib/                 # External service clients
+│   │   └── supabase.js      # Supabase client
+│   ├── utils/               # Utility functions
+│   ├── styles/              # CSS by theme
+│   │   ├── maru/            # Maru style (10 CSS files)
+│   │   └── sei/             # Sei style (Tailwind-only)
+│   ├── assets/              # Images & resources
+│   ├── App.jsx              # Auth gate
+│   ├── JikanApp.jsx         # Main app shell
+│   └── main.jsx             # Entry point
+├── README.md                # This file
+├── README_ES.md             # Spanish documentation (local)
+├── TECHNICAL_SPEC.md        # Technical specification (local)
+├── tailwind.config.js
+├── vite.config.js
+├── eslint.config.js
+├── postcss.config.js
+├── package.json
+└── .env                     # Environment variables (gitignored)
+```
 
 ## Roadmap
 
+### v1.0 — Minimum Viable Product
+- [x] Responsive layout (mobile & desktop)
+- [x] Dark/light manual theme toggle
+- [x] Activity editor & creator
+- [x] Login & registration
+- [x] Cloud database (Supabase) & cross-device sync
+- [x] Daily statistics & time distribution metrics
+- [x] Basic reminders (create/delete)
+- [x] Theme persistence
+- [ ] "Remember me" / password reset flow
 
-VERSIÓN 1.0 (Minimo funcional)
-- [x] Interfaz adecuada: Responsive para móvil y PC
-- [x] Modo oscuro/claro manual: Selector independiente
-- [x] Editor y creador de actividades: Permitir adecuar actividades a las necesidades propias
-- [x] Sistema de login y registro
-- [x] Base de datos en nube (Supabase) Sincronización multiplataforma para persistencia de datos
-- [x] Mejores estadísticas diarias: Diferentes métricas de distribución de tiempo
-- [ ] Persistencia del tema elegido
+### v2.0 — Dual-Style & Productivity
+- [ ] **Maru + Sei style integration** — Sei as an optional visual style within Jikan
+- [ ] Style selector in settings
+- [ ] Pomodoro Timer integrated per activity
+- [ ] Local storage fallback (offline-ready)
+- [ ] Browser notifications (activity change alerts)
+- [ ] Import/export schedules (XLSX, PDF, CSV)
+- [ ] Google OAuth & social login
 
-VERSIÓN 2.0 (Funcionalidades Compentarias)
-- [ ] Integracion de distintos estilos
-- [ ] Crear/eliminar recordatorios básicos
-- [ ] Productividad: Pomodoro Timer integrado en actividades
-- [ ] Opcion de olvidar contraseña
-- [ ] Inicio de sesion con google u otros servicios
-- [ ] Guardar datos localmente (localStorage)
-- [ ] Notificaciones: Notificaciones de navegador (cambio de actividad)
-- [ ] Importación/Exportación: Exportar/importar horarios (xlsx, pdf y otros formatos)
+### v3.0 — Analytics & Integrations
+- [ ] Multi-language (日本語, Español, English)
+- [ ] Weekly statistics with interactive charts
+- [ ] Category-based weekly distribution graph
+- [ ] Google Calendar integration
+- [ ] Notes integration (Google Keep, Notion)
+- [ ] Compliance history & habit dashboard
 
-VERSIÓN 3.0 (Extras)
-- [ ] Multilingüe: Selector de idioma (Kanji, Español, Inglés)
-- [ ] Estadísticas Ampliadas: Estadísticas semanales con gráficos
-- [ ] Gráfico de distribución semanal por categorías
-- [ ] Integración con calendario (Google Calendar)
-- [ ] Integracion con notas (Google Keep y/o notion)
+### Future
+- **Desktop app** (Electron / Tauri) with widget, screensaver, taskbar timer
+- **PWA** with home screen widgets
+- **Wearables** (Apple Watch, smartwatch notifications)
+- **Voice commands** ("What's next?")
+- **University module**: GPA calculator, campus map, professor office hours, deadline tracking, study groups
+- **Gamification**: XP system, badges, levels, weekly challenges
+- **Smart alerts**: break reminders, hydration, sleep warnings, burnout detection
+- **AI suggestions**: schedule optimization based on your patterns
+- **Collaboration**: shared schedules, study groups, leaderboards
 
-..,
+## Styling System
 
-## Contribución
+Jikan currently uses the **Maru style** with a **theme-driven CSS architecture**:
 
-Las contribuciones y sugerencias son bienvenidas. Para contribuir:
+- **Maru (current default):** 10 dedicated CSS files in `src/styles/maru/` for glassmorphism effects, custom scrollbar, animations
+- **Sei (planned):** Pure Tailwind utility classes, no custom CSS — minimal and flat. The `src/styles/sei/` directory is ready to receive Sei components once integrated.
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commits descriptivos (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+## Security
 
-##  Licencia
+- Authentication via Supabase (server-side)
+- Data stored in PostgreSQL (encrypted at rest)
+- API credentials managed through environment variables
+- No exposed secrets in client-side code
 
-Este proyecto está bajo la licencia especificada en [LICENSE](LICENSE)
+## Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
+
+## Author
+
+**Harold-ESC** — Computer Science student at Universidad Nacional de Colombia
+
+- GitHub: [@Harold-ESC](https://github.com/Harold-ESC)
