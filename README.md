@@ -153,33 +153,57 @@ jikan/
 - [x] Theme persistence
 - [ ] "Remember me" / password reset flow
 
-### v2.0 — Dual-Style & Productivity
-- [ ] **Maru + Sei style integration** — Sei as an optional visual style within Jikan
-- [ ] Style selector in settings
-- [ ] Pomodoro Timer integrated per activity
-- [ ] Local storage fallback (offline-ready)
-- [ ] Browser notifications (activity change alerts)
-- [ ] Import/export schedules (XLSX, PDF, CSV)
-- [ ] Google OAuth & social login
+### v2.0 — Dual Style & Internationalization
+- [ ] **Sei integration** — Sei as an optional visual style within Jikan + style selector in settings
+- [ ] **Language selector** (日本語, Español, English)
+- [ ] **Hideable & draggable widgets** — eye-off toggle per panel; settings gear for component visibility (stats, pomodoro, notes, etc.); drag-to-reorder mode with toggle icon
 
-### v3.0 — Analytics & Integrations
-- [ ] Multi-language (日本語, Español, English)
-- [ ] Weekly statistics with interactive charts
-- [ ] Category-based weekly distribution graph
-- [ ] Google Calendar integration
-- [ ] Notes integration (Google Keep, Notion)
-- [ ] Compliance history & habit dashboard
+### v3.0 — Productivity & Notifications
+- [ ] **Pomodoro Timer** integrated per activity
+- [ ] **Notes** per activity block
+- [ ] **Browser notifications** (activity change alerts, pre-activity warnings)
+- [ ] **Import/export schedules** (XLSX and other formats)
+- [ ] **Export to PDF**
 
-### Future
-- **Desktop app** (Electron / Tauri) with widget, screensaver, taskbar timer
-- **PWA** with home screen widgets
-- **Wearables** (Apple Watch, smartwatch notifications)
-- **Voice commands** ("What's next?")
-- **University module**: GPA calculator, campus map, professor office hours, deadline tracking, study groups
-- **Gamification**: XP system, badges, levels, weekly challenges
-- **Smart alerts**: break reminders, hydration, sleep warnings, burnout detection
-- **AI suggestions**: schedule optimization based on your patterns
-- **Collaboration**: shared schedules, study groups, leaderboards
+### v4.0 — Study & Content Tools
+- [ ] **Custom fonts**
+- [ ] **Resource links** per activity (class materials, URLs)
+- [ ] **Exam calendar** with auto-preparation
+- [ ] **Integrated flashcards** for review during breaks
+- [ ] **Productivity graphs & comparative charts** (month vs month)
+
+### v5.0 — University Module
+- [ ] **Grade calculator** — time spent vs grades correlation
+- [ ] **Campus interactive map**
+- [ ] **Weekly credit counter** — visualize academic load
+- [ ] **Professor office hours** directory
+- [ ] **Deadline tracking** integrated
+- [ ] **Attendance tracker** — mark classes attended
+
+### v6.0 — Privacy, Backup & PWA
+- [ ] **Private mode** — opt out of saving certain data
+- [ ] **Local auto-backup** (no internet required)
+- [ ] **Full data export** (GDPR compliance)
+- [ ] **Cloud backup** (Google Drive, Dropbox)
+- [ ] **Local encryption** for sensitive data
+- [ ] **PWA** — offline support, home screen widgets
+
+### v7.0 — Health & Minimalism
+- [ ] **Break alerts** — "3h studying — take a break", "Sleep in 30 min", hydration reminders
+- [ ] **Minimalist mode** — ultra-simple distraction-free view
+- [ ] **Stretching routines** between blocks
+- [ ] **Guided meditation** for breaks
+- [ ] **Meal reminders**
+- [ ] **Burnout detection** — alerts if overworking
+
+### v8.0+ — Future (Collaboration, Integrations & Advanced)
+- **Productivity extras:** To-do list per activity, pull animations, study groups
+- **Collaboration:** Shared schedules, group study sessions, chat per activity, study communities, mentor/accountability partner, community template library
+- **Integrations:** Google Calendar, Notion, Obsidian, Google Keep
+- **Visual extras:** Retro, pixelart, matrix, anime styles; custom themes & backgrounds
+- **Platform:** Desktop app (Electron/Tauri), voice commands, multi-user profiles, Apple Watch
+- **Gamification:** XP system, badges, levels, challenges, avatar
+- **AI & automation:** Schedule suggestions, auto-adjustment, time prediction, optimization, sleep analysis, personalized recommendations, virtual assistant
 
 ## Styling System
 
