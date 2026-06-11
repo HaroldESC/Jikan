@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react';
 import { Plus, Copy } from 'lucide-react';
 
-import PieChart from './wheel/PieChart';
+import WheelMaru from './wheel/WheelMaru';
+import WheelSei from './wheel/WheelSei';
 import Header from '../components/Header';
 import DaySelector from '../components/DaySelector';
 import ActivityCard from '../components/ActivityCard';
 import Daily from './stats/Daily';
 import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
-import { ScheduleClock } from '../styles/sei/components/ScheduleClock';
+
 import { ActivityList } from '../styles/sei/components/ActivityList';
 import DetailViewSei from './activities/DetailViewSei';
 import { toSeiActivity, DAYS_FULL } from '../styles/sei/utils/adapter';
@@ -94,11 +95,11 @@ export default function AppLayout({
           <div className={isMaru ? 'lg:col-span-2' : 'w-full'}>
             {isMaru ? (
               <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8">
-                <PieChart schedule={rawActivities} currentDay={currentDay} onActivitySelect={onActivitySelect} />
+                <WheelMaru schedule={rawActivities} currentDay={currentDay} onActivitySelect={onActivitySelect} />
               </div>
             ) : (
               <div className="w-full max-w-[320px] aspect-square relative mb-6 mx-auto">
-                <ScheduleClock schedule={seiActivities} nowMinutes={currentMinutes}
+                <WheelSei schedule={seiActivities} nowMinutes={currentMinutes}
                   currentActivityId={seiCurrentId} isViewingToday={isViewingToday}
                   isDarkMode={dark} onActivitySelect={handleSeiClick} />
               </div>

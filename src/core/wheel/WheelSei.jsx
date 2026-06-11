@@ -10,16 +10,11 @@ const describeArc = (x, y, radius, startAngle, endAngle, innerRadius) => {
   const startInner = polarToCartesian(x, y, innerRadius, endAngle);
   const endInner = polarToCartesian(x, y, innerRadius, startAngle);
   const large = endAngle - startAngle <= 180 ? '0' : '1';
-  return [
-    'M', start.x, start.y,
-    'A', radius, radius, 0, large, 0, end.x, end.y,
-    'L', endInner.x, endInner.y,
-    'A', innerRadius, innerRadius, 0, large, 1, startInner.x, startInner.y,
-    'Z',
-  ].join(' ');
+  return ['M', start.x, start.y, 'A', radius, radius, 0, large, 0, end.x, end.y,
+    'L', endInner.x, endInner.y, 'A', innerRadius, innerRadius, 0, large, 1, startInner.x, startInner.y, 'Z'].join(' ');
 };
 
-export function ScheduleClock({ schedule, nowMinutes, currentActivityId, isViewingToday, isDarkMode, onActivitySelect }) {
+export default function WheelSei({ schedule, nowMinutes, currentActivityId, isViewingToday, isDarkMode, onActivitySelect }) {
   const cx = 150, cy = 150, radius = 120, innerRadius = 70;
 
   return (
@@ -39,8 +34,7 @@ export function ScheduleClock({ schedule, nowMinutes, currentActivityId, isViewi
         const isCurrent = isViewingToday && currentActivityId === activity.id;
 
         return (
-          <path
-            key={activity.id}
+          <path key={activity.id}
             d={describeArc(cx, cy, radius, startAng, endAng, innerRadius)}
             fill={activity.color}
             opacity={isCurrent ? 1 : 0.5}

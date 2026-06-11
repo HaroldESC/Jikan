@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { supabase } from './lib/supabase';
 
 // Componentes personalizados
-import PieChart from './core/wheel/PieChart';
+import WheelMaru from './core/wheel/WheelMaru';
 import DetailViewMaru from './core/activities/DetailViewMaru';
 import DaySelector from './core/common/DaySelector';
 import CardMaru from './core/activities/CardMaru';
@@ -511,7 +511,7 @@ const App = ({ user }) => {
           {/* Rueda de horario */}
           <div className="lg:col-span-2">
             <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8">
-              <PieChart
+              <WheelMaru
                 schedule={schedules[currentDay] || []}
                 currentDay={currentDay}
                 onActivitySelect={handleActivitySelect}
