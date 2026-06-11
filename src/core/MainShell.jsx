@@ -6,8 +6,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
 import { getCurrentDay } from '../utils/dates';
 
-import MaruLayout from './MaruLayout';
-import SeiLayout from './SeiLayout';
+import AppLayout from './AppLayout';
 import DetailView from './activities/DetailView';
 import EditView from './EditView';
 
@@ -252,35 +251,23 @@ export default function MainShell({ user }) {
     );
   }
 
-  if (style === 'maru') {
-    return (
-      <MaruLayout
-        schedules={schedules}
-        currentDay={currentDay}
-        onSelectDay={setCurrentDay}
-        onActivitySelect={handleActivitySelect}
-        onAddActivity={handleAddActivity}
-        showCopyModal={showCopyModal}
-        setShowCopyModal={setShowCopyModal}
-        onCopyDay={handleCopyDay}
-        currentTime={currentTime}
-        themeMode={themeMode}
-        toggleTheme={toggleTheme}
-        bgColor={bgColor}
-        user={user}
-      />
-    );
-  }
-
   return (
-    <SeiLayout
+    <AppLayout
+      style={style}
       schedules={schedules}
       currentDay={currentDay}
       onSelectDay={setCurrentDay}
-      currentTime={currentTime}
-      isDarkMode={isDarkMode}
-      toggleTheme={toggleTheme}
+      onActivitySelect={handleActivitySelect}
+      onAddActivity={handleAddActivity}
       onEditActivity={handleEditActivity}
+      showCopyModal={showCopyModal}
+      setShowCopyModal={setShowCopyModal}
+      onCopyDay={handleCopyDay}
+      currentTime={currentTime}
+      themeMode={themeMode}
+      toggleTheme={toggleTheme}
+      bgColor={bgColor}
+      isDarkMode={isDarkMode}
       user={user}
     />
   );
