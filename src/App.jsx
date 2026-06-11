@@ -13,8 +13,9 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash && hash.includes('type=recovery')) {
+    if (hash && (hash.includes('type=recovery') || hash.includes('access_token'))) {
       setRecoveryMode(true);
+      window.location.hash = '';
     }
   }, []);
 

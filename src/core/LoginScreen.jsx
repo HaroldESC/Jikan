@@ -71,8 +71,9 @@ const LoginScreen = () => {
       return;
     }
 
+    const origin = window.location.origin;
     const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
-      redirectTo: window.location.origin,
+      redirectTo: origin,
     });
 
     if (error) {

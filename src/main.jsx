@@ -13,9 +13,12 @@ import "./styles/maru/theme-toggle.css";
 import "./styles/maru/scrollbar.css";
 
 import App from './App.jsx'
+import { ThemeProvider } from './hooks/useTheme.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
   </StrictMode>,
 )
