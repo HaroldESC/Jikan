@@ -1,56 +1,48 @@
-/**
- * Hook useTheme
- * 
- * Gestiona la lógica del tema (automático, claro, oscuro) y proporciona
- * utilidades relacionadas.
- * 
- */
+import { useState, useCallback } from 'react';
 
-import { useState } from 'react';
+const STYLE_KEY = 'jikan-style';
+const THEME_KEY = 'jikan-theme';
+
+const getInitial = (key, fallback) => {
+  try {
+    return localStorage.getItem(key) || fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 export const useTheme = () => {
-  const [themeMode, setThemeMode] = useState('auto');
+  const [themeMode, setThemeMode] = useState(() => getInitial(THEME_KEY, 'auto'));
+  const [style, setStyleState] = useState(() => getInitial(STYLE_KEY, 'maru'));
 
-  /**
-   * Determina si es noche basado en la hora actual
-   */
+  const persistTheme = (mode) => {
+    setThemeMode(mode);
+    try { localStorage.setItem(THEME_KEY, mode); } catch {}
+  };
+
+  const setStyle = useCallback((s) => {
+    setStyleState(s);
+    try { localStorage.setItem(STYLE_KEY, s); } catch {}
+  }, []);
+
   const isNightTime = () => {
     const hours = new Date().getHours();
     return hours >= 20 || hours < 6;
   };
 
-  /**
-   * Determina si el modo oscuro está activo
-   */
   const isDarkMode = () => {
     if (themeMode === 'dark') return true;
     if (themeMode === 'light') return false;
-    return isNightTime(); // modo auto
+    return isNightTime();
   };
 
-  /**
-   * Cambia al siguiente modo de tema
-   */
   const toggleTheme = () => {
-    setThemeMode(prev => {
-      if (prev === 'auto') return 'light';
-      if (prev === 'light') return 'dark';
-      return 'auto';
-    });
+    persistTheme(themeMode === 'auto' ? 'light' : themeMode === 'light' ? 'dark' : 'auto');
   };
 
-  /**
-   * Obtiene la clase de gradient según el tema
-   */
   const bgColor = isDarkMode()
     ? 'from-indigo-900 via-purple-900 to-pink-900'
     : 'from-blue-400 via-cyan-400 to-teal-400';
 
-  return {
-    themeMode,
-    toggleTheme,
-    isDarkMode,
-    bgColor,
-    isNightTime
-  };
+  return { themeMode, toggleTheme, isDarkMode, bgColor, isNightTime, style, setStyle };
 };

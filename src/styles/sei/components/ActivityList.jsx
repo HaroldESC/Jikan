@@ -1,0 +1,45 @@
+export function ActivityList({ activities, isDarkMode, isViewingToday, currentActivityId, dayName, onActivitySelect }) {
+  const isCurrent = (a) => isViewingToday && currentActivityId === a.id;
+
+  return (
+    <section className="w-full" aria-label="Lista de actividades del día">
+      <header>
+        <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 flex justify-between ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
+          <span>Plan para {dayName}</span>
+          {!isViewingToday && (
+            <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 rounded text-slate-500" aria-label="Vista previa - No es el día actual">
+              Vista Previa
+            </span>
+          )}
+        </h3>
+      </header>
+      <div className="space-y-3 pb-10" role="list">
+        {activities.map((activity) => (
+          <article
+            key={activity.id}
+            onClick={() => onActivitySelect(activity)}
+            role="listitem"
+            aria-label={`Actividad: ${activity.label} de ${activity.start} a ${activity.end}`}
+            className={`flex items-center p-3 rounded-2xl border cursor-pointer hover:scale-[1.01] transition-transform duration-200 ${
+              isDarkMode ? 'border-slate-800 bg-slate-800/50 hover:bg-slate-800/70' : 'border-slate-100 bg-white hover:bg-slate-50'
+            } ${isCurrent(activity) ? 'ring-2 ring-offset-2 ring-blue-500 shadow-md' : ''}`}
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivitySelect(activity); } }}
+          >
+            <div className="w-3 h-10 rounded-full mr-4 flex-shrink-0" style={{ backgroundColor: activity.color }} aria-hidden="true" />
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between mb-1">
+                <h4 className="font-semibold text-sm truncate">{activity.label}</h4>
+                <time className="text-xs font-mono opacity-60 flex-shrink-0 ml-2" dateTime={`${activity.start}/${activity.end}`}>
+                  {activity.start} - {activity.end}
+                </time>
+              </div>
+              <p className="text-xs opacity-60 line-clamp-1" title={activity.description}>{activity.description}</p>
+            </div>
+            {isCurrent(activity) && <span className="sr-only">Actividad actual en curso</span>}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}

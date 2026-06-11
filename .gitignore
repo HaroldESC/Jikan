@@ -59,6 +59,6 @@ Desktop.ini
 .npm
 .yarn-integrity
 
-# Documentación local (no subir a GitHub)
+# Documentación local
 README_ES.md
 TECHNICAL_SPEC.md
