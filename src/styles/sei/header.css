@@ -1,0 +1,113 @@
+.theme-sei .app-header {
+  padding: 1rem 1rem .5rem;
+}
+
+.theme-sei .app-header__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.theme-sei .app-header__left,
+.theme-sei .app-header__theme-maru,
+.theme-sei .app-header__time {
+  display: none;
+}
+
+.theme-sei .app-header__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.theme-sei .app-header__meta-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.theme-sei .app-header__date {
+  font-size: .75rem;
+  color: #64748b;
+}
+
+.theme-sei .app-header--dark .app-header__date {
+  color: #94a3b8;
+}
+
+.theme-sei .app-header__right {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+}
+
+.theme-sei .app-header__notif-btn {
+  padding: .5rem;
+  border-radius: 999px;
+  transition: background-color 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-family: inherit;
+}
+
+.theme-sei .app-header__notif-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.theme-sei .app-header--dark .app-header__notif-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.theme-sei .app-header__notif-btn--on {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.theme-sei .app-header__theme-sei {
+  padding: .5rem;
+  border-radius: 999px;
+  transition: background-color 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-family: inherit;
+}
+
+.theme-sei .app-header--dark .app-header__theme-sei {
+  color: #facc15;
+}
+
+.theme-sei .app-header__theme-sei:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.theme-sei .app-header--dark .app-header__theme-sei:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.theme-sei .app-header__settings-btn {
+  padding: .5rem;
+  border-radius: 999px;
+  transition: background-color 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-family: inherit;
+}
+
+.theme-sei .app-header--dark .app-header__settings-btn {
+  color: #9ca3af;
+}
+
+.theme-sei .app-header__settings-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.theme-sei .app-header--dark .app-header__settings-btn:hover {
+  background: rgba(255,255,255,0.1);
+}

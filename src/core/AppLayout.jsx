@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
-import { Plus, Copy, Bell, Moon, Sun, Settings as SettingsIcon } from 'lucide-react';
+import { Plus, Copy } from 'lucide-react';
 
 import PieChart from './wheel/PieChart';
+import Header from '../components/Header';
 import DaySelector from '../components/DaySelector';
 import ActivityCard from '../components/ActivityCard';
 import Daily from './stats/Daily';
-import ThemeToggle from './common/ThemeToggle';
-import { SettingsButton, SettingsModal } from './common/Settings';
+import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
 import { ScheduleClock } from '../styles/sei/components/ScheduleClock';
 import { ActivityList } from '../styles/sei/components/ActivityList';
@@ -74,48 +74,16 @@ export default function AppLayout({
     <div className={`theme-${style} ${isMaru ? `min-h-screen bg-gradient-to-br ${bgColor}` : `min-h-screen ${dark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`} p-6 transition-all duration-1000 font-sans`}>
       <div className={isMaru ? 'max-w-6xl mx-auto' : ''}>
         {/* ── HEADER ── */}
-        {isMaru ? (
-          <header className="app-header">
-            <div className="app-header__top">
-              <div className="flex-1">
-                <ThemeToggle themeMode={themeMode} onToggle={toggleTheme} />
-              </div>
-              <h1 className="app-header__title">Jikan Maru</h1>
-              <div className="flex-1 flex justify-end">
-                <SettingsButton onClick={() => setIsSettingsOpen(true)} />
-              </div>
-            </div>
-            <div className="app-header__time">
-              <span>{currentTime.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          </header>
-        ) : (
-          <header className="p-4 pb-2">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h1 className="text-xl font-bold tracking-tight">Jikan Sei</h1>
-                <p className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {currentTime.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => setNotificationsEnabled(!notificationsEnabled)}
-                  className={`p-2 rounded-full transition-colors ${notificationsEnabled ? 'bg-blue-100 text-blue-600' : 'bg-transparent text-gray-400'}`}
-                  aria-label={notificationsEnabled ? 'Notificaciones activadas' : 'Notificaciones desactivadas'}>
-                  <Bell size={18} />
-                </button>
-                <button onClick={toggleTheme}
-                  className={`p-2 rounded-full transition-colors ${dark ? 'bg-slate-800 text-yellow-400' : 'bg-white shadow-sm text-slate-600'}`}>
-                  {dark ? <Moon size={18} /> : <Sun size={18} />}
-                </button>
-                <button onClick={() => setIsSettingsOpen(true)}
-                  className={`p-2 rounded-full transition-colors ${dark ? 'hover:bg-slate-800' : 'hover:bg-slate-200'} text-gray-400`}>
-                  <SettingsIcon size={18} />
-                </button>
-              </div>
-            </div>
-          </header>
-        )}
+        <Header
+          title={`Jikan ${style === 'maru' ? 'Maru' : 'Sei'}`}
+          currentTime={currentTime}
+          themeMode={themeMode}
+          onToggleTheme={toggleTheme}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          notificationsEnabled={notificationsEnabled}
+          onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
+          isDarkMode={dark}
+        />
 
         {/* ── DAY SELECTOR ── */}
         <DaySelector days={DAYS_OF_WEEK} currentDay={currentDay} onSelectDay={onSelectDay} isDarkMode={dark} />

@@ -1,25 +1,95 @@
-.app-header {
+.theme-maru .app-header {
   text-align: center;
   margin-bottom: 2rem;
   color: white;
 }
 
-.app-header__top {
+.theme-maru .app-header__row {
   display: flex;
   align-items: flex-start;
   margin-bottom: 1rem;
 }
 
-.app-header__title {
+.theme-maru .app-header__left {
   flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.theme-maru .app-header__brand {
+  flex: 1;
+}
+
+.theme-maru .app-header__right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: .5rem;
+  align-items: center;
+}
+
+.theme-maru .app-header__title {
   font-size: 2.2rem;
   font-weight: 700;
 }
 
-.app-header__time {
+.theme-maru .app-header__meta-row {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: .5rem;
   font-size: 1.1rem;
+  margin-top: .25rem;
+}
+
+.theme-maru .app-header__date { display: none; }
+
+.theme-maru .app-header__theme-maru {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+  padding: .5rem 1rem;
+  border-radius: .5rem;
+  transition: .2s;
+  backdrop-filter: blur(6px);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: .8rem;
+}
+
+.theme-maru .app-header__theme-maru:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.theme-maru .app-header__theme-label {
+  text-transform: capitalize;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .theme-maru .app-header__theme-label {
+    display: inline;
+  }
+}
+
+.theme-maru .app-header__notif-btn,
+.theme-maru .app-header__theme-sei {
+  display: none;
+}
+
+.theme-maru .app-header__settings-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: .5rem;
+  border-radius: .5rem;
+  transition: .2s;
+}
+
+.theme-maru .app-header__settings-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
 }

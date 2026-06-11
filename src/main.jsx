@@ -13,6 +13,7 @@ import "./styles/maru/theme-toggle.css";
 import "./styles/maru/scrollbar.css";
 import "./styles/sei/day-selector.css";
 import "./styles/sei/activity-card.css";
+import "./styles/sei/header.css";
 
 import App from './App.jsx'
 import { ThemeProvider } from './hooks/useTheme.jsx'
