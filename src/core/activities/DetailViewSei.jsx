@@ -7,7 +7,7 @@ function calcDuration(activity) {
   return ((end - start) / 60).toFixed(1);
 }
 
-export function ActivityDetailModal({ activity, isDarkMode, onClose }) {
+export default function DetailViewSei({ activity, isDarkMode, onClose }) {
   if (!activity) return null;
   const duration = calcDuration(activity);
 

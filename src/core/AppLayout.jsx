@@ -10,7 +10,7 @@ import { SettingsButton, SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
 import { ScheduleClock } from '../styles/sei/components/ScheduleClock';
 import { ActivityList } from '../styles/sei/components/ActivityList';
-import { ActivityDetailModal } from '../styles/sei/components/ActivityDetailModal';
+import DetailViewSei from './activities/DetailViewSei';
 import { toSeiActivity, DAYS_FULL } from '../styles/sei/utils/adapter';
 import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
@@ -187,7 +187,7 @@ export default function AppLayout({
       )}
 
       {!isMaru && (
-        <ActivityDetailModal activity={seiSelectedActivity} isDarkMode={dark}
+        <DetailViewSei activity={seiSelectedActivity} isDarkMode={dark}
           onClose={() => setSeiSelectedActivity(null)} />
       )}
 

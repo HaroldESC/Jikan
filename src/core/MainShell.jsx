@@ -7,7 +7,7 @@ import { useActivities } from '../hooks/useActivities';
 import { getCurrentDay } from '../utils/dates';
 
 import AppLayout from './AppLayout';
-import DetailView from './activities/DetailView';
+import DetailViewMaru from './activities/DetailViewMaru';
 import EditView from './EditView';
 
 const timeToDecimal = (timeString) => {
@@ -212,7 +212,7 @@ export default function MainShell({ user }) {
 
   if (view === 'detail' && selectedActivity) {
     return (
-      <DetailView
+      <DetailViewMaru
         activity={selectedActivity}
         day={currentDay}
         bgColor={bgColor}

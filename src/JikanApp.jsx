@@ -11,7 +11,7 @@ import { supabase } from './lib/supabase';
 
 // Componentes personalizados
 import PieChart from './core/wheel/PieChart';
-import DetailView from './core/activities/DetailView';
+import DetailViewMaru from './core/activities/DetailViewMaru';
 import DaySelector from './core/common/DaySelector';
 import CardMaru from './core/activities/CardMaru';
 import Reminders from './core/stats/Reminders';
@@ -310,7 +310,7 @@ const App = ({ user }) => {
   // Vista de detalles
   if (view === 'detail' && selectedActivity) {
     return (
-      <DetailView
+      <DetailViewMaru
         activity={selectedActivity}
         day={currentDay}
         bgColor={bgColor}
