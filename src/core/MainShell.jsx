@@ -280,6 +280,7 @@ export default function MainShell({ user }) {
       currentTime={currentTime}
       isDarkMode={isDarkMode}
       toggleTheme={toggleTheme}
+      onEditActivity={handleEditActivity}
       user={user}
     />
   );

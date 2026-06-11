@@ -30,7 +30,7 @@ export function ScheduleClock({ schedule, nowMinutes, currentActivityId, isViewi
           Sin actividades
         </text>
       )}
-      {schedule.map((activity) => {
+      {schedule.map((activity, index) => {
         let startMins = timeToMinutes(activity.start);
         let endMins = timeToMinutes(activity.end);
         if (endMins === 0) endMins = 1440;
@@ -45,13 +45,14 @@ export function ScheduleClock({ schedule, nowMinutes, currentActivityId, isViewi
             fill={activity.color}
             opacity={isCurrent ? 1 : 0.5}
             className="cursor-pointer transition-all duration-300 hover:opacity-100 hover:scale-105 origin-center"
-            onClick={() => onActivitySelect(activity)}
+            onClick={(e) => onActivitySelect(activity, index, e)}
+            onContextMenu={(e) => onActivitySelect(activity, index, e)}
             stroke={isDarkMode ? '#0f172a' : '#ffffff'}
             strokeWidth="2"
             aria-label={`${activity.label} de ${activity.start} a ${activity.end}`}
             role="button"
             tabIndex="0"
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivitySelect(activity); } }}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivitySelect(activity, index, e); } }}
           />
         );
       })}

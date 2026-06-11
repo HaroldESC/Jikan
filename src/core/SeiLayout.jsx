@@ -16,6 +16,7 @@ export default function SeiLayout({
   currentTime,
   isDarkMode,
   toggleTheme,
+  onEditActivity,
   user,
 }) {
   const [selectedActivity, setSelectedActivity] = useState(null);
@@ -60,6 +61,16 @@ export default function SeiLayout({
   const handleDaySelect = (index) => {
     const dayName = DAYS_FULL[index];
     onSelectDay(dayName);
+  };
+
+  const handleActivityClick = (activity, index, e) => {
+    if (e?.button === 2 || e?.ctrlKey) {
+      e.preventDefault();
+      const raw = rawActivities[index];
+      if (raw) onEditActivity(raw, currentDay, index);
+      return;
+    }
+    setSelectedActivity(activity);
   };
 
   const dark = isDarkMode();
@@ -123,7 +134,7 @@ export default function SeiLayout({
             currentActivityId={currentActivityId}
             isViewingToday={isViewingToday}
             isDarkMode={dark}
-            onActivitySelect={setSelectedActivity}
+            onActivitySelect={handleActivityClick}
           />
         </div>
 
@@ -133,7 +144,7 @@ export default function SeiLayout({
           isViewingToday={isViewingToday}
           currentActivityId={currentActivityId}
           dayName={dayName}
-          onActivitySelect={setSelectedActivity}
+          onActivitySelect={handleActivityClick}
         />
       </main>
 
