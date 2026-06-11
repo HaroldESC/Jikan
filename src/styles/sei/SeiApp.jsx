@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
-import { Bell, Moon, Sun } from 'lucide-react';
+import { Bell, Moon, Sun, Settings as SettingsIcon } from 'lucide-react';
 
 import { useClock } from '../../hooks/useClock';
 import { useTheme } from '../../hooks/useTheme';
 import { useActivities } from '../../hooks/useActivities';
+import { SettingsModal } from '../../core/common/Settings';
 
 import { ScheduleClock } from './components/ScheduleClock';
 import { DaysSelector } from './components/DaysSelector';
@@ -38,6 +39,7 @@ export default function SeiApp({ user }) {
   const [viewingDayIndex, setViewingDayIndex] = useState(new Date().getDay());
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const currentRealDayIndex = now.getDay();
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -95,6 +97,13 @@ export default function SeiApp({ user }) {
             >
               {isDarkMode() ? <Moon size={18} /> : <Sun size={18} />}
             </button>
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className={`p-2 rounded-full transition-colors ${isDarkMode() ? 'hover:bg-slate-800' : 'hover:bg-slate-200'} text-gray-400 hover:text-gray-600 dark:hover:text-gray-200`}
+              aria-label="Abrir configuración"
+            >
+              <SettingsIcon size={18} />
+            </button>
           </div>
         </div>
         <DaysSelector
@@ -140,6 +149,11 @@ export default function SeiApp({ user }) {
         activity={selectedActivity}
         isDarkMode={isDarkMode()}
         onClose={() => setSelectedActivity(null)}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </div>
   );
