@@ -1,0 +1,97 @@
+.theme-sei .day-selector {
+  padding: 0 1rem;
+}
+
+.theme-sei .day-btn-wrapper {
+  position: static;
+  padding-bottom: 0;
+}
+
+.theme-sei .day-selector__grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0,0,0,0.05);
+  border-radius: 1rem;
+  padding: .25rem;
+  margin-bottom: .5rem;
+  gap: 0;
+  max-width: none;
+}
+
+.theme-sei .day-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: .75rem;
+  font-size: .75rem;
+  font-weight: 700;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #9ca3af;
+  background: transparent;
+  box-shadow: none;
+  aspect-ratio: auto;
+  flex-direction: row;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.theme-sei .day-btn:hover {
+  color: #4b5563;
+}
+
+.theme-sei .day-btn--active {
+  background: white;
+  color: black;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.theme-sei .day-btn--today {
+  box-shadow: none;
+}
+
+.theme-sei .day-btn--active.day-btn--today {
+  background: white;
+  color: black;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.theme-sei .day-btn__full,
+.theme-sei .day-current,
+.theme-sei .day-indicator {
+  display: none;
+}
+
+.theme-sei .today-dot {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: #3b82f6;
+  border-radius: 50%;
+}
+
+.theme-sei .day-btn--active .today-dot {
+  display: none;
+}
+
+/* Dark mode */
+.theme-sei .day-selector--dark .day-btn {
+  color: #6b7280;
+}
+
+.theme-sei .day-selector--dark .day-btn:hover {
+  color: #e5e7eb;
+}
+
+.theme-sei .day-selector--dark .day-btn--active {
+  background: white;
+  color: black;
+}

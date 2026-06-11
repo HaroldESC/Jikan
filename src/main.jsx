@@ -11,6 +11,8 @@ import "./styles/maru/wheel.css";
 import "./styles/maru/reminders.css";
 import "./styles/maru/theme-toggle.css";
 import "./styles/maru/scrollbar.css";
+import "./styles/sei/day-selector.css";
+import "./styles/sei/activity-card.css";
 
 import App from './App.jsx'
 import { ThemeProvider } from './hooks/useTheme.jsx'

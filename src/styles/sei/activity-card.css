@@ -1,0 +1,124 @@
+.theme-sei .activity-card {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border-left: 8px solid var(--accent);
+  position: relative;
+  overflow: hidden;
+  background: white;
+  color: #1e293b;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.theme-sei .activity-card:hover {
+  transform: scale(1.02);
+}
+
+.theme-sei .activity-card--dark {
+  background: #1e293b;
+  color: white;
+}
+
+.theme-sei .activity-card__accent {
+  display: none;
+}
+
+.theme-sei .activity-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  z-index: 10;
+}
+
+.theme-sei .activity-card__label {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  opacity: .6;
+  margin-bottom: .25rem;
+}
+
+.theme-sei .activity-card__time-badge {
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .25rem .5rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  opacity: .9;
+}
+
+.theme-sei .activity-card__name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: .25rem;
+  position: relative;
+  z-index: 10;
+}
+
+.theme-sei .activity-card__description {
+  font-size: .875rem;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  z-index: 10;
+}
+
+.theme-sei .activity-card--dark .activity-card__description {
+  color: #94a3b8;
+}
+
+.theme-sei .activity-card__times,
+.theme-sei .activity-card__day {
+  display: none;
+}
+
+.theme-sei .activity-card__progress-area {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: 1rem;
+  position: relative;
+  z-index: 10;
+}
+
+.theme-sei .activity-card__progress-bar {
+  height: .375rem;
+  flex: 1;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.theme-sei .activity-card--dark .activity-card__progress-bar {
+  background: #334155;
+}
+
+.theme-sei .activity-card__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.theme-sei .activity-card__progress-text {
+  font-size: .75rem;
+  font-family: monospace;
+  font-weight: 500;
+  opacity: .8;
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}

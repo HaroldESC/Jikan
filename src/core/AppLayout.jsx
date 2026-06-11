@@ -2,18 +2,16 @@ import { useState, useMemo } from 'react';
 import { Plus, Copy, Bell, Moon, Sun, Settings as SettingsIcon } from 'lucide-react';
 
 import PieChart from './wheel/PieChart';
-import DaySelector from './common/DaySelector';
-import CardMaru from './activities/CardMaru';
+import DaySelector from '../components/DaySelector';
+import ActivityCard from '../components/ActivityCard';
 import Daily from './stats/Daily';
 import ThemeToggle from './common/ThemeToggle';
 import { SettingsButton, SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
 import { ScheduleClock } from '../styles/sei/components/ScheduleClock';
-import { DaysSelector } from '../styles/sei/components/DaysSelector';
-import { ActivityCard } from '../styles/sei/components/ActivityCard';
 import { ActivityList } from '../styles/sei/components/ActivityList';
 import { ActivityDetailModal } from '../styles/sei/components/ActivityDetailModal';
-import { toSeiActivity, DAYS_ABBR, DAYS_FULL, DAY_MAP } from '../styles/sei/utils/adapter';
+import { toSeiActivity, DAYS_FULL } from '../styles/sei/utils/adapter';
 import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
 
@@ -60,22 +58,6 @@ export default function AppLayout({
   const seiCurrent = useMemo(() => (rawCurrent ? toSeiActivity(rawCurrent) : null), [rawCurrent]);
   const seiCurrentId = seiCurrent?.id;
 
-  const calcRemaining = (a) => {
-    if (!a) return '';
-    const diff = a.end * 60 - currentMinutes;
-    if (diff <= 0) return '';
-    const h = Math.floor(diff / 60), m = diff % 60;
-    return `${h > 0 ? h + 'h ' : ''}${m}min restantes`;
-  };
-
-  const timeRemaining = calcRemaining(rawCurrent);
-
-  const getMaruCurrent = () => {
-    const h = currentTime.getHours(), m = currentTime.getMinutes();
-    const dec = h + m / 60;
-    return rawActivities.find((a) => dec >= a.start && dec < a.end);
-  };
-
   const handleSeiClick = (activity, index, e) => {
     if (e?.button === 2 || e?.ctrlKey) {
       e.preventDefault();
@@ -86,12 +68,10 @@ export default function AppLayout({
     setSeiSelectedActivity(activity);
   };
 
-  const handleSeiDay = (index) => onSelectDay(DAYS_FULL[index]);
-  const seiDayIndex = DAY_MAP[currentDay] ?? new Date().getDay();
-  const isViewingToday = seiDayIndex === realDayIndex;
+  const isViewingToday = currentDay === realDayName;
 
   return (
-    <div className={`${isMaru ? `min-h-screen bg-gradient-to-br ${bgColor}` : `min-h-screen ${dark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`} p-6 transition-all duration-1000 font-sans`}>
+    <div className={`theme-${style} ${isMaru ? `min-h-screen bg-gradient-to-br ${bgColor}` : `min-h-screen ${dark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`} p-6 transition-all duration-1000 font-sans`}>
       <div className={isMaru ? 'max-w-6xl mx-auto' : ''}>
         {/* ── HEADER ── */}
         {isMaru ? (
@@ -138,14 +118,7 @@ export default function AppLayout({
         )}
 
         {/* ── DAY SELECTOR ── */}
-        {isMaru ? (
-          <DaySelector days={DAYS_OF_WEEK} currentDay={currentDay} onSelectDay={onSelectDay} />
-        ) : (
-          <div className="px-4">
-            <DaysSelector days={DAYS_ABBR} activeIndex={seiDayIndex} todayIndex={realDayIndex}
-              isDarkMode={dark} onDaySelect={handleSeiDay} />
-          </div>
-        )}
+        <DaySelector days={DAYS_OF_WEEK} currentDay={currentDay} onSelectDay={onSelectDay} isDarkMode={dark} />
 
         {/* ── MAIN GRID ── */}
         <div className={`${isMaru ? 'lg:grid-cols-3' : 'max-w-md mx-auto flex flex-col items-center'} grid gap-6 mt-6`}>
@@ -188,8 +161,8 @@ export default function AppLayout({
           {/* ── MARU SIDE PANEL ── */}
           {isMaru && (
             <div className="space-y-4 lg:overflow-auto lg:max-h-[calc(100vh-200px)] custom-scrollbar">
-              {currentDay === getCurrentDay() && getMaruCurrent() && (
-                <CardMaru activity={getMaruCurrent()} currentDay={currentDay} currentTime={currentTime} label="ACTIVIDAD ACTUAL" />
+              {currentDay === getCurrentDay() && rawCurrent && (
+                <ActivityCard activity={rawCurrent} currentDay={currentDay} isDarkMode={dark} label="ACTIVIDAD ACTUAL" />
               )}
               <Daily schedule={rawActivities} />
             </div>
@@ -199,10 +172,10 @@ export default function AppLayout({
         {/* ── SEI CARDS BELOW GRID ── */}
         {!isMaru && (
           <main className="flex flex-col items-center px-4 w-full max-w-md mx-auto relative z-10">
-            <ActivityCard activity={seiCurrent} dayName={DAYS_FULL[realDayIndex]}
-              isDarkMode={dark} timeRemaining={timeRemaining} onClick={() => setSeiSelectedActivity(seiCurrent)} />
+            <ActivityCard activity={rawCurrent} currentDay={currentDay}
+              isDarkMode={dark} onClick={() => setSeiSelectedActivity(rawCurrent ? toSeiActivity(rawCurrent) : null)} />
             <ActivityList activities={seiActivities} isDarkMode={dark} isViewingToday={isViewingToday}
-              currentActivityId={seiCurrentId} dayName={DAYS_FULL[seiDayIndex]} onActivitySelect={handleSeiClick} />
+              currentActivityId={seiCurrentId} dayName={currentDay} onActivitySelect={handleSeiClick} />
           </main>
         )}
       </div>

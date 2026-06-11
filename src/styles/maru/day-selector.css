@@ -1,9 +1,13 @@
-.day-selector {
+.theme-maru .day-selector {
   width: 100%;
 }
 
-/* móvil */
-.day-selector__mobile-grid {
+.theme-maru .day-btn-wrapper {
+  position: relative;
+  padding-bottom: .75rem;
+}
+
+.theme-maru .day-selector__grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: .4rem;
@@ -11,7 +15,7 @@
   padding: 0 .75rem;
 }
 
-.day-btn {
+.theme-maru .day-btn {
   width: 100%;
   aspect-ratio: 1;
   border-radius: .75rem;
@@ -19,70 +23,41 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   transition: .2s;
   background: rgba(255,255,255,0.1);
   color: white;
   position: relative;
+  cursor: pointer;
+  border: none;
+  font-family: inherit;
 }
 
-.day-btn--desktop {
-  padding: .75rem 0;
-  max-height: 3rem;
-}
-
-.day-btn:hover {
+.theme-maru .day-btn:hover {
   background: rgba(255,255,255,0.2);
 }
 
-.day-btn--active {
+.theme-maru .day-btn--active {
   background: linear-gradient(135deg,#fff,#f2f2f2);
   color: #312e81;
   font-weight: 700;
   box-shadow: 0 10px 25px rgba(0,0,0,.2);
 }
 
-/* Estilo para el día actual */
-.day-btn--today {
-  position: relative;
+.theme-maru .day-btn--today {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
-.day-btn--active.day-btn--today {
-  box-shadow: 
+.theme-maru .day-btn--active.day-btn--today {
+  box-shadow:
     0 10px 25px rgba(0,0,0,.2),
     0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
-.today-dot {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background-color: rgb(59, 130, 246);
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-}
+.theme-maru .day-btn__full { display: none; }
+.theme-maru .day-btn__label { font-size: 1rem; line-height: 1; }
 
-/* Para móvil, el punto va abajo */
-.day-selector__mobile-grid .today-dot {
-  bottom: 4px;
-}
-
-/* Para escritorio, el punto va al lado del texto */
-.day-selector__desktop-grid .today-dot {
-  position: static;
-  margin-left: 4px;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.day-indicator {
+.theme-maru .day-indicator {
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -93,7 +68,16 @@
   border-radius: 999px;
 }
 
-.day-current {
+.theme-maru .today-dot {
+  width: 6px;
+  height: 6px;
+  background: rgb(59, 130, 246);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  margin-top: 2px;
+}
+
+.theme-maru .day-current {
   text-align: center;
   color: rgba(255,255,255,.9);
   font-size: .8rem;
@@ -104,13 +88,35 @@
   text-transform: uppercase;
 }
 
-/* escritorio */
-.day-selector__desktop-grid {
-  display: grid;
-  grid-template-columns: repeat(7,1fr);
-  margin-bottom: 1rem;
-  gap: .75rem;
-  padding: 0 1rem;
-  max-width: 64rem;
-  margin-bottom: 1rem;
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@media (min-width: 640px) {
+  .theme-maru .day-selector__grid {
+    gap: .75rem;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+    max-width: 64rem;
+  }
+
+  .theme-maru .day-btn {
+    flex-direction: row;
+    aspect-ratio: auto;
+    padding: .75rem 0;
+    max-height: 3rem;
+  }
+
+  .theme-maru .day-btn__full { display: inline; }
+  .theme-maru .day-btn__label { display: none; }
+
+  .theme-maru .today-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 0;
+    margin-left: 4px;
+    position: static;
+    animation: pulse 2s infinite;
+  }
 }
