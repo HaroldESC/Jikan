@@ -89,14 +89,16 @@ export default function ActivityCard({ activity, currentDay, isDarkMode, onClick
         </div>
       </div>
 
-      <div className="activity-card__progress-area">
-        <div className="activity-card__progress-bar" role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100" aria-label="Progreso de la actividad">
-          <div className="activity-card__progress-fill" style={{ width: `${progress}%`, backgroundColor: activity.color }} />
+      {(progress > 0 || timeRemaining) && (
+        <div className="activity-card__progress-area">
+          <div className="activity-card__progress-bar" role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100" aria-label="Progreso de la actividad">
+            <div className="activity-card__progress-fill" style={{ width: `${progress}%`, backgroundColor: activity.color }} />
+          </div>
+          {timeRemaining && (
+            <span className="activity-card__progress-text">{timeRemaining}</span>
+          )}
         </div>
-        {timeRemaining && (
-          <span className="activity-card__progress-text">{timeRemaining}</span>
-        )}
-      </div>
+      )}
 
       {currentDay && (
         <div className="activity-card__day">
