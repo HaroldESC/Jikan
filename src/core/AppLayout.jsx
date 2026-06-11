@@ -10,9 +10,9 @@ import Daily from './stats/Daily';
 import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
 
-import { ActivityList } from '../styles/sei/components/ActivityList';
+import { ActivityList } from './activities/ActivityList';
 import DetailViewSei from './activities/DetailViewSei';
-import { toSeiActivity, DAYS_FULL } from '../styles/sei/utils/adapter';
+import { toSeiActivity, DAYS_FULL } from './utils/adapter';
 import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
 
