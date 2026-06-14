@@ -9,6 +9,7 @@ import { getCurrentDay } from '../utils/dates';
 import AppLayout from './AppLayout';
 import DetailViewMaru from './activities/DetailViewMaru';
 import EditView from './EditView';
+import EditViewMaru from './activities/EditViewMaru';
 
 const timeToDecimal = (timeString) => {
   if (!timeString) return 0;
@@ -224,31 +225,33 @@ export default function MainShell({ user }) {
   }
 
   if (view === 'edit') {
-    return (
-      <EditView
-        bgColor={bgColor}
-        editingActivity={editingActivity}
-        editingDay={editingDay}
-        editingActivityIndex={editingActivityIndex}
-        tempActivity={tempActivity}
-        tempStartTime={tempStartTime}
-        tempEndTime={tempEndTime}
-        onSave={handleSaveActivity}
-        onCancel={() => { setView('main'); setEditingActivity(null); setEditingDay(null); setEditingActivityIndex(null); }}
-        onDelete={(day, idx) => {
-          if (window.confirm('¿Estás seguro de eliminar esta actividad?')) {
-            handleDeleteActivity(day, idx);
-            setView('main');
-            setEditingActivity(null);
-            setEditingDay(null);
-            setEditingActivityIndex(null);
-          }
-        }}
-        onStartTimeChange={handleStartTimeChange}
-        onEndTimeChange={handleEndTimeChange}
-        onTempActivityChange={setTempActivity}
-      />
-    );
+    const editorProps = {
+      bgColor,
+      editingActivity,
+      editingDay,
+      editingActivityIndex,
+      tempActivity,
+      tempStartTime,
+      tempEndTime,
+      onSave: handleSaveActivity,
+      onCancel: () => { setView('main'); setEditingActivity(null); setEditingDay(null); setEditingActivityIndex(null); },
+      onDelete: (day, idx) => {
+        if (window.confirm('¿Estás seguro de eliminar esta actividad?')) {
+          handleDeleteActivity(day, idx);
+          setView('main');
+          setEditingActivity(null);
+          setEditingDay(null);
+          setEditingActivityIndex(null);
+        }
+      },
+      onStartTimeChange: handleStartTimeChange,
+      onEndTimeChange: handleEndTimeChange,
+      onTempActivityChange: setTempActivity,
+    };
+
+    return style === 'maru'
+      ? <EditViewMaru {...editorProps} />
+      : <EditView {...editorProps} />;
   }
 
   return (
