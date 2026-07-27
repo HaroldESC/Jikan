@@ -18,7 +18,7 @@ export default function WheelSei({ schedule, nowMinutes, currentActivityId, isVi
   const cx = 150, cy = 150, radius = 120, innerRadius = 70;
 
   return (
-    <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-xl" aria-label="Reloj circular de horario diario">
+    <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-xl animate-wheel-entrance" aria-label="Reloj circular de horario diario">
       <circle cx={cx} cy={cy} r={radius} fill={isDarkMode ? '#1e293b' : '#f1f5f9'} aria-hidden="true" />
       {schedule.length === 0 && (
         <text x={cx} y={cy + 5} textAnchor="middle" className={`text-sm font-medium ${isDarkMode ? 'fill-gray-500' : 'fill-gray-400'}`} aria-hidden="true">
@@ -38,7 +38,8 @@ export default function WheelSei({ schedule, nowMinutes, currentActivityId, isVi
             d={describeArc(cx, cy, radius, startAng, endAng, innerRadius)}
             fill={activity.color}
             opacity={isCurrent ? 1 : 0.5}
-            className="cursor-pointer transition-all duration-300 hover:opacity-100 hover:scale-105 origin-center"
+            className="cursor-pointer transition-all duration-300 hover:opacity-100 hover:scale-105 origin-center animate-arc-reveal"
+            style={{ animationDelay: `${index * 0.04}s` }}
             onClick={(e) => onActivitySelect(activity, index, e)}
             onContextMenu={(e) => onActivitySelect(activity, index, e)}
             stroke={isDarkMode ? '#0f172a' : '#ffffff'}

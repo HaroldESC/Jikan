@@ -130,14 +130,19 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
       currentAngle = endAngle;
 
       if (item.isEmpty) {
-        return (<g key={`empty-${index}`} className="wheel-slice wheel-slice-empty">{sliceContent}</g>);
+        return (
+          <g key={`empty-${index}`} className="wheel-slice wheel-slice-empty animate-arc-reveal"
+            style={{ animationDelay: `${index * 0.04}s` }}>
+            {sliceContent}
+          </g>
+        );
       }
 
       return (
-        <g key={`${item.id || item.title}-${index}`} className="wheel-slice wheel-slice-activity"
+        <g key={`${item.id || item.title}-${index}`} className="wheel-slice wheel-slice-activity animate-arc-reveal"
+          style={{ cursor: 'pointer', animationDelay: `${index * 0.04}s` }}
           onClick={(e) => { e.stopPropagation(); onActivitySelect(item, originalIndex, e); }}
-          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onActivitySelect(item, originalIndex, e); }}
-          style={{ cursor: 'pointer' }}>
+          onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onActivitySelect(item, originalIndex, e); }}>
           {sliceContent}
           <title>{item.title || item.activity}{'\n'}{formatTime(item.start)} - {formatTime(item.end)}{'\n'}
             {item.description || 'Sin descripción'}{'\n'}Duración: {Math.floor(durationHours)}h {Math.round((durationHours % 1) * 60)}m</title>
@@ -170,7 +175,7 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
   };
 
   return (
-    <svg viewBox="0 0 400 400" className="wheel-svg" style={{ width: '100%', height: 'auto' }}>
+    <svg viewBox="0 0 400 400" className="wheel-svg animate-wheel-entrance" style={{ width: '100%', height: 'auto' }}>
       {renderHourMarks()}
       {renderSlices()}
       <circle cx={CENTER} cy={CENTER} r="60" fill="white" opacity="0.95" />

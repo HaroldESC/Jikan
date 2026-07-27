@@ -94,11 +94,11 @@ export default function AppLayout({
           {/* ── WHEEL / CLOCK COLUMN ── */}
           <div className={isMaru ? 'lg:col-span-2' : 'w-full'}>
             {isMaru ? (
-              <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8">
+              <div key={currentDay} className="bg-white/10 backdrop-blur-lg rounded-3xl p-8">
                 <WheelMaru schedule={rawActivities} currentDay={currentDay} onActivitySelect={onActivitySelect} />
               </div>
             ) : (
-              <div className="w-full max-w-[320px] aspect-square relative mb-6 mx-auto">
+              <div key={currentDay} className="w-full max-w-[320px] aspect-square relative mb-6 mx-auto">
                 <WheelSei schedule={seiActivities} nowMinutes={currentMinutes}
                   currentActivityId={seiCurrentId} isViewingToday={isViewingToday}
                   isDarkMode={dark} onActivitySelect={handleSeiClick} />
