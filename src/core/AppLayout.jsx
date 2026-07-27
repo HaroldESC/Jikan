@@ -157,7 +157,16 @@ export default function AppLayout({
 
       {!isMaru && (
         <DetailViewSei activity={seiSelectedActivity} isDarkMode={dark}
-          onClose={() => setSeiSelectedActivity(null)} />
+          onClose={() => setSeiSelectedActivity(null)}
+          onEdit={!seiSelectedActivity ? undefined : () => {
+            const raw = rawActivities.find(a => a.id === seiSelectedActivity.id);
+            if (raw) {
+              const idx = rawActivities.indexOf(raw);
+              setSeiSelectedActivity(null);
+              onEditActivity(raw, currentDay, idx);
+            }
+          }}
+        />
       )}
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />

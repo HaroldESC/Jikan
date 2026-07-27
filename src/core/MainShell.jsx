@@ -8,7 +8,7 @@ import { getCurrentDay } from '../utils/dates';
 
 import AppLayout from './AppLayout';
 import DetailViewMaru from './activities/DetailViewMaru';
-import EditView from './EditView';
+import EditViewSei from './activities/EditViewSei';
 import EditViewMaru from './activities/EditViewMaru';
 
 const timeToDecimal = (timeString) => {
@@ -233,6 +233,7 @@ export default function MainShell({ user }) {
       tempActivity,
       tempStartTime,
       tempEndTime,
+      isDarkMode: isDarkMode(),
       onSave: handleSaveActivity,
       onCancel: () => { setView('main'); setEditingActivity(null); setEditingDay(null); setEditingActivityIndex(null); },
       onDelete: (day, idx) => {
@@ -251,7 +252,7 @@ export default function MainShell({ user }) {
 
     return style === 'maru'
       ? <EditViewMaru {...editorProps} />
-      : <EditView {...editorProps} />;
+      : <EditViewSei {...editorProps} />;
   }
 
   return (

@@ -1,4 +1,4 @@
-import { X, Info, ChevronRight } from 'lucide-react';
+import { X, Info, ChevronRight, Edit3 } from 'lucide-react';
 
 function calcDuration(activity) {
   const toMin = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
@@ -7,7 +7,7 @@ function calcDuration(activity) {
   return ((end - start) / 60).toFixed(1);
 }
 
-export default function DetailViewSei({ activity, isDarkMode, onClose }) {
+export default function DetailViewSei({ activity, isDarkMode, onClose, onEdit }) {
   if (!activity) return null;
   const duration = calcDuration(activity);
 
@@ -39,6 +39,15 @@ export default function DetailViewSei({ activity, isDarkMode, onClose }) {
             </h3>
             <p className="text-sm leading-relaxed opacity-90">{activity.description}</p>
           </div>
+          {onEdit && (
+            <button
+              onClick={onEdit}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition ${isDarkMode ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+            >
+              <Edit3 size={16} />
+              Editar actividad
+            </button>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div className={`p-3 rounded-xl text-center ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
               <span className="block text-xs uppercase opacity-50 mb-1">Duración</span>
