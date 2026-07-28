@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, Clock, FileText, AlertCircle } from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
 import ThemeToggle from '../common/ThemeToggle';
 
 const formatHour = (decimalHour) => {
@@ -35,6 +36,7 @@ const DetailViewMaru = ({
   onBack,
   onToggleTheme
 }) => {
+  const { t } = useTranslation();
   const [notes, setNotes] = useState('');
 
   if (!activity) {
@@ -46,18 +48,18 @@ const DetailViewMaru = ({
             className="flex items-center gap-2 text-white bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition mb-4"
           >
             <ChevronLeft size={20} />
-            Volver
+            {t('common.back')}
           </button>
           <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 text-white text-center">
-            <p>No hay actividad seleccionada</p>
+            <p>{t('detail.noActivity')}</p>
           </div>
         </div>
       </div>
     );
   }
 
-  const activityName = activity.title || activity.activity || 'Actividad sin nombre';
-  const activityDescription = activity.description || 'Sin descripción';
+  const activityName = activity.title || activity.activity || t('activity.noName');
+  const activityDescription = activity.description || t('activity.noDescription');
   const activityColor = activity.color || '#7c5cff';
   const isEmpty = activity.isEmpty || false;
 
@@ -89,16 +91,16 @@ const DetailViewMaru = ({
       const timeUntilStart = activity.start - currentTimeDecimal;
       const startHour = Math.floor(timeUntilStart);
       const startMinutes = Math.round((timeUntilStart - startHour) * 60);
-      if (startHour > 0 && startMinutes > 0) return `Comienza en ${startHour}h ${startMinutes}m`;
-      if (startHour > 0) return `Comienza en ${startHour}h`;
-      return `Comienza en ${startMinutes}m`;
+      if (startHour > 0 && startMinutes > 0) return t('detail.startsIn', { hours: startHour, minutes: startMinutes });
+      if (startHour > 0) return t('detail.startsInHours', { hours: startHour });
+      return t('detail.startsInMinutes', { minutes: startMinutes });
     } else if (currentTimeDecimal < activity.end) {
       const timeRemaining = activity.end - currentTimeDecimal;
       const remainingHour = Math.floor(timeRemaining);
       const remainingMinutes = Math.round((timeRemaining - remainingHour) * 60);
-      if (remainingHour > 0 && remainingMinutes > 0) return `Termina en ${remainingHour}h ${remainingMinutes}m`;
-      if (remainingHour > 0) return `Termina en ${remainingHour}h`;
-      return `Termina en ${remainingMinutes}m`;
+      if (remainingHour > 0 && remainingMinutes > 0) return t('detail.endsIn', { hours: remainingHour, minutes: remainingMinutes });
+      if (remainingHour > 0) return t('detail.endsInHours', { hours: remainingHour });
+      return t('detail.endsInMinutes', { minutes: remainingMinutes });
     }
     return null;
   };
@@ -112,10 +114,10 @@ const DetailViewMaru = ({
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-white bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition"
-            aria-label="Volver a vista principal"
+            aria-label={t('detail.back')}
           >
             <ChevronLeft size={20} />
-            Volver al horario
+            {t('detail.back')}
           </button>
           <ThemeToggle themeMode={themeMode} onToggle={onToggleTheme} />
         </div>
@@ -135,46 +137,46 @@ const DetailViewMaru = ({
             {isEmpty && (
               <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full text-sm">
                 <AlertCircle size={16} />
-                Tiempo libre
+                {t('detail.freeTime')}
               </div>
             )}
           </div>
 
           <div className="space-y-6">
-            <DetailBlock title="Descripción" icon={<FileText size={18} />}>
+            <DetailBlock title={t('activity.description')} icon={<FileText size={18} />}>
               <p className="text-white/90 leading-relaxed">{activityDescription}</p>
             </DetailBlock>
 
-            <DetailBlock title="Horarios exactos" icon={<Clock size={18} />}>
+            <DetailBlock title={t('detail.exactSchedule')} icon={<Clock size={18} />}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/10 rounded-lg p-4 text-center">
-                  <div className="text-sm opacity-75">Hora de inicio</div>
+                  <div className="text-sm opacity-75">{t('activity.startTime')}</div>
                   <div className="text-lg font-semibold">{formattedStart}</div>
-                  <div className="text-xs opacity-60 mt-1">{activity.start.toFixed(2)} horas</div>
+                  <div className="text-xs opacity-60 mt-1">{activity.start.toFixed(2)} {t('activity.hours')}</div>
                 </div>
                 <div className="bg-white/10 rounded-lg p-4 text-center">
-                  <div className="text-sm opacity-75">Hora de fin</div>
+                  <div className="text-sm opacity-75">{t('activity.endTime')}</div>
                   <div className="text-lg font-semibold">{formattedEnd}</div>
-                  <div className="text-xs opacity-60 mt-1">{activity.end.toFixed(2)} horas</div>
+                  <div className="text-xs opacity-60 mt-1">{activity.end.toFixed(2)} {t('activity.hours')}</div>
                 </div>
               </div>
             </DetailBlock>
 
-            <DetailBlock title="Notas personales" icon={<FileText size={18} />}>
+            <DetailBlock title={t('detail.personalNotes')} icon={<FileText size={18} />}>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Añade tus notas personales sobre esta actividad..."
+                placeholder={t('detail.notesPlaceholder')}
                 className="w-full bg-white/10 rounded-lg p-3 text-white placeholder-white/50 border border-white/20 focus:border-white/50 focus:outline-none resize-none"
                 rows="3"
               />
               <div className="flex justify-end mt-2">
                 <button
-                  onClick={() => alert('Notas guardadas (función pendiente)')}
+                  onClick={() => alert(t('detail.notesSaved'))}
                   className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition text-sm"
                   disabled={!notes.trim()}
                 >
-                  Guardar notas
+                  {t('detail.saveNotes')}
                 </button>
               </div>
             </DetailBlock>

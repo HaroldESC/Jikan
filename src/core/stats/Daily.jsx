@@ -5,6 +5,7 @@
  */
 
 import { BarChart3, Clock, Calendar, Target, Activity, TrendingUp, Zap } from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // Función para formatear duración de horas decimales
 const formatDuration = (decimalHours) => {
@@ -26,16 +27,17 @@ const formatPercentage = (value) => {
 };
 
 const Daily = ({ schedule }) => {
+  const { t } = useTranslation();
   if (!schedule || schedule.length === 0) {
     return (
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-white">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <BarChart3 size={18} />
-          ESTADÍSTICAS DEL DÍA
+          {t('stats.title')}
         </h3>
         <div className="text-center py-8">
-          <p className="text-white/60">No hay actividades programadas</p>
-          <p className="text-sm text-white/40 mt-2">Añade actividades para ver estadísticas</p>
+          <p className="text-white/60">{t('stats.noActivities')}</p>
+          <p className="text-sm text-white/40 mt-2">{t('stats.noStats')}</p>
         </div>
       </div>
     );
@@ -49,11 +51,11 @@ const Daily = ({ schedule }) => {
       <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-white">
         <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <BarChart3 size={18} />
-          ESTADÍSTICAS DEL DÍA
+          {t('stats.title')}
         </h3>
         <div className="text-center py-8">
-          <p className="text-white/60">Solo tiempo libre programado</p>
-          <p className="text-sm text-white/40 mt-2">Añade actividades para ver estadísticas</p>
+          <p className="text-white/60">{t('stats.onlyFreeTime')}</p>
+          <p className="text-sm text-white/40 mt-2">{t('stats.noStats')}</p>
         </div>
       </div>
     );
@@ -74,7 +76,7 @@ const Daily = ({ schedule }) => {
   // Agrupar por tipo de actividad
   const activityStats = {};
   realActivities.forEach(item => {
-    const activityName = item.title || item.activity || 'Sin nombre';
+    const activityName = item.title || item.activity || t('stats.noName');
     const duration = item.end - item.start;
     
     if (activityStats[activityName]) {
@@ -139,34 +141,34 @@ const Daily = ({ schedule }) => {
     <section className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-white">
       <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
         <BarChart3 size={20} />
-        ESTADÍSTICAS DEL DÍA
+        {t('stats.title')}
       </h3>
 
       {/* Grid principal de estadísticas */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <StatItem
-          label="Tiempo programado"
+          label={t('stats.scheduledTime')}
           value={formatDuration(totalHours)}
           icon={<Clock size={16} />}
           color="text-blue-300"
-          detail={`${totalHours.toFixed(1)} horas`}
+          detail={`${totalHours.toFixed(1)} ${t('activity.hours')}`}
         />
         <StatItem
-          label="Actividades"
+          label={t('stats.activities')}
           value={activityCount}
           icon={<Activity size={16} />}
           color="text-green-300"
-          detail={`${hourDensity.toFixed(1)} por hora`}
+          detail={`${hourDensity.toFixed(1)} ${t('stats.perHour')}`}
         />
         <StatItem
-          label="Promedio"
+          label={t('stats.average')}
           value={formatDuration(averageActivityHours)}
           icon={<Target size={16} />}
           color="text-purple-300"
-          detail="por actividad"
+          detail={t('stats.perActivity')}
         />
         <StatItem
-          label="Tiempo libre"
+          label={t('stats.freeTime')}
           value={formatDuration(freeTimeHours)}
           icon={<Calendar size={16} />}
           color="text-yellow-300"
@@ -181,7 +183,7 @@ const Daily = ({ schedule }) => {
           <div className="bg-white/5 rounded-xl p-4">
             <h4 className="text-sm font-medium text-white/70 mb-2 flex items-center gap-1">
               <TrendingUp size={14} />
-              Actividad más extensa
+              {t('stats.longestActivity')}
             </h4>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -212,7 +214,7 @@ const Daily = ({ schedule }) => {
           <div className="bg-white/5 rounded-xl p-4">
             <h4 className="text-sm font-medium text-white/70 mb-2 flex items-center gap-1">
               <Zap size={14} />
-              Más continua
+              {t('stats.mostContinuous')}
             </h4>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -225,8 +227,8 @@ const Daily = ({ schedule }) => {
               </div>
               <span className="font-semibold text-sm">
                 {mostContinuousActivity.breakDuration > 0 ? 
-                  `${Math.round(mostContinuousActivity.breakDuration * 60)}m después` : 
-                  'Sin pausa'}
+                  t('stats.minutesAfter', { minutes: Math.round(mostContinuousActivity.breakDuration * 60) }) : 
+                  t('stats.noBreak')}
               </span>
             </div>
             <div className="mt-2 w-full bg-white/10 rounded-full h-1.5">
@@ -245,7 +247,7 @@ const Daily = ({ schedule }) => {
       {/* Porcentaje programado */}
       <div className="mb-6 bg-white/5 rounded-xl p-4">
         <div className="flex justify-between items-center mb-2">
-          <h4 className="text-sm font-medium text-white/70">% Día programado</h4>
+          <h4 className="text-sm font-medium text-white/70">{t('stats.dayPercentage')}</h4>
           <div className="flex items-center gap-2">
             <span className="font-semibold">{efficiencyPercentage.toFixed(1)}%</span>
             <div className={`w-2 h-2 rounded-full ${
@@ -268,30 +270,30 @@ const Daily = ({ schedule }) => {
       {/* Información del rango del día */}
       {earliestStart > 0 && (
         <div className="mb-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl p-4 border border-blue-500/20">
-          <h4 className="text-sm font-medium text-white/70 mb-2">Horario activo</h4>
+          <h4 className="text-sm font-medium text-white/70 mb-2">{t('stats.activeHours')}</h4>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-xs text-white/60">Inicio</div>
+              <div className="text-xs text-white/60">{t('activity.start')}</div>
               <div className="font-semibold">
                 {earliestStart.toFixed(1)}h
               </div>
             </div>
             <div>
-              <div className="text-xs text-white/60">Fin</div>
+              <div className="text-xs text-white/60">{t('activity.end')}</div>
               <div className="font-semibold">
                 {latestEnd.toFixed(1)}h
               </div>
             </div>
           </div>
           <div className="mt-2 text-xs text-white/50">
-            {daySpanHours.toFixed(1)} horas de actividad programada
+            {t('activity.totalHours', { hours: daySpanHours.toFixed(1) })}
           </div>
         </div>
       )}
 
       {/* Desglose por actividad */}
       <div className="mb-4 bg-white/5 rounded-xl p-4">
-        <h4 className="text-sm font-medium text-white/70 mb-3">Distribución del tiempo</h4>
+        <h4 className="text-sm font-medium text-white/70 mb-3">{t('stats.distribution')}</h4>
         <div className="space-y-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
           {Object.entries(activityStats)
             .sort(([, a], [, b]) => b - a) // Ordenar por duración descendente
@@ -333,7 +335,7 @@ const Daily = ({ schedule }) => {
         </div>
         <div className="text-center mt-3 pt-3 border-t border-white/10">
           <p className="text-xs text-white/50">
-            Total: {formatDuration(totalHours)} en {activityCount} actividad{activityCount !== 1 ? 'es' : ''}
+            {t('stats.totalDuration', { duration: formatDuration(totalHours), count: activityCount, activities: activityCount !== 1 ? t('activity.activityCount_plural', { count: activityCount }) : t('activity.activityCount', { count: activityCount }) })}
           </p>
         </div>
       </div>

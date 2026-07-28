@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n/useTranslation';
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
@@ -19,17 +21,17 @@ export default function ResetPassword() {
     setError(null);
 
     if (!password) {
-      setError('Ingresa una nueva contraseña');
+      setError(t('password.enterNewPassword'));
       return;
     }
 
     if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+      setError(t('password.minLength'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError(t('password.passwordsDontMatch'));
       return;
     }
 
@@ -51,13 +53,13 @@ export default function ResetPassword() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-400 via-cyan-400 to-teal-400 flex items-center justify-center p-6">
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 max-w-md w-full text-center text-white">
-          <h2 className="text-2xl font-bold mb-4">Contraseña actualizada</h2>
-          <p className="text-white/70 mb-6">Tu contraseña se ha restablecido correctamente. Ya puedes iniciar sesión.</p>
+          <h2 className="text-2xl font-bold mb-4">{t('password.passwordUpdated')}</h2>
+          <p className="text-white/70 mb-6">{t('password.passwordUpdatedDesc')}</p>
           <a
             href="/"
             className="inline-block bg-white text-indigo-900 py-3 px-8 rounded-xl font-bold hover:bg-white/90 transition"
           >
-            Ir a iniciar sesión
+            {t('password.goToLogin')}
           </a>
         </div>
       </div>
@@ -67,12 +69,12 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-cyan-400 to-teal-400 flex items-center justify-center p-6">
       <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 shadow-2xl border border-white/20 max-w-md w-full text-white">
-        <h2 className="text-2xl font-bold mb-2">Restablecer contraseña</h2>
-        <p className="text-white/60 text-sm mb-6">Ingresa tu nueva contraseña.</p>
+        <h2 className="text-2xl font-bold mb-2">{t('password.reset')}</h2>
+        <p className="text-white/60 text-sm mb-6">{t('password.resetDescription')}</p>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-white/90 text-sm font-medium mb-2">Nueva contraseña</label>
+            <label className="block text-white/90 text-sm font-medium mb-2">{t('password.newPassword')}</label>
             <input
               type="password"
               value={password}
@@ -82,7 +84,7 @@ export default function ResetPassword() {
             />
           </div>
           <div>
-            <label className="block text-white/90 text-sm font-medium mb-2">Confirmar contraseña</label>
+            <label className="block text-white/90 text-sm font-medium mb-2">{t('password.confirmPassword')}</label>
             <input
               type="password"
               value={confirmPassword}
@@ -97,7 +99,7 @@ export default function ResetPassword() {
             disabled={loading}
             className="w-full bg-white text-indigo-900 py-3 rounded-xl font-bold hover:bg-white/90 transition transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-60"
           >
-            {loading ? 'Guardando...' : 'Cambiar contraseña'}
+            {loading ? t('common.saving') : t('password.changePassword')}
           </button>
 
           {error && (

@@ -17,11 +17,14 @@ import "./styles/sei/header.css";
 
 import App from './App.jsx'
 import { ThemeProvider } from './hooks/useTheme.jsx'
+import { I18nProvider } from './i18n/I18nProvider.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ThemeProvider>
-      <App />
+      <I18nProvider>
+        <App />
+      </I18nProvider>
     </ThemeProvider>
   </StrictMode>,
 )

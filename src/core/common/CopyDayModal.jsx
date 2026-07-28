@@ -6,6 +6,7 @@
 
 import { X, Copy } from 'lucide-react';
 import { DAYS_OF_WEEK } from '../../utils/index';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // Función para formatear horas decimales a string legible
 const formatHour = (decimalHour) => {
@@ -61,6 +62,8 @@ const CopyDayModal = ({
 }) => {
   if (!isOpen) return null;
 
+  const { t } = useTranslation();
+
   const handleCopy = (sourceDay) => {
     onCopyDay(sourceDay, currentDay);
     onClose();
@@ -71,15 +74,15 @@ const CopyDayModal = ({
       <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-4xl w-full text-white">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold">Copiar actividades a {currentDay}</h2>
+            <h2 className="text-2xl font-bold">{t('copyDay.title', { day: currentDay })}</h2>
             <p className="text-white/70 text-sm mt-1">
-              Selecciona el día del cual quieres copiar todas las actividades:
+              {t('copyDay.description')}
             </p>
           </div>
           <button
             onClick={onClose}
             className="p-2 hover:bg-white/20 rounded-lg transition"
-            aria-label="Cerrar modal"
+            aria-label={t('common.close')}
           >
             <X size={24} />
           </button>
@@ -110,10 +113,10 @@ const CopyDayModal = ({
                     <span className="font-semibold text-lg block">{day}</span>
                     <div className="flex items-center gap-4 mt-1">
                       <span className="text-sm opacity-80">
-                        {activityCount} actividad{activityCount !== 1 ? 'es' : ''}
+                        {t('copyDay.activityCount', { count: activityCount })}
                       </span>
                       <span className="text-sm opacity-80">
-                        {formattedTotalHours} total
+                        {formattedTotalHours} {t('copyDay.total')}
                       </span>
                     </div>
                   </div>
@@ -157,7 +160,7 @@ const CopyDayModal = ({
                       {activityCount > 3 && (
                         <div className="pt-2 border-t border-white/10">
                           <p className="text-xs opacity-60 text-center">
-                            +{activityCount - 3} actividad{activityCount - 3 !== 1 ? 'es' : ''} más...
+                            {t('copyDay.moreAria', { count: activityCount - 3 })}
                           </p>
                         </div>
                       )}
@@ -166,9 +169,9 @@ const CopyDayModal = ({
                 ) : (
                   <div className="text-center py-6">
                     <div className="text-4xl mb-2 opacity-30">📅</div>
-                    <p className="text-sm opacity-60">Sin actividades programadas</p>
+                    <p className="text-sm opacity-60">{t('copyDay.noActivities')}</p>
                     <p className="text-xs opacity-40 mt-1">
-                      Este día está completamente libre
+                      {t('copyDay.freeDay')}
                     </p>
                   </div>
                 )}
@@ -181,16 +184,15 @@ const CopyDayModal = ({
           <div className="flex gap-3">
             <div className="text-yellow-300 mt-0.5 flex-shrink-0">⚠️</div>
             <div className="text-sm">
-              <p className="font-semibold mb-1">Advertencia importante:</p>
+              <p className="font-semibold mb-1">{t('copyDay.warning')}</p>
               <p className="opacity-90 mb-2">
-                Esta acción reemplazará <span className="font-semibold">TODAS</span> las actividades actuales de <span className="font-semibold">{currentDay}</span> 
-                con las del día seleccionado.
+                {t('copyDay.bulletReplace', { day: currentDay })}
               </p>
               <ul className="list-disc pl-5 opacity-80 space-y-1">
-                <li>Las actividades actuales de {currentDay} serán eliminadas permanentemente</li>
-                <li>Se crearán nuevas actividades idénticas a las del día fuente</li>
-                <li>Los horarios, colores y descripciones se mantendrán igual</li>
-                <li>Esta acción no se puede deshacer</li>
+                <li>{t('copyDay.bulletPermanent', { day: currentDay })}</li>
+                <li>{t('copyDay.bulletCreate')}</li>
+                <li>{t('copyDay.bulletPreserve')}</li>
+                <li>{t('copyDay.bulletIrreversible')}</li>
               </ul>
             </div>
           </div>
@@ -200,16 +202,16 @@ const CopyDayModal = ({
         <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">Día destino: {currentDay}</p>
+              <p className="text-sm font-semibold">{t('copyDay.destinationDay', { day: currentDay })}</p>
               <p className="text-xs opacity-80">
-                Actualmente tiene {schedules[currentDay]?.length || 0} actividad(es)
+                {t('copyDay.currentCount', { count: schedules[currentDay]?.length || 0 })}
               </p>
             </div>
             <button
               onClick={onClose}
               className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition text-sm font-medium"
             >
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
         </div>

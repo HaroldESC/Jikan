@@ -5,6 +5,7 @@
  */
 
 import { Calendar, Clock } from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // Función para formatear horas decimales a string legible
 const formatHour = (decimalHour) => {
@@ -42,11 +43,13 @@ const formatDuration = (decimalHours) => {
   }
 };
 
-const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL" }) => {
+const CardMaru = ({ activity, currentDay, currentTime, label }) => {
   if (!activity) return null;
+  const { t } = useTranslation();
+  const labelText = label || t('header.currentActivity');
 
   // Usar title en lugar de activity para el nombre
-  const activityName = activity.title || activity.activity || 'Actividad sin nombre';
+  const activityName = activity.title || activity.activity || t('activity.noName');
   const activityDescription = activity.description || '';
   
   // Formatear horas para mostrar
@@ -90,13 +93,13 @@ const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL
       const remainingMinutes = Math.round((timeRemaining - remainingHour) * 60);
       
       if (remainingHour > 0 && remainingMinutes > 0) {
-        return `${remainingHour}h ${remainingMinutes}m restantes`;
+        return t('header.remaining', { hours: remainingHour, minutes: remainingMinutes });
       } else if (remainingHour > 0) {
-        return `${remainingHour}h restantes`;
+        return t('header.remainingHours', { hours: remainingHour });
       } else if (remainingMinutes > 0) {
-        return `${remainingMinutes}m restantes`;
+        return t('header.remainingMinutes', { minutes: remainingMinutes });
       } else {
-        return 'Finalizando pronto';
+        return t('header.endingSoon');
       }
     }
     return null;
@@ -118,7 +121,7 @@ const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL
   };
 
   // Si no es la actividad actual y la etiqueta es "ACTIVIDAD ACTUAL", no mostrar
-  if (label === "ACTIVIDAD ACTUAL" && !isCurrentActivity()) {
+  if (!label && !isCurrentActivity()) {
     return null;
   }
 
@@ -134,7 +137,7 @@ const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL
       <div className="flex items-center gap-2 mb-4 ml-2">
         <Calendar size={18} className="opacity-80" />
         <span className="text-sm font-semibold tracking-wide opacity-80">
-          {label}
+          {labelText}
         </span>
       </div>
 
@@ -155,7 +158,7 @@ const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL
         <div className="bg-white/10 rounded-lg p-3">
           <div className="flex items-center gap-2 text-sm opacity-75 mb-1">
             <Clock size={14} />
-            <span>Horario</span>
+            <span>{t('activity.schedule')}</span>
           </div>
           <div className="font-semibold text-lg">
             {formattedStart} - {formattedEnd}
@@ -165,7 +168,7 @@ const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL
         <div className="bg-white/10 rounded-lg p-3">
           <div className="flex items-center gap-2 text-sm opacity-75 mb-1">
             <Clock size={14} />
-            <span>Duración</span>
+            <span>{t('activity.duration')}</span>
           </div>
           <div className="font-semibold text-lg">
             {formatDuration(durationHours)}
@@ -177,7 +180,7 @@ const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL
       {isCurrentActivity() && progress > 0 && (
         <div className="mb-3">
           <div className="flex justify-between text-xs mb-1">
-            <span>Progreso</span>
+            <span>{t('header.progress')}</span>
             <span>{progress}%</span>
           </div>
           <div className="h-2 bg-white/20 rounded-full overflow-hidden">
@@ -203,7 +206,7 @@ const CardMaru = ({ activity, currentDay, currentTime, label = "ACTIVIDAD ACTUAL
       {/* Día de la semana (solo si se proporciona) */}
       {currentDay && (
         <div className="mt-4 pt-4 border-t border-white/10">
-          <div className="text-sm opacity-75">Programado para</div>
+          <div className="text-sm opacity-75">{t('header.scheduledFor')}</div>
           <div className="font-semibold">{currentDay}</div>
         </div>
       )}

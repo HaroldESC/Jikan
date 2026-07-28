@@ -1,3 +1,4 @@
+import { useTranslation } from '../../i18n/useTranslation';
 const timeToMinutes = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
 const minutesToDegrees = (m) => (m / 1440) * 360;
 const polarToCartesian = (cx, cy, r, deg) => {
@@ -15,14 +16,15 @@ const describeArc = (x, y, radius, startAngle, endAngle, innerRadius) => {
 };
 
 export default function WheelSei({ schedule, nowMinutes, currentActivityId, isViewingToday, isDarkMode, onActivitySelect }) {
+  const { t } = useTranslation();
   const cx = 150, cy = 150, radius = 120, innerRadius = 70;
 
   return (
-    <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-xl animate-wheel-entrance" aria-label="Reloj circular de horario diario">
+    <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-xl animate-wheel-entrance" aria-label="{t('wheel.ariaLabel')}">
       <circle cx={cx} cy={cy} r={radius} fill={isDarkMode ? '#1e293b' : '#f1f5f9'} aria-hidden="true" />
       {schedule.length === 0 && (
         <text x={cx} y={cy + 5} textAnchor="middle" className={`text-sm font-medium ${isDarkMode ? 'fill-gray-500' : 'fill-gray-400'}`} aria-hidden="true">
-          Sin actividades
+          {t('wheel.noActivities')}
         </text>
       )}
       {schedule.map((activity, index) => {
@@ -44,7 +46,7 @@ export default function WheelSei({ schedule, nowMinutes, currentActivityId, isVi
             onContextMenu={(e) => onActivitySelect(activity, index, e)}
             stroke={isDarkMode ? '#0f172a' : '#ffffff'}
             strokeWidth="2"
-            aria-label={`${activity.label} de ${activity.start} a ${activity.end}`}
+            aria-label={t('detail.aria.activityLabel', { label: activity.label, start: activity.start, end: activity.end })}
             role="button"
             tabIndex="0"
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onActivitySelect(activity, index, e); } }}
@@ -69,7 +71,7 @@ export default function WheelSei({ schedule, nowMinutes, currentActivityId, isVi
         </g>
       )}
       <text x={cx} y={cy - 10} textAnchor="middle" className={`text-sm font-medium ${isDarkMode ? 'fill-gray-400' : 'fill-gray-500'}`} aria-hidden="true">
-        {isViewingToday ? 'Ahora' : 'Viendo'}
+        {isViewingToday ? t('wheel.now') : t('wheel.viewing')}
       </text>
     </svg>
   );

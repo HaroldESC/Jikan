@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n/useTranslation';
 
 import { useClock } from '../hooks/useClock';
 import { useTheme } from '../hooks/useTheme';
@@ -27,6 +28,7 @@ export default function MainShell({ user }) {
   const { schedules, loading, reload } = useActivities(user);
   const currentTime = useClock();
   const { themeMode, toggleTheme, bgColor, isDarkMode, style } = useTheme();
+  const { t } = useTranslation();
 
   const [currentDay, setCurrentDay] = useState(getCurrentDay());
   const [view, setView] = useState('main');
@@ -48,7 +50,7 @@ export default function MainShell({ user }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white bg-slate-900">
-        Cargando tu horario…
+        {t('common.loading')}
       </div>
     );
   }
@@ -56,14 +58,11 @@ export default function MainShell({ user }) {
   const handleCopyDay = async (sourceDay, targetDay) => {
     const sourceActivities = schedules[sourceDay] || [];
     if (sourceActivities.length === 0) {
-      alert('El día seleccionado no tiene actividades para copiar');
+      alert(t('messages.noActivitiesCopy'));
       return;
     }
 
-    if (!window.confirm(
-      `¿Estás seguro de reemplazar todas las actividades de ${targetDay} con las de ${sourceDay}?\n\n` +
-      `Esto eliminará ${(schedules[targetDay] || []).length} actividad(es) existente(s) y creará ${sourceActivities.length} nueva(s).`
-    )) return;
+    if (!window.confirm(t('messages.confirmReplace', { target: targetDay, source: sourceDay }) + '\n\n' + t('messages.willDelete', { count: (schedules[targetDay] || []).length }))) return;
 
     try {
       const existingActivities = schedules[targetDay] || [];
@@ -87,9 +86,9 @@ export default function MainShell({ user }) {
       if (error) throw error;
 
       await reload();
-      alert(`${sourceActivities.length} actividades copiadas exitosamente de ${sourceDay} a ${targetDay}`);
+      alert(t('messages.copiedSuccess', { count: sourceActivities.length, source: sourceDay, target: targetDay }));
     } catch (error) {
-      alert('Error al copiar actividades: ' + error.message);
+      alert(t('messages.copyError', { msg: error.message }));
     }
   };
 
@@ -100,7 +99,7 @@ export default function MainShell({ user }) {
 
     const { error } = await supabase.from('activities').delete().eq('id', activity.id);
     if (error) {
-      alert('Error al eliminar: ' + error.message);
+      alert(t('messages.deleteError', { msg: error.message }));
       return;
     }
     await reload();
@@ -108,11 +107,11 @@ export default function MainShell({ user }) {
 
   const handleSaveActivity = async (day, originalActivity, updatedActivity) => {
     if (updatedActivity.end <= updatedActivity.start) {
-      alert('La hora de fin debe ser mayor a la de inicio');
+      alert(t('messages.endAfterStart'));
       return;
     }
     if (!updatedActivity.activity.trim()) {
-      alert('El nombre de la actividad es requerido');
+      alert(t('messages.nameRequired'));
       return;
     }
 
@@ -134,7 +133,7 @@ export default function MainShell({ user }) {
     }
 
     if (result.error) {
-      alert('Error: ' + result.error.message);
+      alert(t('messages.error', { msg: result.error.message }));
       return;
     }
 
@@ -237,7 +236,7 @@ export default function MainShell({ user }) {
       onSave: handleSaveActivity,
       onCancel: () => { setView('main'); setEditingActivity(null); setEditingDay(null); setEditingActivityIndex(null); },
       onDelete: (day, idx) => {
-        if (window.confirm('¿Estás seguro de eliminar esta actividad?')) {
+        if (window.confirm(t('messages.confirmDelete'))) {
           handleDeleteActivity(day, idx);
           setView('main');
           setEditingActivity(null);

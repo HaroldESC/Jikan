@@ -1,9 +1,12 @@
+import { useTranslation } from '../../i18n/useTranslation';
+
 const CENTER = 200;
 const RADIUS = 180;
 const LABEL_RADIUS = 120;
 const TOTAL_MINUTES = 24 * 60;
 
 const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
+  const { t } = useTranslation();
   const isToday = (dayName) => {
     const daysMap = {
       'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3,
@@ -15,12 +18,12 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
   const createFullSchedule = (schedule) => {
     if (!schedule || schedule.length === 0) {
       return [{
-        activity: 'Sin asignar',
-        title: 'Sin asignar',
+        activity: t('wheel.unassigned'),
+        title: t('wheel.unassigned'),
         color: '#d1d5db',
         start: 0,
         end: 24,
-        description: 'No hay actividades programadas para este día',
+        description: t('wheel.noActivitiesDesc'),
         isEmpty: true,
         isFullDay: true
       }];
@@ -36,11 +39,11 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
 
       if (currentMinutes < itemStartMinutes) {
         fullSchedule.push({
-          activity: 'Libre',
+          activity: t('wheel.free'),
           color: '#e5e7eb',
           start: currentMinutes / 60,
           end: itemStartMinutes / 60,
-          description: 'Tiempo libre',
+          description: t('wheel.freeTime'),
           isEmpty: true
         });
       }
@@ -55,11 +58,11 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
 
     if (currentMinutes < TOTAL_MINUTES) {
       fullSchedule.push({
-        activity: 'Libre',
+        activity: t('wheel.free'),
         color: '#e5e7eb',
         start: currentMinutes / 60,
         end: 24,
-        description: 'Tiempo libre',
+        description: t('wheel.freeTime'),
         isEmpty: true
       });
     }
@@ -145,7 +148,7 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
           onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); onActivitySelect(item, originalIndex, e); }}>
           {sliceContent}
           <title>{item.title || item.activity}{'\n'}{formatTime(item.start)} - {formatTime(item.end)}{'\n'}
-            {item.description || 'Sin descripción'}{'\n'}Duración: {Math.floor(durationHours)}h {Math.round((durationHours % 1) * 60)}m</title>
+            {item.description || t('wheel.noDescription')}{'\n'}{t('wheel.durationLabel', { hours: Math.floor(durationHours), minutes: Math.round((durationHours % 1) * 60) })}</title>
         </g>
       );
     });
@@ -183,7 +186,7 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
         fill="#1e293b" fontSize="20" fontWeight="bold">{currentDay}</text>
       {isToday(currentDay) && (
         <text x={CENTER} y={CENTER + 16} textAnchor="middle" dominantBaseline="middle"
-          fill="#64748b" fontSize="12">Hoy</text>
+          fill="#64748b" fontSize="12">{t('days.today')}</text>
       )}
     </svg>
   );

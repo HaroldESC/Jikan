@@ -1,4 +1,5 @@
 import { ChevronLeft, Trash2, Clock, Palette, FileText, Save, Plus } from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const COLOR_PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'];
 
@@ -25,6 +26,7 @@ export default function EditViewMaru({
   onEndTimeChange,
   onTempActivityChange,
 }) {
+  const { t } = useTranslation();
   const duration = tempActivity.end - tempActivity.start;
 
   return (
@@ -35,41 +37,41 @@ export default function EditViewMaru({
           className="mb-4 flex items-center gap-2 text-white bg-white/20 px-4 py-2 rounded-lg hover:bg-white/30 transition"
         >
           <ChevronLeft size={20} />
-          Cancelar
+          {t('common.cancel')}
         </button>
 
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 text-white">
           <h2 className="text-3xl font-bold mb-8 text-center">
-            {editingActivity ? 'Editar Actividad' : 'Nueva Actividad'}
+            {editingActivity ? t('activity.edit') : t('activity.new')}
           </h2>
 
           <div className="space-y-6">
-            <SectionBlock icon={<FileText size={18} />} title="Información básica">
+            <SectionBlock icon={<FileText size={18} />} title={t('activity.basicInfo')}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2 opacity-80">Nombre de la actividad</label>
+                  <label className="block text-sm font-medium mb-2 opacity-80">{t('activity.name')}</label>
                   <input
                     type="text"
                     value={tempActivity.activity}
                     onChange={(e) => onTempActivityChange({ ...tempActivity, activity: e.target.value })}
                     className="w-full bg-white/10 rounded-lg p-3 text-white placeholder-white/50 border border-white/20 focus:border-white/50 focus:outline-none transition"
-                    placeholder="Ej: Estudio, Trabajo, Ejercicio..."
+                    placeholder={t('activity.namePlaceholder')}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 opacity-80">Descripción</label>
+                  <label className="block text-sm font-medium mb-2 opacity-80">{t('activity.description')}</label>
                   <textarea
                     value={tempActivity.description}
                     onChange={(e) => onTempActivityChange({ ...tempActivity, description: e.target.value })}
                     className="w-full bg-white/10 rounded-lg p-3 text-white placeholder-white/50 border border-white/20 focus:border-white/50 focus:outline-none resize-none transition"
                     rows="3"
-                    placeholder="Describe tu actividad..."
+                    placeholder={t('activity.descriptionPlaceholder')}
                   />
                 </div>
               </div>
             </SectionBlock>
 
-            <SectionBlock icon={<Palette size={18} />} title="Color">
+            <SectionBlock icon={<Palette size={18} />} title={t('activity.color')}>
               <div className="space-y-3">
                 <div className="flex gap-3 items-center">
                   <input
@@ -104,10 +106,10 @@ export default function EditViewMaru({
               </div>
             </SectionBlock>
 
-            <SectionBlock icon={<Clock size={18} />} title="Horario">
+            <SectionBlock icon={<Clock size={18} />} title={t('activity.schedule')}>
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/10 rounded-xl p-4">
-                  <label className="block text-sm font-medium mb-2 opacity-80">Hora de inicio</label>
+                  <label className="block text-sm font-medium mb-2 opacity-80">{t('activity.startTime')}</label>
                   <input
                     type="time"
                     value={tempStartTime}
@@ -115,10 +117,10 @@ export default function EditViewMaru({
                     className="w-full bg-white/10 rounded-lg p-3 text-white border border-white/20 focus:border-white/50 focus:outline-none cursor-pointer transition"
                     step="300"
                   />
-                  <p className="text-xs mt-2 opacity-60">Selecciona hora y minutos</p>
+                  <p className="text-xs mt-2 opacity-60">{t('activity.selectTime')}</p>
                 </div>
                 <div className="bg-white/10 rounded-xl p-4">
-                  <label className="block text-sm font-medium mb-2 opacity-80">Hora de fin</label>
+                  <label className="block text-sm font-medium mb-2 opacity-80">{t('activity.endTime')}</label>
                   <input
                     type="time"
                     value={tempEndTime}
@@ -126,13 +128,13 @@ export default function EditViewMaru({
                     className="w-full bg-white/10 rounded-lg p-3 text-white border border-white/20 focus:border-white/50 focus:outline-none cursor-pointer transition"
                     step="300"
                   />
-                  <p className="text-xs mt-2 opacity-60">Selecciona hora y minutos</p>
+                  <p className="text-xs mt-2 opacity-60">{t('activity.selectTime')}</p>
                 </div>
               </div>
             </SectionBlock>
 
             <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <p className="text-sm opacity-75 mb-1">Duración total</p>
+              <p className="text-sm opacity-75 mb-1">{t('activity.totalDuration')}</p>
               <p className="text-3xl font-bold text-white">
                 {formatDuration(duration)}
               </p>
@@ -144,7 +146,7 @@ export default function EditViewMaru({
                 onClick={() => onSave(editingDay, editingActivity, tempActivity)}
                 className="flex-1 bg-green-500/80 hover:bg-green-500 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2 backdrop-blur-sm"
               >
-                {editingActivity ? <><Save size={18} /> Guardar cambios</> : <><Plus size={18} /> Crear actividad</>}
+                {editingActivity ? <><Save size={18} /> {t('common.save')}</> : <><Plus size={18} /> {t('common.create')}</>}
               </button>
               {editingActivity && editingActivityIndex !== null && (
                 <button
@@ -152,7 +154,7 @@ export default function EditViewMaru({
                   className="bg-red-500/40 hover:bg-red-500/60 text-white font-semibold px-6 py-3 rounded-xl transition flex items-center justify-center gap-2 backdrop-blur-sm border border-red-400/30"
                 >
                   <Trash2 size={18} />
-                  Eliminar
+                  {t('common.delete')}
                 </button>
               )}
             </div>

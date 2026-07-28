@@ -5,8 +5,10 @@
  */
 
 import { Sun, Moon, SunMoon } from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const ThemeToggle = ({ themeMode, onToggle }) => {
+  const { t } = useTranslation();
 
   const getThemeIcon = () => {
     switch (themeMode) {
@@ -20,17 +22,17 @@ const ThemeToggle = ({ themeMode, onToggle }) => {
   };
 
   const getThemeLabel = () => {
-    if (themeMode === 'auto') return 'Automático';
-    if (themeMode === 'light') return 'Claro';
-    return 'Oscuro';
+    if (themeMode === 'auto') return t('theme.auto');
+    if (themeMode === 'light') return t('theme.light');
+    return t('theme.dark');
   };
 
   return (
     <button
       onClick={onToggle}
       className="theme-toggle-btn"
-      title={`Modo: ${getThemeLabel()}`}
-      aria-label={`Cambiar tema. Modo actual: ${getThemeLabel()}`}
+      title={t('theme.mode', { mode: getThemeLabel() })}
+      aria-label={t('theme.changeAria', { mode: getThemeLabel() })}
     >
       <span className="theme-toggle-icon">
         {getThemeIcon()}

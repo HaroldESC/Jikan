@@ -5,8 +5,10 @@
  */
 
 import { Bell, Plus, Trash2} from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const Reminders = ({ reminders = [], onAddReminder, onDeleteReminder }) => {
+  const { t } = useTranslation();
   
   // Ordenar recordatorios por hora
   const sortedReminders = [...reminders].sort((a, b) => 
@@ -37,14 +39,14 @@ const Reminders = ({ reminders = [], onAddReminder, onDeleteReminder }) => {
     <section className="reminders-card">
       <h3 className="reminders-title">
         <Bell size={18} />
-        RECORDATORIOS
+        {t('reminders.title')}
       </h3>
 
       {/* Próximo recordatorio destacado */}
       {nextReminder && (
         <div className="next-reminder">
           <div className="next-reminder__content">
-            <p className="next-reminder__label">Próximo:</p>
+            <p className="next-reminder__label">{t('reminders.next')}</p>
             <p className="next-reminder__text">{nextReminder.text}</p>
             <p className="next-reminder__time">{nextReminder.time}</p>
           </div>
@@ -54,7 +56,7 @@ const Reminders = ({ reminders = [], onAddReminder, onDeleteReminder }) => {
       <div className="reminders-list">
         {reminders.length === 0 && (
           <p className="reminders-empty">
-            No hay recordatorios aún
+            {t('reminders.empty')}
           </p>
         )}
 
@@ -76,7 +78,7 @@ const Reminders = ({ reminders = [], onAddReminder, onDeleteReminder }) => {
               <button
                 onClick={() => onDeleteReminder(reminder.id)}
                 className="reminder-delete-btn"
-                aria-label={`Eliminar recordatorio: ${reminder.text}`}
+                aria-label={t('reminders.deleteAria', { text: reminder.text })}
               >
                 <Trash2 size={14} />
               </button>
@@ -88,10 +90,10 @@ const Reminders = ({ reminders = [], onAddReminder, onDeleteReminder }) => {
       <button
         onClick={onAddReminder}
         className="reminders-add-btn"
-        aria-label="Añadir nuevo recordatorio"
+        aria-label={t('reminders.addAria')}
       >
         <Plus size={16} />
-        Añadir recordatorio
+        {t('reminders.add')}
       </button>
     </section>
   );

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Mail, Lock, Eye, EyeOff, User, ArrowLeft, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useTranslation } from '../i18n/useTranslation';
 
 const LoginScreen = () => {
+  const { t, localeForDate } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -37,7 +39,7 @@ const LoginScreen = () => {
     const { email, password, name } = formData;
 
     if (!email || !password) {
-      setError('Completa todos los campos');
+      setError(t('auth.completeAllFields'));
       setLoading(false);
       return;
     }
@@ -66,7 +68,7 @@ const LoginScreen = () => {
     setLoading(true);
 
     if (!formData.email) {
-      setError('Ingresa tu correo electrónico');
+      setError(t('auth.enterEmail'));
       setLoading(false);
       return;
     }
@@ -152,9 +154,9 @@ const LoginScreen = () => {
             <Clock size={40} className="text-white" />
           </div>
           <h1 className="text-4xl font-bold text-white mb-2">Jikan Maru</h1>
-          <h2 className="text-xl text-white/90">Proyecto de horario circular</h2>
+          <h2 className="text-xl text-white/90">{t('auth.projectTitle')}</h2>
           <p className="text-white/60 text-sm mt-1">
-            {currentTime.toLocaleDateString('es-ES', {
+            {currentTime.toLocaleDateString(localeForDate, {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -167,15 +169,15 @@ const LoginScreen = () => {
           {resetSent ? (
             <div className="text-center py-4">
               <CheckCircle size={48} className="mx-auto text-green-400 mb-4" />
-              <h3 className="text-xl font-bold text-white mb-2">Correo enviado</h3>
+              <h3 className="text-xl font-bold text-white mb-2">{t('password.emailSent')}</h3>
               <p className="text-white/70 text-sm mb-6">
-                Revisa tu bandeja de entrada y sigue el enlace para restablecer tu contraseña.
+                {t('password.emailSentDesc')}
               </p>
               <button
                 onClick={() => { setResetMode(false); setResetSent(false); }}
                 className="text-white/60 hover:text-white text-sm transition"
               >
-                Volver a inicio de sesión
+                {t('password.backToLogin')}
               </button>
             </div>
           ) : resetMode ? (
@@ -184,35 +186,35 @@ const LoginScreen = () => {
                 onClick={() => { setResetMode(false); setError(null); }}
                 className="flex items-center gap-1 text-white/60 hover:text-white text-sm mb-4 transition"
               >
-                <ArrowLeft size={16} /> Volver
+                <ArrowLeft size={16} /> {t('password.back')}
               </button>
-              <h3 className="text-xl font-bold text-white mb-2">Recuperar contraseña</h3>
+              <h3 className="text-xl font-bold text-white mb-2">{t('password.recover')}</h3>
               <p className="text-white/60 text-sm mb-6">
-                Te enviaremos un enlace para restablecer tu contraseña.
+                {t('password.sendLinkDescription')}
               </p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-white/90 text-sm font-medium mb-2">
-                    Correo electrónico
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full bg-white/10 border border-white/20 rounded-xl py-3 pl-12 pr-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition"
-                      placeholder="ejemplo@email.com"
-                    />
+                    {t('auth.email')}
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full bg-white/10 border border-white/20 rounded-xl py-3 pl-12 pr-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition"
+                        placeholder="ejemplo@email.com"
+                      />
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={handleResetPassword}
-                  disabled={loading}
-                  className="w-full bg-white text-indigo-900 py-3 rounded-xl font-bold hover:bg-white/90 transition transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-60"
-                >
-                  {loading ? 'Enviando...' : 'Enviar enlace'}
+                  <button
+                    onClick={handleResetPassword}
+                    disabled={loading}
+                    className="w-full bg-white text-indigo-900 py-3 rounded-xl font-bold hover:bg-white/90 transition transform hover:scale-105 active:scale-95 shadow-lg disabled:opacity-60"
+                  >
+                    {loading ? t('common.sending') : t('password.sendLink')}
                 </button>
                 {error && (
                   <p className="text-red-300 text-sm text-center mt-4">{error}</p>
@@ -230,7 +232,7 @@ const LoginScreen = () => {
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
-                  Iniciar Sesión
+                  {t('auth.login')}
                 </button>
                 <button
                   onClick={() => setIsLogin(false)}
@@ -240,7 +242,7 @@ const LoginScreen = () => {
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
-                  Registrarse
+                  {t('auth.signup')}
                 </button>
               </div>
 
@@ -248,7 +250,7 @@ const LoginScreen = () => {
                 {!isLogin && (
                   <div>
                     <label className="block text-white/90 text-sm font-medium mb-2">
-                      Nombre completo
+                      {t('auth.fullName')}
                     </label>
                     <div className="relative">
                       <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
@@ -258,7 +260,7 @@ const LoginScreen = () => {
                         value={formData.name}
                         onChange={handleChange}
                         className="w-full bg-white/10 border border-white/20 rounded-xl py-3 pl-12 pr-4 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 transition"
-                        placeholder="Nombre"
+                        placeholder={t('auth.name')}
                       />
                     </div>
                   </div>
@@ -266,7 +268,7 @@ const LoginScreen = () => {
 
                 <div>
                   <label className="block text-white/90 text-sm font-medium mb-2">
-                    Correo electrónico
+                    {t('auth.email')}
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
@@ -283,7 +285,7 @@ const LoginScreen = () => {
 
                 <div>
                   <label className="block text-white/90 text-sm font-medium mb-2">
-                    Contraseña
+                    {t('auth.password')}
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
@@ -308,7 +310,7 @@ const LoginScreen = () => {
                       onClick={() => { setResetMode(true); setError(null); }}
                       className="text-white/50 hover:text-white text-xs mt-2 transition"
                     >
-                      ¿Olvidaste tu contraseña?
+                      {t('auth.forgotPassword')}
                     </button>
                   )}
                 </div>
@@ -319,10 +321,10 @@ const LoginScreen = () => {
                   className="w-full bg-white text-indigo-900 py-3 rounded-xl font-bold hover:bg-white/90 transition transform hover:scale-105 active:scale-95 shadow-lg mt-6 disabled:opacity-60"
                 >
                   {loading
-                    ? 'Procesando...'
+                    ? t('common.processing')
                     : isLogin
-                      ? 'Iniciar Sesión'
-                      : 'Crear Cuenta'}
+                      ? t('auth.login')
+                      : t('auth.createAccount')}
                 </button>
 
                 {error && (
@@ -337,7 +339,7 @@ const LoginScreen = () => {
                   <div className="w-full border-t border-white/20"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-transparent text-white/60">o continuar con</span>
+                  <span className="px-4 bg-transparent text-white/60">{t('auth.orContinueWith')}</span>
                 </div>
               </div>
 

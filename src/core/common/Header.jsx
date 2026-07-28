@@ -8,11 +8,13 @@ import { useState } from 'react';
 import { Clock } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { SettingsButton, SettingsModal } from './Settings';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const Header = ({ currentTime, themeMode, onToggleTheme }) => {
+  const { t, localeForDate } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const timeString = currentTime.toLocaleTimeString('es-ES', {
+  const timeString = currentTime.toLocaleTimeString(localeForDate, {
     hour: '2-digit',
     minute: '2-digit'
   });

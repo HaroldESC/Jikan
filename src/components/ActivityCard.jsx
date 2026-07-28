@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
+import { useTranslation } from '../i18n/useTranslation';
 
 const formatHour = (decimal) => {
   const hours = Math.floor(decimal);
@@ -18,7 +19,9 @@ const formatDuration = (decimal) => {
   return `${hours}h ${minutes}m`;
 };
 
-export default function ActivityCard({ activity, currentDay, isDarkMode, onClick, label = 'ACTIVIDAD ACTUAL' }) {
+export default function ActivityCard({ activity, currentDay, isDarkMode, onClick, label }) {
+  const { t } = useTranslation();
+  const labelText = label || t('header.currentActivity');
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -40,14 +43,14 @@ export default function ActivityCard({ activity, currentDay, isDarkMode, onClick
     ? (() => {
         const h = Math.floor(remaining);
         const m = Math.round((remaining - h) * 60);
-        if (h > 0 && m > 0) return `${h}h ${m}m restantes`;
-        if (h > 0) return `${h}h restantes`;
-        if (m > 0) return `${m}m restantes`;
-        return 'Finalizando pronto';
+        if (h > 0 && m > 0) return t('header.remaining', { hours: h, minutes: m });
+        if (h > 0) return t('header.remainingHours', { hours: h });
+        if (m > 0) return t('header.remainingMinutes', { minutes: m });
+        return t('header.endingSoon');
       })()
     : null;
 
-  const name = activity.title || activity.activity || 'Actividad sin nombre';
+  const name = activity.title || activity.activity || t('activity.noName');
   const timeBadge = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
   return (
@@ -65,7 +68,7 @@ export default function ActivityCard({ activity, currentDay, isDarkMode, onClick
       <div className="activity-card__header">
         <div className="activity-card__label">
           <Clock size={12} />
-          <span>{label}</span>
+          <span>{labelText}</span>
         </div>
         <div className="activity-card__time-badge">{timeBadge}</div>
       </div>
@@ -78,20 +81,20 @@ export default function ActivityCard({ activity, currentDay, isDarkMode, onClick
 
       <div className="activity-card__times">
         <div className="activity-card__time-block">
-          <span className="activity-card__time-label">Horario</span>
+          <span className="activity-card__time-label">{t('activity.schedule')}</span>
           <span className="activity-card__time-value">
             {formatHour(activity.start)} - {formatHour(activity.end)}
           </span>
         </div>
         <div className="activity-card__time-block">
-          <span className="activity-card__time-label">Duración</span>
+          <span className="activity-card__time-label">{t('activity.duration')}</span>
           <span className="activity-card__time-value">{formatDuration(activity.end - activity.start)}</span>
         </div>
       </div>
 
       {(progress > 0 || timeRemaining) && (
         <div className="activity-card__progress-area">
-          <div className="activity-card__progress-bar" role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100" aria-label="Progreso de la actividad">
+          <div className="activity-card__progress-bar" role="progressbar" aria-valuenow={progress} aria-valuemin="0" aria-valuemax="100" aria-label={t('header.progressAria')}>
             <div className="activity-card__progress-fill" style={{ width: `${progress}%`, backgroundColor: activity.color }} />
           </div>
           {timeRemaining && (
@@ -102,7 +105,7 @@ export default function ActivityCard({ activity, currentDay, isDarkMode, onClick
 
       {currentDay && (
         <div className="activity-card__day">
-          <span className="activity-card__day-label">Programado para</span>
+          <span className="activity-card__day-label">{t('header.scheduledFor')}</span>
           <span className="activity-card__day-value">{currentDay}</span>
         </div>
       )}

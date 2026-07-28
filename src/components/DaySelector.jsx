@@ -1,6 +1,8 @@
 import { DAYS_OF_WEEK } from '../utils/index';
+import { useTranslation } from '../i18n/useTranslation';
 
 export default function DaySelector({ days = DAYS_OF_WEEK, currentDay, onSelectDay, isDarkMode }) {
+  const { t } = useTranslation();
   const getShortLabel = (day) => {
     const lower = day.toLowerCase();
     if (lower.includes('martes')) return 'M';
@@ -29,8 +31,8 @@ export default function DaySelector({ days = DAYS_OF_WEEK, currentDay, onSelectD
                 onClick={() => onSelectDay(day)}
                 className={`day-btn${active ? ' day-btn--active' : ''}${today ? ' day-btn--today' : ''}`}
                 aria-current={active ? 'true' : undefined}
-                aria-label={`Seleccionar ${day}`}
-                title={`${day}${today ? ' (hoy)' : ''}`}
+                aria-label={t('days.select', { day })}
+                title={today ? t('days.todayAria', { day }) : day}
               >
                 <span className="day-btn__label">{getShortLabel(day)}</span>
                 <span className="day-btn__full">{day}</span>

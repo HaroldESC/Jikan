@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Plus, Copy } from 'lucide-react';
+import { useTranslation } from '../i18n/useTranslation';
 
 import WheelMaru from './wheel/WheelMaru';
 import WheelSei from './wheel/WheelSei';
@@ -37,6 +38,7 @@ export default function AppLayout({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const { t } = useTranslation();
 
   const isMaru = style === 'maru';
   const dark = isDarkMode();
@@ -110,18 +112,18 @@ export default function AppLayout({
               <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center items-center">
                 <button onClick={() => onAddActivity(currentDay)}
                   className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
-                  <Plus size={20} /> Añadir actividad
+                  <Plus size={20} /> {t('header.addActivity')}
                 </button>
                 <button onClick={() => setShowCopyModal(true)}
                   className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
-                  <Copy size={20} /> Copiar desde otro día
+                  <Copy size={20} /> {t('header.copyFromDay')}
                 </button>
               </div>
             ) : (
               <div className="flex justify-center">
                 <button onClick={() => onAddActivity(currentDay)}
                   className={`px-6 py-3 rounded-xl font-medium transition inline-flex items-center gap-2 ${dark ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-white shadow-sm hover:bg-slate-50 text-slate-700'}`}>
-                  <Plus size={18} /> Añadir actividad
+                  <Plus size={18} /> {t('header.addActivity')}
                 </button>
               </div>
             )}
@@ -131,7 +133,7 @@ export default function AppLayout({
           {isMaru && (
             <div className="space-y-4 lg:overflow-auto lg:max-h-[calc(100vh-200px)] custom-scrollbar">
               {currentDay === getCurrentDay() && rawCurrent && (
-                <ActivityCard activity={rawCurrent} currentDay={currentDay} isDarkMode={dark} label="ACTIVIDAD ACTUAL" />
+                <ActivityCard activity={rawCurrent} currentDay={currentDay} isDarkMode={dark} label={t('header.currentActivity')} />
               )}
               <Daily schedule={rawActivities} />
             </div>

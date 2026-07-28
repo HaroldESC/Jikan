@@ -1,14 +1,17 @@
+import { useTranslation } from '../../i18n/useTranslation';
+
 export function ActivityList({ activities, isDarkMode, isViewingToday, currentActivityId, dayName, onActivitySelect }) {
+  const { t } = useTranslation();
   const isCurrent = (a) => isViewingToday && currentActivityId === a.id;
 
   return (
     <section className="w-full" aria-label="Lista de actividades del día">
       <header>
         <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 flex justify-between ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-          <span>Plan para {dayName}</span>
+          <span>{t('header.planFor', { day: dayName })}</span>
           {!isViewingToday && (
-            <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 rounded text-slate-500" aria-label="Vista previa - No es el día actual">
-              Vista Previa
+            <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 rounded text-slate-500" aria-label={t('header.previewLabel')}>
+              {t('header.preview')}
             </span>
           )}
         </h3>
@@ -20,7 +23,7 @@ export function ActivityList({ activities, isDarkMode, isViewingToday, currentAc
             onClick={(e) => onActivitySelect(activity, index, e)}
             onContextMenu={(e) => onActivitySelect(activity, index, e)}
             role="listitem"
-            aria-label={`Actividad: ${activity.label} de ${activity.start} a ${activity.end}`}
+            aria-label={t('detail.aria.activityLabel', { label: activity.label, start: activity.start, end: activity.end })}
             className={`flex items-center p-3 rounded-2xl border cursor-pointer hover:scale-[1.01] transition-transform duration-200 ${
               isDarkMode ? 'border-slate-800 bg-slate-800/50 hover:bg-slate-800/70' : 'border-slate-100 bg-white hover:bg-slate-50'
             } ${isCurrent(activity) ? 'ring-2 ring-offset-2 ring-blue-500 shadow-md' : ''}`}
@@ -37,7 +40,7 @@ export function ActivityList({ activities, isDarkMode, isViewingToday, currentAc
               </div>
               <p className="text-xs opacity-60 line-clamp-1" title={activity.description}>{activity.description}</p>
             </div>
-            {isCurrent(activity) && <span className="sr-only">Actividad actual en curso</span>}
+            {isCurrent(activity) && <span className="sr-only">{t('detail.aria.currentActivity')}</span>}
           </article>
         ))}
       </div>

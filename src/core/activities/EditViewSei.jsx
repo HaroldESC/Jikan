@@ -1,4 +1,5 @@
 import { ArrowLeft, Trash2 } from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const COLOR_PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'];
 
@@ -17,6 +18,7 @@ export default function EditViewSei({
   onEndTimeChange,
   onTempActivityChange,
 }) {
+  const { t } = useTranslation();
   const dark = isDarkMode;
   const duration = tempActivity.end - tempActivity.start;
   const durHours = Math.floor(duration);
@@ -30,39 +32,39 @@ export default function EditViewSei({
           className={`mb-6 flex items-center gap-2 text-sm font-medium transition ${dark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`}
         >
           <ArrowLeft size={18} />
-          Volver
+          {t('common.back')}
         </button>
 
         <h1 className={`text-2xl font-bold mb-6 ${dark ? 'text-white' : 'text-slate-800'}`}>
-          {editingActivity ? 'Editar Actividad' : 'Nueva Actividad'}
+          {editingActivity ? t('activity.edit') : t('activity.new')}
         </h1>
 
         <div className="space-y-5">
 
           <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>
-            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">Nombre</h2>
+            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">{t('activity.name')}</h2>
             <input
               type="text"
               value={tempActivity.activity}
               onChange={(e) => onTempActivityChange({ ...tempActivity, activity: e.target.value })}
-              placeholder="Ej: Estudio, Trabajo, Ejercicio..."
+              placeholder={t('activity.namePlaceholder')}
               className={`w-full rounded-xl p-3 text-sm outline-none transition ${dark ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-400'}`}
             />
           </section>
 
           <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>
-            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">Descripción</h2>
+            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">{t('activity.description')}</h2>
             <textarea
               value={tempActivity.description}
               onChange={(e) => onTempActivityChange({ ...tempActivity, description: e.target.value })}
               rows="3"
-              placeholder="Describe tu actividad..."
+              placeholder={t('activity.descriptionPlaceholder')}
               className={`w-full rounded-xl p-3 text-sm outline-none resize-none transition ${dark ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-400'}`}
             />
           </section>
 
           <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>
-            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">Color</h2>
+            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">{t('activity.color')}</h2>
             <div className="flex flex-wrap gap-3">
               {COLOR_PALETTE.map((c) => (
                 <button
@@ -85,10 +87,10 @@ export default function EditViewSei({
           </section>
 
           <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>
-            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">Horario</h2>
+            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">{t('activity.schedule')}</h2>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={`block text-xs font-medium mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Inicio</label>
+                <label className={`block text-xs font-medium mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{t('activity.start')}</label>
                 <input
                   type="time"
                   value={tempStartTime}
@@ -98,7 +100,7 @@ export default function EditViewSei({
                 />
               </div>
               <div>
-                <label className={`block text-xs font-medium mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>Fin</label>
+                <label className={`block text-xs font-medium mb-2 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{t('activity.end')}</label>
                 <input
                   type="time"
                   value={tempEndTime}
@@ -112,7 +114,7 @@ export default function EditViewSei({
 
           <div className={`rounded-2xl p-5 text-center ${dark ? 'bg-slate-800' : 'bg-white'} shadow-sm`}>
             <p className={`text-xs uppercase font-bold tracking-wider mb-1 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Duración total
+              {t('activity.totalDuration')}
             </p>
             <p className="text-2xl font-bold">
               {durHours > 0 && durMinutes > 0
@@ -131,7 +133,7 @@ export default function EditViewSei({
               onClick={() => onSave(editingDay, editingActivity, tempActivity)}
               className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2"
             >
-              {editingActivity ? 'Guardar cambios' : 'Crear actividad'}
+              {editingActivity ? t('common.save') : t('common.create')}
             </button>
             {editingActivity && editingActivityIndex !== null && (
               <button
@@ -139,7 +141,7 @@ export default function EditViewSei({
                 className={`px-6 py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 ${dark ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-red-50 text-red-500 hover:bg-red-100'}`}
               >
                 <Trash2 size={18} />
-                Eliminar
+                {t('common.delete')}
               </button>
             )}
           </div>
