@@ -17,19 +17,19 @@ export default function LanguageSelector() {
       <p className="text-xs opacity-60 -mt-2">
         {t('settings.languageDescription')}
       </p>
-      <div className="flex gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {LANGUAGES.map((lang) => (
           <button
             key={lang.code}
             onClick={() => setLanguage(lang.code)}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border transition whitespace-nowrap ${
+            className={`flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-xs font-medium border transition ${
               language === lang.code
                 ? 'bg-blue-500/20 border-blue-500 text-blue-500 dark:text-blue-400'
                 : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
             }`}
           >
-            <span className="text-base">{lang.flag}</span>
-            {lang.label}
+            <span>{lang.flag}</span>
+            <span className="truncate">{lang.label}</span>
           </button>
         ))}
       </div>

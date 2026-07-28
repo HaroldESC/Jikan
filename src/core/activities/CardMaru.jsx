@@ -45,7 +45,7 @@ const formatDuration = (decimalHours) => {
 
 const CardMaru = ({ activity, currentDay, currentTime, label }) => {
   if (!activity) return null;
-  const { t } = useTranslation();
+  const { t, dayName: translateDay } = useTranslation();
   const labelText = label || t('header.currentActivity');
 
   // Usar title en lugar de activity para el nombre
@@ -207,7 +207,7 @@ const CardMaru = ({ activity, currentDay, currentTime, label }) => {
       {currentDay && (
         <div className="mt-4 pt-4 border-t border-white/10">
           <div className="text-sm opacity-75">{t('header.scheduledFor')}</div>
-          <div className="font-semibold">{currentDay}</div>
+          <div className="font-semibold">{translateDay(currentDay)}</div>
         </div>
       )}
     </div>

@@ -1,14 +1,14 @@
 import { useTranslation } from '../../i18n/useTranslation';
 
 export function ActivityList({ activities, isDarkMode, isViewingToday, currentActivityId, dayName, onActivitySelect }) {
-  const { t } = useTranslation();
+  const { t, dayName: translateDay } = useTranslation();
   const isCurrent = (a) => isViewingToday && currentActivityId === a.id;
 
   return (
     <section className="w-full" aria-label="Lista de actividades del día">
       <header>
         <h3 className={`text-sm font-semibold uppercase tracking-wider mb-3 flex justify-between ${isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>
-          <span>{t('header.planFor', { day: dayName })}</span>
+          <span>{t('header.planFor', { day: translateDay(dayName) })}</span>
           {!isViewingToday && (
             <span className="text-xs bg-slate-200 dark:bg-slate-700 px-2 rounded text-slate-500" aria-label={t('header.previewLabel')}>
               {t('header.preview')}

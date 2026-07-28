@@ -62,7 +62,7 @@ const CopyDayModal = ({
 }) => {
   if (!isOpen) return null;
 
-  const { t } = useTranslation();
+  const { t, dayName: translateDay } = useTranslation();
 
   const handleCopy = (sourceDay) => {
     onCopyDay(sourceDay, currentDay);
@@ -74,7 +74,7 @@ const CopyDayModal = ({
       <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-4xl w-full text-white">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-2xl font-bold">{t('copyDay.title', { day: currentDay })}</h2>
+            <h2 className="text-2xl font-bold">{t('copyDay.title', { day: translateDay(currentDay) })}</h2>
             <p className="text-white/70 text-sm mt-1">
               {t('copyDay.description')}
             </p>
@@ -186,10 +186,10 @@ const CopyDayModal = ({
             <div className="text-sm">
               <p className="font-semibold mb-1">{t('copyDay.warning')}</p>
               <p className="opacity-90 mb-2">
-                {t('copyDay.bulletReplace', { day: currentDay })}
+                {t('copyDay.replaceWarning', { day: translateDay(currentDay) })}
               </p>
               <ul className="list-disc pl-5 opacity-80 space-y-1">
-                <li>{t('copyDay.bulletPermanent', { day: currentDay })}</li>
+                <li>{t('copyDay.bulletPermanent', { day: translateDay(currentDay) })}</li>
                 <li>{t('copyDay.bulletCreate')}</li>
                 <li>{t('copyDay.bulletPreserve')}</li>
                 <li>{t('copyDay.bulletIrreversible')}</li>
@@ -202,7 +202,7 @@ const CopyDayModal = ({
         <div className="mt-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold">{t('copyDay.destinationDay', { day: currentDay })}</p>
+              <p className="text-sm font-semibold">{t('copyDay.destinationDay', { day: translateDay(currentDay) })}</p>
               <p className="text-xs opacity-80">
                 {t('copyDay.currentCount', { count: schedules[currentDay]?.length || 0 })}
               </p>

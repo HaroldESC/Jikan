@@ -36,7 +36,7 @@ const DetailViewMaru = ({
   onBack,
   onToggleTheme
 }) => {
-  const { t } = useTranslation();
+  const { t, dayName: translateDay } = useTranslation();
   const [notes, setNotes] = useState('');
 
   if (!activity) {
@@ -125,7 +125,7 @@ const DetailViewMaru = ({
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 text-white">
           <div className="text-center mb-8">
             <div className="bg-white/10 rounded-lg p-4 text-center">
-              <p className="text-xl font-semibold">{day}</p>
+              <p className="text-xl font-semibold">{translateDay(day)}</p>
             </div>
             <div
               className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-white/20 my-6"

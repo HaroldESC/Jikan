@@ -4,7 +4,25 @@
  * Selector de días con versión móvil y escritorio.
  */
 
+import { useTranslation } from '../../i18n/useTranslation';
+
+const DAY_KEY_MAP = {
+  'Domingo': 'days.sunday',
+  'Lunes': 'days.monday',
+  'Martes': 'days.tuesday',
+  'Miércoles': 'days.wednesday',
+  'Jueves': 'days.thursday',
+  'Viernes': 'days.friday',
+  'Sábado': 'days.saturday',
+};
+
+const SHORT_LABELS = {
+  'Domingo': 'D', 'Lunes': 'L', 'Martes': 'M', 'Miércoles': 'X',
+  'Jueves': 'J', 'Viernes': 'V', 'Sábado': 'S',
+};
+
 const DaySelector = ({ days, currentDay, onSelectDay }) => {
+  const { t } = useTranslation();
 
   const isToday = (dayName) => {
     const daysMap = {
@@ -15,14 +33,7 @@ const DaySelector = ({ days, currentDay, onSelectDay }) => {
     return daysMap[dayName] === today;
   };
 
-  const getShortLabel = (day) => {
-    const lower = day.toLowerCase();
-
-    if (lower.includes('martes')) return 'M';
-    if (lower.includes('miércoles')) return 'X';
-
-    return day.charAt(0);
-  };
+  const dayLabel = (day) => t(DAY_KEY_MAP[day] || day);
 
   return (
     <div className="day-selector">
@@ -44,7 +55,7 @@ const DaySelector = ({ days, currentDay, onSelectDay }) => {
                     ${today ? 'day-btn--today' : ''}
                   `}
                 >
-                  {getShortLabel(day)}
+                  {SHORT_LABELS[day]}
                   {today && (
                     <span className="today-dot"></span>
                   )}
@@ -59,7 +70,7 @@ const DaySelector = ({ days, currentDay, onSelectDay }) => {
         </div>
 
         <div className="day-current">
-          {currentDay}
+          {dayLabel(currentDay)}
         </div>
       </div>
 
@@ -81,7 +92,7 @@ const DaySelector = ({ days, currentDay, onSelectDay }) => {
                 `}
               >
                 <div className="flex items-center gap-2">
-                  {day}
+                  {dayLabel(day)}
                   {today && (
                     <span className="today-dot"></span>
                   )}

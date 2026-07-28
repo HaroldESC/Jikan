@@ -1,14 +1,23 @@
 import { DAYS_OF_WEEK } from '../utils/index';
 import { useTranslation } from '../i18n/useTranslation';
 
+const DAY_KEY_MAP = {
+  'Domingo': 'days.sunday',
+  'Lunes': 'days.monday',
+  'Martes': 'days.tuesday',
+  'Miércoles': 'days.wednesday',
+  'Jueves': 'days.thursday',
+  'Viernes': 'days.friday',
+  'Sábado': 'days.saturday',
+};
+
+const SHORT_LABELS = {
+  'Domingo': 'D', 'Lunes': 'L', 'Martes': 'M', 'Miércoles': 'X',
+  'Jueves': 'J', 'Viernes': 'V', 'Sábado': 'S',
+};
+
 export default function DaySelector({ days = DAYS_OF_WEEK, currentDay, onSelectDay, isDarkMode }) {
   const { t } = useTranslation();
-  const getShortLabel = (day) => {
-    const lower = day.toLowerCase();
-    if (lower.includes('martes')) return 'M';
-    if (lower.includes('miércoles')) return 'X';
-    return day.charAt(0);
-  };
 
   const isToday = (dayName) => {
     const daysMap = {
@@ -17,6 +26,8 @@ export default function DaySelector({ days = DAYS_OF_WEEK, currentDay, onSelectD
     };
     return daysMap[dayName] === new Date().getDay();
   };
+
+  const dayLabel = (day) => t(DAY_KEY_MAP[day] || day);
 
   return (
     <div className={`day-selector${isDarkMode ? ' day-selector--dark' : ''}`}>
@@ -31,11 +42,11 @@ export default function DaySelector({ days = DAYS_OF_WEEK, currentDay, onSelectD
                 onClick={() => onSelectDay(day)}
                 className={`day-btn${active ? ' day-btn--active' : ''}${today ? ' day-btn--today' : ''}`}
                 aria-current={active ? 'true' : undefined}
-                aria-label={t('days.select', { day })}
-                title={today ? t('days.todayAria', { day }) : day}
+                aria-label={t('days.select', { day: dayLabel(day) })}
+                title={today ? t('days.todayAria', { day: dayLabel(day) }) : dayLabel(day)}
               >
-                <span className="day-btn__label">{getShortLabel(day)}</span>
-                <span className="day-btn__full">{day}</span>
+                <span className="day-btn__label">{SHORT_LABELS[day]}</span>
+                <span className="day-btn__full">{dayLabel(day)}</span>
                 {today && <span className="today-dot" />}
               </button>
               {active && <div className="day-indicator" />}
@@ -43,7 +54,7 @@ export default function DaySelector({ days = DAYS_OF_WEEK, currentDay, onSelectD
           );
         })}
       </div>
-      <div className="day-current">{currentDay}</div>
+      <div className="day-current">{dayLabel(currentDay)}</div>
     </div>
   );
 }

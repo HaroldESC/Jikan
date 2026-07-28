@@ -6,7 +6,7 @@ const LABEL_RADIUS = 120;
 const TOTAL_MINUTES = 24 * 60;
 
 const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
-  const { t } = useTranslation();
+  const { t, dayName: translateDay } = useTranslation();
   const isToday = (dayName) => {
     const daysMap = {
       'Domingo': 0, 'Lunes': 1, 'Martes': 2, 'Miércoles': 3,
@@ -183,7 +183,7 @@ const WheelMaru = ({ schedule, currentDay, onActivitySelect }) => {
       {renderSlices()}
       <circle cx={CENTER} cy={CENTER} r="60" fill="white" opacity="0.95" />
       <text x={CENTER} y={isToday(currentDay) ? CENTER - 8 : CENTER} textAnchor="middle" dominantBaseline="middle"
-        fill="#1e293b" fontSize="20" fontWeight="bold">{currentDay}</text>
+        fill="#1e293b" fontSize="20" fontWeight="bold">{translateDay(currentDay)}</text>
       {isToday(currentDay) && (
         <text x={CENTER} y={CENTER + 16} textAnchor="middle" dominantBaseline="middle"
           fill="#64748b" fontSize="12">{t('days.today')}</text>

@@ -52,7 +52,14 @@ export function I18nProvider({ children }) {
 
   const localeForDate = language === 'en' ? 'en-US' : language === 'ja' ? 'ja-JP' : 'es-ES';
 
-  const value = useMemo(() => ({ t, language, setLanguage, localeForDate }), [t, language, setLanguage, localeForDate]);
+  const DAY_KEY = {
+    'Domingo': 'days.sunday', 'Lunes': 'days.monday', 'Martes': 'days.tuesday',
+    'Miércoles': 'days.wednesday', 'Jueves': 'days.thursday', 'Viernes': 'days.friday',
+    'Sábado': 'days.saturday',
+  };
+  const dayName = useCallback((day) => t(DAY_KEY[day] || day), [t]);
+
+  const value = useMemo(() => ({ t, language, setLanguage, localeForDate, dayName }), [t, language, setLanguage, localeForDate, dayName]);
 
   return (
     <I18nContext.Provider value={value}>
