@@ -22,7 +22,7 @@ export default function LanguageSelector() {
           <button
             key={lang.code}
             onClick={() => setLanguage(lang.code)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition ${
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium border transition whitespace-nowrap ${
               language === lang.code
                 ? 'bg-blue-500/20 border-blue-500 text-blue-500 dark:text-blue-400'
                 : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
