@@ -113,7 +113,7 @@ const CopyDayModal = ({
                     <span className="font-semibold text-lg block">{day}</span>
                     <div className="flex items-center gap-4 mt-1">
                       <span className="text-sm opacity-80">
-                        {t('copyDay.activityCount', { count: activityCount })}
+                        {t('copyDay.sourceCount', { count: activityCount })}
                       </span>
                       <span className="text-sm opacity-80">
                         {formattedTotalHours} {t('copyDay.total')}

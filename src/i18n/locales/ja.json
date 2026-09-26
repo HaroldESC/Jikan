@@ -176,7 +176,9 @@
     "freeTime": "自由時間",
     "now": "現在",
     "viewing": "表示中",
-    "noDescription": "説明なし"
+    "noDescription": "説明なし",
+    "durationLabel": "所要時間：{hours}時間{minutes}分",
+    "ariaLabel": "24時間スケジュールのホイール"
   },
   "reminders": {
     "title": "リマインダー",

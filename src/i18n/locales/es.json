@@ -176,7 +176,9 @@
     "freeTime": "Tiempo libre",
     "now": "Ahora",
     "viewing": "Viendo",
-    "noDescription": "Sin descripción"
+    "noDescription": "Sin descripción",
+    "durationLabel": "Duración: {hours}h {minutes}m",
+    "ariaLabel": "Rueda del horario de 24 horas"
   },
   "reminders": {
     "title": "RECORDATORIOS",

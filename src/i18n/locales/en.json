@@ -176,7 +176,9 @@
     "freeTime": "Free time",
     "now": "Now",
     "viewing": "Viewing",
-    "noDescription": "No description"
+    "noDescription": "No description",
+    "durationLabel": "Duration: {hours}h {minutes}m",
+    "ariaLabel": "24-hour schedule wheel"
   },
   "reminders": {
     "title": "REMINDERS",

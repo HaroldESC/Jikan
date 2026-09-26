@@ -20,7 +20,7 @@ export default function WheelSei({ schedule, nowMinutes, currentActivityId, isVi
   const cx = 150, cy = 150, radius = 120, innerRadius = 70;
 
   return (
-    <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-xl animate-wheel-entrance" aria-label="{t('wheel.ariaLabel')}">
+    <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-xl animate-wheel-entrance" role="img" aria-label={t('wheel.ariaLabel')}>
       <circle cx={cx} cy={cy} r={radius} fill={isDarkMode ? '#1e293b' : '#f1f5f9'} aria-hidden="true" />
       {schedule.length === 0 && (
         <text x={cx} y={cy + 5} textAnchor="middle" className={`text-sm font-medium ${isDarkMode ? 'fill-gray-500' : 'fill-gray-400'}`} aria-hidden="true">
