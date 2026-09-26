@@ -62,3 +62,6 @@ Desktop.ini
 # Documentación local
 README_ES.md
 TECHNICAL_SPEC.md
+progress.md
+AGENTS.md
+.agents/
