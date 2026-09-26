@@ -93,3 +93,21 @@
 .theme-maru .app-header__settings-btn:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+.theme-maru .app-header__layout-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: .5rem;
+  border-radius: .5rem;
+  transition: .2s;
+}
+
+.theme-maru .app-header__layout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.theme-maru .app-header__layout-btn--on {
+  background: rgba(255, 255, 255, 0.3);
+}

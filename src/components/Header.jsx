@@ -1,4 +1,4 @@
-import { Bell, Moon, Sun, SunMoon, Settings as SettingsIcon } from 'lucide-react';
+import { Bell, Moon, Sun, SunMoon, Settings as SettingsIcon, Move } from 'lucide-react';
 import { useTranslation } from '../i18n/useTranslation';
 
 const themeIcons = { auto: SunMoon, light: Sun, dark: Moon };
@@ -12,6 +12,8 @@ export default function Header({
   notificationsEnabled,
   onToggleNotifications,
   isDarkMode,
+  layoutEditMode = false,
+  onToggleLayoutEdit,
 }) {
   const { t, localeForDate } = useTranslation();
   const themeLabels = { auto: t('theme.auto'), light: t('theme.light'), dark: t('theme.dark') };
@@ -59,6 +61,17 @@ export default function Header({
           >
             {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
           </button>
+          {onToggleLayoutEdit && (
+            <button
+              onClick={onToggleLayoutEdit}
+              className={`app-header__layout-btn${layoutEditMode ? ' app-header__layout-btn--on' : ''}`}
+              aria-label={layoutEditMode ? t('panels.doneAria') : t('panels.editAria')}
+              aria-pressed={layoutEditMode}
+              title={layoutEditMode ? t('panels.doneAria') : t('panels.editAria')}
+            >
+              <Move size={18} />
+            </button>
+          )}
           <button
             onClick={onOpenSettings}
             className="app-header__settings-btn"

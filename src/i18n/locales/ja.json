@@ -192,6 +192,22 @@
     "save": "保存",
     "required": "テキストと時刻を入力してください"
   },
+  "panels": {
+    "editAria": "パネルのレイアウトを編集",
+    "doneAria": "レイアウト編集を終了",
+    "show": "パネルを表示",
+    "hide": "パネルを非表示",
+    "visibilityAria": "{action}: {name}",
+    "dragAria": "パネルを移動: {name}",
+    "empty": "内容なし",
+    "names": {
+      "wheel": "スケジュールホイール",
+      "current": "現在のアクティビティ",
+      "stats": "統計",
+      "reminders": "リマインダー",
+      "list": "アクティビティ一覧"
+    }
+  },
   "messages": {
     "noActivitiesCopy": "選択した日にはコピーするアクティビティがありません",
     "confirmReplace": "{target} のすべてのアクティビティを {source} のもので置き換えてもよろしいですか？",

@@ -9,6 +9,7 @@ import "./styles/maru/detail.css";
 import "./styles/maru/header.css";
 import "./styles/maru/wheel.css";
 import "./styles/maru/reminders.css";
+import "./styles/maru/panels.css";
 import "./styles/maru/theme-toggle.css";
 import "./styles/maru/scrollbar.css";
 import "./styles/sei/day-selector.css";

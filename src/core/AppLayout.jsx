@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Plus, Copy } from 'lucide-react';
 import { useTranslation } from '../i18n/useTranslation';
 
@@ -11,6 +11,7 @@ import Daily from './stats/Daily';
 import Reminders from './stats/Reminders';
 import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
+import Panel from './common/Panel';
 
 import { ActivityList } from './activities/ActivityList';
 import DetailViewSei from './activities/DetailViewSei';
@@ -18,6 +19,13 @@ import { toSeiActivity, DAYS_FULL } from './utils/adapter';
 import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
 import { useReminders } from '../hooks/useReminders';
+import { usePanels } from '../hooks/usePanels';
+
+// Panel groups per style: the wheel lives in its own column, so it only
+// supports hide/show; the content column supports hide + drag-to-reorder.
+const MARU_CONTENT_PANELS = ['current', 'stats', 'reminders'];
+const SEI_CONTENT_PANELS = ['current', 'list', 'reminders'];
+const WHEEL_PANELS = ['wheel'];
 
 export default function AppLayout({
   style,
@@ -43,7 +51,33 @@ export default function AppLayout({
   const { t } = useTranslation();
   const { reminders, addReminder, deleteReminder } = useReminders(user?.id);
 
+  // ── Layout editor state ──
   const isMaru = style === 'maru';
+  const [layoutEdit, setLayoutEdit] = useState(false);
+  // Ref (not state): dragstart → drop can happen before React re-renders.
+  const draggingPanel = useRef(null);
+  const wheelPanels = usePanels(user?.id, style, 'wheel', WHEEL_PANELS);
+  const contentPanels = usePanels(
+    user?.id,
+    style,
+    'content',
+    isMaru ? MARU_CONTENT_PANELS : SEI_CONTENT_PANELS
+  );
+
+  const panelTitle = (id) => t(`panels.names.${id}`);
+
+  const panelProps = (group, id) => ({
+    editMode: layoutEdit,
+    isVisible: group.isVisible(id),
+    onToggle: group.togglePanel,
+    onDragStart: (id) => { draggingPanel.current = id; },
+    onDragEnd: () => { draggingPanel.current = null; },
+    onDrop: (id) => {
+      if (draggingPanel.current) group.movePanel(draggingPanel.current, id);
+      draggingPanel.current = null;
+    },
+  });
+
   const dark = isDarkMode();
 
   const rawActivities = schedules[currentDay] || [];
@@ -89,6 +123,8 @@ export default function AppLayout({
           notificationsEnabled={notificationsEnabled}
           onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
           isDarkMode={dark}
+          layoutEditMode={layoutEdit}
+          onToggleLayoutEdit={() => setLayoutEdit((prev) => !prev)}
         />
 
         {/* ── DAY SELECTOR ── */}
@@ -98,16 +134,20 @@ export default function AppLayout({
         <div className={`${isMaru ? 'lg:grid-cols-3' : 'max-w-md mx-auto flex flex-col items-center'} grid gap-6 mt-6`}>
           {/* ── WHEEL / CLOCK COLUMN ── */}
           <div className={isMaru ? 'lg:col-span-2' : 'w-full'}>
-            {isMaru ? (
-              <div key={currentDay} className="bg-white/10 backdrop-blur-lg rounded-3xl p-8">
-                <WheelMaru schedule={rawActivities} currentDay={currentDay} onActivitySelect={onActivitySelect} />
-              </div>
-            ) : (
-              <div key={currentDay} className="w-full max-w-[320px] aspect-square relative mb-6 mx-auto">
-                <WheelSei schedule={seiActivities} nowMinutes={currentMinutes}
-                  currentActivityId={seiCurrentId} isViewingToday={isViewingToday}
-                  isDarkMode={dark} onActivitySelect={handleSeiClick} />
-              </div>
+            {(layoutEdit || wheelPanels.isVisible('wheel')) && (
+              <Panel id="wheel" title={panelTitle('wheel')} {...panelProps(wheelPanels, 'wheel')}>
+                {isMaru ? (
+                  <div key={currentDay} className="bg-white/10 backdrop-blur-lg rounded-3xl p-8">
+                    <WheelMaru schedule={rawActivities} currentDay={currentDay} onActivitySelect={onActivitySelect} />
+                  </div>
+                ) : (
+                  <div key={currentDay} className="w-full max-w-[320px] aspect-square relative mb-6 mx-auto">
+                    <WheelSei schedule={seiActivities} nowMinutes={currentMinutes}
+                      currentActivityId={seiCurrentId} isViewingToday={isViewingToday}
+                      isDarkMode={dark} onActivitySelect={handleSeiClick} />
+                  </div>
+                )}
+              </Panel>
             )}
 
             {/* ── ACTION BUTTONS ── */}
@@ -134,16 +174,35 @@ export default function AppLayout({
 
           {/* ── MARU SIDE PANEL ── */}
           {isMaru && (
-            <div className="space-y-4 lg:overflow-auto lg:max-h-[calc(100vh-200px)] custom-scrollbar">
-              {currentDay === getCurrentDay() && rawCurrent && (
-                <ActivityCard activity={rawCurrent} currentDay={currentDay} isDarkMode={dark} label={t('header.currentActivity')} />
-              )}
-              <Daily schedule={rawActivities} />
-              <Reminders
-                reminders={reminders}
-                onAddReminder={addReminder}
-                onDeleteReminder={deleteReminder}
-              />
+            <div className={`space-y-4 lg:overflow-auto lg:max-h-[calc(100vh-200px)] custom-scrollbar ${layoutEdit ? 'pt-4' : ''}`}>
+              {contentPanels.order.map((id) => {
+                const visible = contentPanels.isVisible(id);
+                const hasCurrent = currentDay === getCurrentDay() && !!rawCurrent;
+                if (id === 'current' && !hasCurrent && !layoutEdit) return null;
+                if (!layoutEdit && !visible) return null;
+
+                return (
+                  <Panel key={id} id={id} title={panelTitle(id)} {...panelProps(contentPanels, id)}>
+                    {id === 'current' ? (
+                      hasCurrent ? (
+                        <ActivityCard activity={rawCurrent} currentDay={currentDay} isDarkMode={dark} label={t('header.currentActivity')} />
+                      ) : (
+                        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-white/60 text-sm text-center">
+                          {t('panels.empty')}
+                        </div>
+                      )
+                    ) : id === 'stats' ? (
+                      <Daily schedule={rawActivities} />
+                    ) : (
+                      <Reminders
+                        reminders={reminders}
+                        onAddReminder={addReminder}
+                        onDeleteReminder={deleteReminder}
+                      />
+                    )}
+                  </Panel>
+                );
+              })}
             </div>
           )}
         </div>
@@ -151,17 +210,37 @@ export default function AppLayout({
         {/* ── SEI CARDS BELOW GRID ── */}
         {!isMaru && (
           <main className="flex flex-col items-center px-4 w-full max-w-md mx-auto relative z-10">
-            <ActivityCard activity={rawCurrent} currentDay={currentDay}
-              isDarkMode={dark} onClick={() => setSeiSelectedActivity(rawCurrent ? toSeiActivity(rawCurrent) : null)} />
-            <ActivityList activities={seiActivities} isDarkMode={dark} isViewingToday={isViewingToday}
-              currentActivityId={seiCurrentId} dayName={currentDay} onActivitySelect={handleSeiClick} />
-            <div className="w-full mt-6">
-              <Reminders
-                reminders={reminders}
-                onAddReminder={addReminder}
-                onDeleteReminder={deleteReminder}
-              />
-            </div>
+            {contentPanels.order.map((id) => {
+              const hasCurrent = !!rawCurrent;
+              if (id === 'current' && !hasCurrent && !layoutEdit) return null;
+              if (!layoutEdit && !contentPanels.isVisible(id)) return null;
+
+              return (
+                <Panel key={id} id={id} title={panelTitle(id)} className="w-full" {...panelProps(contentPanels, id)}>
+                  {id === 'current' ? (
+                    hasCurrent ? (
+                      <ActivityCard activity={rawCurrent} currentDay={currentDay}
+                        isDarkMode={dark} onClick={() => setSeiSelectedActivity(rawCurrent ? toSeiActivity(rawCurrent) : null)} />
+                    ) : (
+                      <div className="w-full rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400">
+                        {t('panels.empty')}
+                      </div>
+                    )
+                  ) : id === 'list' ? (
+                    <ActivityList activities={seiActivities} isDarkMode={dark} isViewingToday={isViewingToday}
+                      currentActivityId={seiCurrentId} dayName={currentDay} onActivitySelect={handleSeiClick} />
+                  ) : (
+                    <div className="w-full mt-6">
+                      <Reminders
+                        reminders={reminders}
+                        onAddReminder={addReminder}
+                        onDeleteReminder={deleteReminder}
+                      />
+                    </div>
+                  )}
+                </Panel>
+              );
+            })}
           </main>
         )}
       </div>

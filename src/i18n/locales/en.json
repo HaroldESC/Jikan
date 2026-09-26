@@ -192,6 +192,22 @@
     "save": "Save",
     "required": "Enter a text and pick a time"
   },
+  "panels": {
+    "editAria": "Edit panel layout",
+    "doneAria": "Finish editing layout",
+    "show": "Show panel",
+    "hide": "Hide panel",
+    "visibilityAria": "{action}: {name}",
+    "dragAria": "Move panel: {name}",
+    "empty": "No content",
+    "names": {
+      "wheel": "Schedule wheel",
+      "current": "Current activity",
+      "stats": "Statistics",
+      "reminders": "Reminders",
+      "list": "Activity list"
+    }
+  },
   "messages": {
     "noActivitiesCopy": "The selected day has no activities to copy",
     "confirmReplace": "Are you sure you want to replace all activities from {target} with those from {source}?",

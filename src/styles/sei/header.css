@@ -111,3 +111,27 @@
 .theme-sei .app-header--dark .app-header__settings-btn:hover {
   background: rgba(255,255,255,0.1);
 }
+
+.theme-sei .app-header__layout-btn {
+  padding: .5rem;
+  border-radius: 999px;
+  transition: background-color 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  font-family: inherit;
+}
+
+.theme-sei .app-header__layout-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.theme-sei .app-header--dark .app-header__layout-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.theme-sei .app-header__layout-btn--on {
+  background: rgba(59,130,246,0.15);
+  color: #3b82f6;
+}

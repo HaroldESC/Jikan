@@ -192,6 +192,22 @@
     "save": "Guardar",
     "required": "Escribe un texto y elige una hora"
   },
+  "panels": {
+    "editAria": "Editar diseño de paneles",
+    "doneAria": "Terminar de editar el diseño",
+    "show": "Mostrar panel",
+    "hide": "Ocultar panel",
+    "visibilityAria": "{action}: {name}",
+    "dragAria": "Mover panel: {name}",
+    "empty": "Sin contenido",
+    "names": {
+      "wheel": "Rueda del horario",
+      "current": "Actividad actual",
+      "stats": "Estadísticas",
+      "reminders": "Recordatorios",
+      "list": "Lista de actividades"
+    }
+  },
   "messages": {
     "noActivitiesCopy": "El día seleccionado no tiene actividades para copiar",
     "confirmReplace": "¿Estás seguro de reemplazar todas las actividades de {target} con las de {source}?",

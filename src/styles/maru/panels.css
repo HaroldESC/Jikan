@@ -1,0 +1,77 @@
+/* ── Layout editor: hideable & draggable panels ── */
+
+.panel-shell {
+  position: relative;
+}
+
+.panel-shell--editing {
+  outline: 2px dashed rgba(255, 255, 255, .45);
+  outline-offset: 6px;
+  border-radius: 1rem;
+  cursor: grab;
+}
+
+.panel-shell--editing:active {
+  cursor: grabbing;
+}
+
+.panel-shell--hidden .panel-shell__body {
+  opacity: .35;
+  filter: grayscale(.5);
+}
+
+.panel-shell--hidden.panel-shell--editing {
+  outline-style: dotted;
+}
+
+.panel-shell--dragging {
+  opacity: .45;
+}
+
+.panel-shell__tools {
+  position: absolute;
+  top: -.9rem;
+  right: .25rem;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .2rem .35rem;
+  border-radius: .5rem;
+  background: rgba(15, 23, 42, .88);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .3);
+  backdrop-filter: blur(6px);
+}
+
+.panel-shell__grip {
+  display: flex;
+  align-items: center;
+  opacity: .7;
+}
+
+.panel-shell__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: .375rem;
+  padding: .15rem;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+
+.panel-shell__toggle:hover {
+  background: rgba(255, 255, 255, .18);
+}
+
+/* ── Sei variant: flat, adapts to the page background ── */
+.theme-sei .panel-shell--editing {
+  outline-color: rgba(100, 116, 139, .55);
+}
+
+.theme-sei .panel-shell__tools {
+  background: #0f172a;
+}
