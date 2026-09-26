@@ -124,6 +124,7 @@ jikan/
 │   │   ├── useSession.js    # User session management
 │   │   ├── useTheme.js      # Theme + visual style state
 │   │   ├── useReminders.js  # Reminders (localStorage, per user)
+│   │   ├── usePanels.js     # Panel layout: visibility + order (localStorage)
 │   │   └── useClock.js      # Real-time clock
 │   ├── i18n/                # Translations (es / en / ja) + provider
 │   ├── lib/                 # External service clients
@@ -162,7 +163,7 @@ jikan/
 ### v2.0 — Dual Style & Internationalization
 - [x] **Sei integration** — Sei as an optional visual style within Jikan + style selector in settings
 - [x] **Language selector** (日本語, Español, English)
-- [ ] **Hideable & draggable widgets** — eye-off toggle per panel; settings gear for component visibility (stats, pomodoro, notes, etc.); drag-to-reorder mode with toggle icon
+- [x] **Hideable & draggable widgets** — dedicated header button toggles layout edit mode: eye toggle per panel (wheel, current activity, statistics, reminders, activity list) and drag-to-reorder within each column; layout persisted per user + style in `localStorage`
 
 ### v3.0 — Productivity & Notifications
 - [ ] **Pomodoro Timer** integrated per activity
