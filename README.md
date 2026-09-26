@@ -74,7 +74,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start dev server (localhost:5173) |
+| `npm run dev` | Start dev server (localhost:7000) |
 | `npm run build` | Production build |
 | `npm run preview` | Preview production build |
 
@@ -108,26 +108,32 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 jikan/
 ├── public/                  # Static assets
 ├── src/
+│   ├── components/          # Shared UI (Header, DaySelector, ActivityCard)
 │   ├── core/                # Main application components
-│   │   ├── activities/      # Activity cards, detail view, editor
-│   │   ├── common/          # Header, DaySelector, ThemeToggle, modals
-│   │   ├── stats/           # Statistics dashboard, reminders
-│   │   ├── wheel/           # SVG circular chart
-│   │   └── LoginScreen.jsx  # Authentication screen
+│   │   ├── activities/      # Activity list, detail views, editors (Maru/Sei)
+│   │   ├── common/          # Settings, LanguageSelector, ThemeToggle, modals
+│   │   ├── stats/           # Daily statistics dashboard, reminders
+│   │   ├── wheel/           # SVG circular chart (WheelMaru / WheelSei)
+│   │   ├── utils/           # Maru ↔ Sei adapters
+│   │   ├── AppLayout.jsx    # Dual-style layout (renders both styles)
+│   │   ├── MainShell.jsx    # Views & activity CRUD orchestration
+│   │   ├── LoginScreen.jsx  # Authentication screen
+│   │   └── ResetPassword.jsx # Password recovery
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useActivities.js # Activity CRUD operations
 │   │   ├── useSession.js    # User session management
-│   │   ├── useTheme.js      # Theme state (auto/light/dark)
+│   │   ├── useTheme.js      # Theme + visual style state
+│   │   ├── useReminders.js  # Reminders (localStorage, per user)
 │   │   └── useClock.js      # Real-time clock
+│   ├── i18n/                # Translations (es / en / ja) + provider
 │   ├── lib/                 # External service clients
 │   │   └── supabase.js      # Supabase client
 │   ├── utils/               # Utility functions
 │   ├── styles/              # CSS by theme
-│   │   ├── maru/            # Maru style (10 CSS files)
-│   │   └── sei/             # Sei style (Tailwind-only)
+│   │   ├── maru/            # Maru style (glassmorphism)
+│   │   └── sei/             # Sei style (mostly Tailwind)
 │   ├── assets/              # Images & resources
 │   ├── App.jsx              # Auth gate
-│   ├── JikanApp.jsx         # Main app shell
 │   └── main.jsx             # Entry point
 ├── README.md                # This file
 ├── README_ES.md             # Spanish documentation (local)
@@ -151,11 +157,11 @@ jikan/
 - [x] Daily statistics & time distribution metrics
 - [x] Basic reminders (create/delete)
 - [x] Theme persistence
-- [ ] "Remember me" / password reset flow
+- [x] "Remember me" / password reset flow
 
 ### v2.0 — Dual Style & Internationalization
-- [ ] **Sei integration** — Sei as an optional visual style within Jikan + style selector in settings
-- [ ] **Language selector** (日本語, Español, English)
+- [x] **Sei integration** — Sei as an optional visual style within Jikan + style selector in settings
+- [x] **Language selector** (日本語, Español, English)
 - [ ] **Hideable & draggable widgets** — eye-off toggle per panel; settings gear for component visibility (stats, pomodoro, notes, etc.); drag-to-reorder mode with toggle icon
 
 ### v3.0 — Productivity & Notifications
