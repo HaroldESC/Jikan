@@ -188,7 +188,8 @@ export default function AppLayout({
                         <ActivityCard activity={rawCurrent} currentDay={currentDay} isDarkMode={dark} label={t('header.currentActivity')} />
                       ) : (
                         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-white/60 text-sm text-center">
-                          {t('panels.empty')}
+                          <p className="font-semibold text-white/85">{panelTitle(id)}</p>
+                          <p className="mt-1 text-white/55">{t('panels.empty')}</p>
                         </div>
                       )
                     ) : id === 'stats' ? (
@@ -223,7 +224,8 @@ export default function AppLayout({
                         isDarkMode={dark} onClick={() => setSeiSelectedActivity(rawCurrent ? toSeiActivity(rawCurrent) : null)} />
                     ) : (
                       <div className="w-full rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-400">
-                        {t('panels.empty')}
+                        <p className="font-semibold text-slate-500">{panelTitle(id)}</p>
+                        <p className="mt-1">{t('panels.empty')}</p>
                       </div>
                     )
                   ) : id === 'list' ? (
