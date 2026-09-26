@@ -184,7 +184,11 @@
     "empty": "No reminders yet",
     "deleteAria": "Delete reminder: {text}",
     "addAria": "Add new reminder",
-    "add": "Add reminder"
+    "add": "Add reminder",
+    "textPlaceholder": "e.g. Review math notes",
+    "time": "Time",
+    "save": "Save",
+    "required": "Enter a text and pick a time"
   },
   "messages": {
     "noActivitiesCopy": "The selected day has no activities to copy",

@@ -8,6 +8,7 @@ import Header from '../components/Header';
 import DaySelector from '../components/DaySelector';
 import ActivityCard from '../components/ActivityCard';
 import Daily from './stats/Daily';
+import Reminders from './stats/Reminders';
 import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
 
@@ -16,6 +17,7 @@ import DetailViewSei from './activities/DetailViewSei';
 import { toSeiActivity, DAYS_FULL } from './utils/adapter';
 import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
+import { useReminders } from '../hooks/useReminders';
 
 export default function AppLayout({
   style,
@@ -39,6 +41,7 @@ export default function AppLayout({
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const { t } = useTranslation();
+  const { reminders, addReminder, deleteReminder } = useReminders(user?.id);
 
   const isMaru = style === 'maru';
   const dark = isDarkMode();
@@ -136,6 +139,11 @@ export default function AppLayout({
                 <ActivityCard activity={rawCurrent} currentDay={currentDay} isDarkMode={dark} label={t('header.currentActivity')} />
               )}
               <Daily schedule={rawActivities} />
+              <Reminders
+                reminders={reminders}
+                onAddReminder={addReminder}
+                onDeleteReminder={deleteReminder}
+              />
             </div>
           )}
         </div>
@@ -147,6 +155,13 @@ export default function AppLayout({
               isDarkMode={dark} onClick={() => setSeiSelectedActivity(rawCurrent ? toSeiActivity(rawCurrent) : null)} />
             <ActivityList activities={seiActivities} isDarkMode={dark} isViewingToday={isViewingToday}
               currentActivityId={seiCurrentId} dayName={currentDay} onActivitySelect={handleSeiClick} />
+            <div className="w-full mt-6">
+              <Reminders
+                reminders={reminders}
+                onAddReminder={addReminder}
+                onDeleteReminder={deleteReminder}
+              />
+            </div>
           </main>
         )}
       </div>

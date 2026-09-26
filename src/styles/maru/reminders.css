@@ -60,3 +60,162 @@
   opacity: .6;
   text-align: center;
 }
+
+/* ── Próximo recordatorio destacado ── */
+.next-reminder {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .6rem .75rem;
+  margin-bottom: .75rem;
+}
+
+.next-reminder__label {
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  opacity: .7;
+  margin-bottom: .25rem;
+}
+
+.next-reminder__text {
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.next-reminder__time {
+  font-size: .7rem;
+  opacity: .75;
+  margin-top: .15rem;
+}
+
+/* ── Items ── */
+.reminder-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.reminder-item--past {
+  opacity: .45;
+}
+
+.reminder-item--past .reminder-text {
+  text-decoration: line-through;
+}
+
+.reminder-delete-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: .375rem;
+  background: rgba(255,255,255,.1);
+  transition: .2s;
+}
+
+.reminder-delete-btn:hover {
+  background: rgba(239, 68, 68, .35);
+}
+
+/* ── Formulario de alta ── */
+.reminders-form {
+  margin-top: .75rem;
+  display: grid;
+  gap: .5rem;
+}
+
+.reminders-input {
+  width: 100%;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .45rem .6rem;
+  font-size: .8rem;
+  color: inherit;
+}
+
+.reminders-input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.45);
+}
+
+.reminders-form-row {
+  display: flex;
+  align-items: flex-end;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.reminders-time-label {
+  display: grid;
+  gap: .25rem;
+  font-size: .7rem;
+  opacity: .85;
+}
+
+.reminders-input--time {
+  width: auto;
+}
+
+.reminders-form-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  border-radius: .5rem;
+  padding: .45rem .7rem;
+  font-size: .8rem;
+  font-weight: 500;
+  background: rgba(255,255,255,.1);
+  transition: .2s;
+}
+
+.reminders-form-btn:hover {
+  background: rgba(255,255,255,.25);
+}
+
+.reminders-form-btn--save {
+  background: rgba(34, 197, 94, .35);
+}
+
+.reminders-form-btn--save:hover {
+  background: rgba(34, 197, 94, .55);
+}
+
+.reminders-form-error {
+  font-size: .7rem;
+  color: #fca5a5;
+}
+
+/* ── Variante Sei (plana, sin glass) ── */
+.theme-sei .reminders-card {
+  background: transparent;
+  backdrop-filter: none;
+  padding: 0;
+  color: inherit;
+}
+
+.theme-sei .reminder-item,
+.theme-sei .next-reminder {
+  background: rgba(148, 163, 184, .12);
+  border: 1px solid rgba(148, 163, 184, .25);
+}
+
+.theme-sei .reminders-add-btn,
+.theme-sei .reminders-form-btn,
+.theme-sei .reminder-delete-btn,
+.theme-sei .reminders-input {
+  background: rgba(148, 163, 184, .15);
+  border: 1px solid rgba(148, 163, 184, .25);
+}
+
+.theme-sei .reminders-add-btn:hover,
+.theme-sei .reminders-form-btn:hover,
+.theme-sei .reminder-delete-btn:hover {
+  background: rgba(148, 163, 184, .3);
+}
+

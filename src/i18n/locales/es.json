@@ -184,7 +184,11 @@
     "empty": "No hay recordatorios aún",
     "deleteAria": "Eliminar recordatorio: {text}",
     "addAria": "Añadir nuevo recordatorio",
-    "add": "Añadir recordatorio"
+    "add": "Añadir recordatorio",
+    "textPlaceholder": "Ej. Revisar apuntes de matemáticas",
+    "time": "Hora",
+    "save": "Guardar",
+    "required": "Escribe un texto y elige una hora"
   },
   "messages": {
     "noActivitiesCopy": "El día seleccionado no tiene actividades para copiar",

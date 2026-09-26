@@ -184,7 +184,11 @@
     "empty": "リマインダーはまだありません",
     "deleteAria": "リマインダーを削除：{text}",
     "addAria": "新しいリマインダーを追加",
-    "add": "リマインダーを追加"
+    "add": "リマインダーを追加",
+    "textPlaceholder": "例：数学のノートを復習する",
+    "time": "時刻",
+    "save": "保存",
+    "required": "テキストと時刻を入力してください"
   },
   "messages": {
     "noActivitiesCopy": "選択した日にはコピーするアクティビティがありません",
