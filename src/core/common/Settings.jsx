@@ -1,22 +1,8 @@
-import { Settings as SettingsIcon, LogOut, Palette, Globe } from 'lucide-react';
+import { LogOut, Palette, Globe } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../i18n/useTranslation';
 import LanguageSelector from './LanguageSelector';
-
-export function SettingsButton({ onClick }) {
-  const { t } = useTranslation();
-  return (
-    <button
-        onClick={onClick}
-        className="flex items-center gap-2 text-white bg-white/20 px-4 py-2 rounded-lg transition duration-200 backdrop-blur-sm hover:bg-white/30"
-        aria-label={t('settings.ariaOpen')}
-        >
-        {t('settings.open')}
-        <SettingsIcon size={20} className="text-white" />
-    </button>
-  );
-}
 
 export function SettingsModal({ isOpen, onClose }) {
   const { style, setStyle } = useTheme();

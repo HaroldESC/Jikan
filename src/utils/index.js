@@ -13,16 +13,3 @@ export const DAYS_OF_WEEK = [
   'Viernes',
   'Sábado'
 ];
-
-export const INITIAL_REMINDERS = [
-  {
-    id: 1,
-    text: 'Revisar proyecto de programación',
-    time: '20:00'
-  },
-  {
-    id: 2,
-    text: 'Preparar material para clase',
-    time: '07:30'
-  }
-];
