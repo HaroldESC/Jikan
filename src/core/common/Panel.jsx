@@ -1,11 +1,17 @@
 /**
- * Panel — wrapper that makes a block hideable and draggable while the
+ * Panel — wrapper that makes a block hideable and reorderable while the
  * layout is being edited.
  *
+ * Reordering uses Pointer Events (not HTML5 drag & drop) so it works with
+ * mouse, touch and stylus: dragging starts on the grip handle only, and the
+ * move/end listeners live on the window for the duration of the drag, so the
+ * gesture keeps working when the pointer leaves the handle. Outside the
+ * handle, the page scrolls normally (`touch-action: none` on the grip).
+ *
  * The wrapper never touches the panel markup: controls are rendered as a
- * floating toolbar above the panel so each panel keeps its own look.
+ * floating toolbar so each panel keeps its own look.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, EyeOff, GripVertical } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
 
@@ -16,15 +22,70 @@ export default function Panel({
   isVisible = true,
   onToggle,
   onDragStart,
-  onDragOver,
-  onDrop,
+  onDragMove,
   onDragEnd,
+  onMoveBy,
   className = '',
   children,
 }) {
   const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
   const hidden = !isVisible;
+
+  // Window-level listeners while dragging: works even if pointer capture
+  // is unavailable (and for pointers that leave the grip before moving back).
+  useEffect(() => {
+    if (!isDragging) return undefined;
+
+    const handleMove = (event) => {
+      event.preventDefault();
+      const under = document.elementFromPoint(event.clientX, event.clientY);
+      const target = under?.closest?.('[data-panel]');
+      if (target && target.dataset.panel !== id) onDragMove?.(target.dataset.panel);
+    };
+
+    const handleEnd = () => {
+      setIsDragging(false);
+      onDragEnd?.();
+    };
+
+    window.addEventListener('pointermove', handleMove, { passive: false });
+    window.addEventListener('pointerup', handleEnd);
+    window.addEventListener('pointercancel', handleEnd);
+
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('pointercancel', handleEnd);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDragging, id]);
+
+  const handlePointerDown = (event) => {
+    if (!editMode) return;
+    if (event.pointerType === 'mouse' && event.button !== 0) return;
+    // Avoids text selection while dragging.
+    event.preventDefault();
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      /* synthetic or already-released pointer: window listeners take over */
+    }
+    setIsDragging(true);
+    onDragStart?.(id);
+  };
+
+  // Keyboard alternative: arrow keys move the panel within its column.
+  const handleKeyDown = (event) => {
+    if (!editMode) return;
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      event.preventDefault();
+      onMoveBy?.(id, -1);
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      onMoveBy?.(id, 1);
+    }
+  };
 
   return (
     <div
@@ -36,38 +97,19 @@ export default function Panel({
         hidden ? 'panel-shell--hidden' : '',
         isDragging ? 'panel-shell--dragging' : '',
       ].filter(Boolean).join(' ')}
-      draggable={editMode}
-      onDragStart={(event) => {
-        if (!editMode) return;
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', id);
-        setIsDragging(true);
-        onDragStart?.(id, event);
-      }}
-      onDragOver={(event) => {
-        if (!editMode) return;
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'move';
-        onDragOver?.(id, event);
-      }}
-      onDrop={(event) => {
-        if (!editMode) return;
-        event.preventDefault();
-        onDrop?.(id, event);
-      }}
-      onDragEnd={() => {
-        setIsDragging(false);
-        onDragEnd?.();
-      }}
     >
       {editMode && (
         <div className="panel-shell__tools">
-          <span
+          <button
+            type="button"
             className="panel-shell__grip"
+            aria-label={t('panels.dragAria', { name: title })}
             title={t('panels.dragAria', { name: title })}
+            onPointerDown={handlePointerDown}
+            onKeyDown={handleKeyDown}
           >
             <GripVertical size={14} />
-          </span>
+          </button>
           <button
             type="button"
             onClick={() => onToggle?.(id)}

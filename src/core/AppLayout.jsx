@@ -70,11 +70,18 @@ export default function AppLayout({
     editMode: layoutEdit,
     isVisible: group.isVisible(id),
     onToggle: group.togglePanel,
-    onDragStart: (id) => { draggingPanel.current = id; },
+    onDragStart: (panelId) => { draggingPanel.current = panelId; },
+    onDragMove: (targetId) => {
+      const from = draggingPanel.current;
+      if (from && from !== targetId) group.movePanel(from, targetId);
+    },
     onDragEnd: () => { draggingPanel.current = null; },
-    onDrop: (id) => {
-      if (draggingPanel.current) group.movePanel(draggingPanel.current, id);
-      draggingPanel.current = null;
+    onMoveBy: (panelId, delta) => {
+      const order = group.order;
+      const current = order.indexOf(panelId);
+      const next = current + delta;
+      if (current < 0 || next < 0 || next >= order.length) return;
+      group.movePanel(panelId, order[next]);
     },
   });
 
