@@ -65,3 +65,6 @@ TECHNICAL_SPEC.md
 progress.md
 AGENTS.md
 .agents/
+
+# Planes locales del agente
+.opencode/plan/
