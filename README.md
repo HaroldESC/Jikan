@@ -172,28 +172,30 @@ jikan/
 - [ ] **Import/export schedules** (XLSX and other formats)
 - [ ] **Export to PDF**
 
-### v4.0 — Study & Content Tools
+### v4.0 — Privacy, Local-first & PWA
+- [ ] **Usable without an account** — local guest mode (data stays on device)
+- [ ] **Promote guest data to an account** (ask before migrating)
+- [ ] **Local auto-backup** (no internet required)
+- [ ] **Full data export** (GDPR compliance)
+- [ ] **Private mode** — opt out of saving certain data
+- [ ] **Local encryption** for sensitive data
+- [ ] **Cloud backup** (Google Drive, Dropbox)
+- [ ] **PWA** — offline support, home screen widgets
+
+### v5.0 — Study & Content Tools
 - [ ] **Custom fonts**
 - [ ] **Resource links** per activity (class materials, URLs)
 - [ ] **Exam calendar** with auto-preparation
 - [ ] **Integrated flashcards** for review during breaks
 - [ ] **Productivity graphs & comparative charts** (month vs month)
 
-### v5.0 — University Module
+### v6.0 — University Module
 - [ ] **Grade calculator** — time spent vs grades correlation
 - [ ] **Campus interactive map**
 - [ ] **Weekly credit counter** — visualize academic load
 - [ ] **Professor office hours** directory
 - [ ] **Deadline tracking** integrated
 - [ ] **Attendance tracker** — mark classes attended
-
-### v6.0 — Privacy, Backup & PWA
-- [ ] **Private mode** — opt out of saving certain data
-- [ ] **Local auto-backup** (no internet required)
-- [ ] **Full data export** (GDPR compliance)
-- [ ] **Cloud backup** (Google Drive, Dropbox)
-- [ ] **Local encryption** for sensitive data
-- [ ] **PWA** — offline support, home screen widgets
 
 ### v7.0 — Health & Minimalism
 - [ ] **Break alerts** — "3h studying — take a break", "Sleep in 30 min", hydration reminders
