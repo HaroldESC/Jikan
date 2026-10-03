@@ -25,19 +25,20 @@
 - **Reminders** — Basic reminder system for your activities
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
 - **User Authentication** — Email/password login & registration via Supabase
-- **Cloud Sync** — Real-time data sync powered by Supabase (PostgreSQL + Realtime)
+- **Cloud Sync** — Activities stored in Supabase PostgreSQL, synced across your devices
 - **Responsive Design** — Fully functional on mobile, tablet, and desktop
 
-### Dual-Style Architecture (Planned — Maru + Sei)
+### Dual-Style Architecture (Maru + Sei)
 
-Jikan's roadmap includes integrating **two visual styles** that share the same data layer:
+Jikan ships **two visual styles** that share the same data layer and can be switched from Settings:
 
 | Style | Aesthetic | CSS Approach | UX Pattern |
 |---|---|---|---|
 | **Maru** (丸) | Glassmorphism, gradients, frosted glass | Tailwind + custom CSS files | Full-page views, sidebar layout |
 | **Sei** (静) | Minimal flat design, solid colors | Tailwind only (zero custom CSS) | Mobile-first, card-based, bottom sheets |
 
-Sei is currently a separate standalone project. Integration as an optional style within Jikan is planned for v2.0.
+`AppLayout.jsx` renders one tree or the other from a single `style` flag, so both styles read the
+same activities, session, theme and locale. Integrated as an optional style in v2.0.
 
 ## Quick Start
 
@@ -95,7 +96,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 |---|---|
 | Supabase Auth | Authentication (email/password) |
 | Supabase PostgreSQL | Data storage |
-| Supabase Realtime | Live sync |
+| Supabase Realtime | Live sync — not wired yet (data refreshes via explicit `reload()`) |
 
 ### Dev Tools
 
@@ -122,7 +123,7 @@ jikan/
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useActivities.js # Activity CRUD operations
 │   │   ├── useSession.js    # User session management
-│   │   ├── useTheme.js      # Theme + visual style state
+│   │   ├── useTheme.jsx     # Theme + visual style state
 │   │   ├── useReminders.js  # Reminders (localStorage, per user)
 │   │   ├── usePanels.js     # Panel layout: visibility + order (localStorage)
 │   │   └── useClock.js      # Real-time clock
@@ -205,21 +206,44 @@ jikan/
 - [ ] **Meal reminders**
 - [ ] **Burnout detection** — alerts if overworking
 
-### v8.0+ — Future (Collaboration, Integrations & Advanced)
-- **Productivity extras:** To-do list per activity, pull animations, study groups
-- **Collaboration:** Shared schedules, group study sessions, chat per activity, study communities, mentor/accountability partner, community template library
-- **Integrations:** Google Calendar, Notion, Obsidian, Google Keep
-- **Visual extras:** Retro, pixelart, matrix, anime styles; custom themes & backgrounds
-- **Platform:** Desktop app (Electron/Tauri), voice commands, multi-user profiles, Apple Watch
-- **Gamification:** XP system, badges, levels, challenges, avatar
-- **AI & automation:** Schedule suggestions, auto-adjustment, time prediction, optimization, sleep analysis, personalized recommendations, virtual assistant
+### v8.0 — Productivity Extras & Collaboration
+- [ ] **To-do list** per activity
+- [ ] **Pull animations** — smooth transitions
+- [ ] **Shared schedules** — see your classmates' schedules
+- [ ] **Group study sessions** — "someone else is studying right now"
+- [ ] **Chat per activity** — talk to whoever is doing the same thing
+- [ ] **Study groups** — communities per subject
+- [ ] **Work groups** — organize team projects
+- [ ] **Mentor / accountability partner** — someone who reviews your progress
+- [ ] **Community template library** — share schedule layouts
+- [ ] **Multi-user** — several profiles on one device
+
+### v9.0 — Integrations & Platforms
+- [ ] **Google Calendar** integration
+- [ ] **Notion / Obsidian / Google Keep** integration — sync notes
+- [ ] **Desktop app** (Electron/Tauri) — always-visible widget, screensaver, taskbar timer
+- [ ] **Voice commands** — "what's next in my schedule?"
+- [ ] **Apple Watch / Smartwatch** — notifications on your wrist
+- [ ] **Extra visual styles** — retro, pixelart, matrix, anime (long term)
+- [ ] **Custom themes** — build your own color palettes
+- [ ] **Custom backgrounds** — upload images or use photo APIs
+
+### v10.0+ — AI & Automation (Experimental)
+- [ ] **AI schedule suggestions** based on your productivity patterns
+- [ ] **Auto-adjustment** — when you skip something, it re-shuffles
+- [ ] **Time prediction** — "this will actually take 2h"
+- [ ] **Auto-optimization** based on your performance data
+- [ ] **Sleep pattern analysis** correlated with productivity
+- [ ] **Personalized recommendations** — "you study better in the morning"
+- [ ] **Virtual assistant** for productivity queries
+- [ ] **Gamification:** XP system, badges, levels, weekly challenges, customizable avatar
 
 ## Styling System
 
-Jikan currently uses the **Maru style** with a **theme-driven CSS architecture**:
+Jikan ships a **theme-driven CSS architecture** with two selectable styles:
 
-- **Maru (current default):** 10 dedicated CSS files in `src/styles/maru/` for glassmorphism effects, custom scrollbar, animations
-- **Sei (planned):** Pure Tailwind utility classes, no custom CSS — minimal and flat. The `src/styles/sei/` directory is ready to receive Sei components once integrated.
+- **Maru (default):** 11 dedicated CSS files in `src/styles/maru/`, all scoped under `.theme-maru` — glassmorphism effects, custom scrollbar, animations
+- **Sei:** pure Tailwind utility classes, zero custom CSS — minimal and flat; overrides live under `.theme-sei`
 
 ## Security
 
