@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState } from 'react';
  * Persisted reminders (localStorage, keyed per user).
  *
  * Shape: { id: string, text: string, time: 'HH:MM' }
+ *
+ * @param {string} userId
+ * @param {object} [options]
+ * @param {boolean} [options.persist=true]
+ *   Modo privado (v4.0 C3): con `persist: false` los recordatorios solo viven en
+ *   memoria — no se guardan ni se leen de localStorage, así que no se sincronizan.
  */
 const storageKey = (userId) => `jikan.reminders.${userId || 'anon'}`;
 
@@ -19,21 +25,22 @@ const readStored = (userId) => {
   }
 };
 
-export function useReminders(userId) {
-  const [reminders, setReminders] = useState(() => readStored(userId));
+export function useReminders(userId, { persist = true } = {}) {
+  const [reminders, setReminders] = useState(() => (persist ? readStored(userId) : []));
 
   // Re-read when the signed-in user changes.
   useEffect(() => {
-    setReminders(readStored(userId));
-  }, [userId]);
+    setReminders(persist ? readStored(userId) : []);
+  }, [userId, persist]);
 
   useEffect(() => {
+    if (!persist) return;
     try {
       window.localStorage.setItem(storageKey(userId), JSON.stringify(reminders));
     } catch (error) {
       console.error('Error saving reminders:', error);
     }
-  }, [reminders, userId]);
+  }, [reminders, userId, persist]);
 
   const addReminder = useCallback(({ text, time }) => {
     const trimmed = (text || '').trim();

@@ -30,6 +30,8 @@
 - **PDF & XLSX Export** — Export the full week as a landscape PDF (summary + one table per day, color-coded) or as an XLSX workbook (Week + Summary sheets)
 - **Local Auto-Backup** — A versioned snapshot is written to IndexedDB whenever your state changes (at most every 30 min), keeping the 10 most recent copies per user; browse, restore or delete them from Settings (no internet required)
 - **Full JSON Export / Import (GDPR)** — The "Data" section of Settings exports everything the app keeps in your browser (activities, reminders, panels, settings, pomodoro, notifications) to a `jikan-backup-YYYY-MM-DD.json` file, and imports it back with per-row validation
+- **Private Mode** — Opt out of saving notes, descriptions or reminders; disabled categories are discarded on save (and on import), living only in memory for the current session. Configured in the new "Privacy" section of Settings, next to the "Data" section
+- **Local Encryption** — AES-GCM 256 + PBKDF2-SHA256 (250 000 iterations) over your whole local schedule and your local snapshots, with a full-screen lock asking for the passphrase on every launch; set up from the "Privacy" section of Settings (enable / change passphrase / disable)
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
 - **User Authentication** — Email/password login & registration via Supabase
 - **Guest Mode** — Use Jikan without an account: the schedule lives in IndexedDB on the device, with an optional offer to upload it to an account later
@@ -123,7 +125,9 @@ jikan/
 │   │   ├── activities/      # Activity list, detail views, editors (Maru/Sei)
 │   │   ├── common/          # Settings, LanguageSelector, ThemeToggle, modals
 │   │   │                    # (incl. GuestMigrationModal.jsx — guest ↔ account migration,
-│   │   │                    #  BackupRestoreModal.jsx — local snapshot list: restore/delete)
+│   │   │                    #  BackupRestoreModal.jsx — local snapshot list: restore/delete,
+│   │   │                    #  UnlockScreen.jsx — full-screen lock when encryption is on,
+│   │   │                    #  PassphraseModal.jsx — enable/change/disable encryption)
 │   │   ├── stats/           # Daily statistics dashboard, reminders
 │   │   ├── wheel/           # SVG circular chart (WheelMaru / WheelSei)
 │   │   ├── utils/           # Maru ↔ Sei adapters
@@ -141,15 +145,20 @@ jikan/
 │   │   ├── usePomodoro.js   # Pomodoro focus/break timer (localStorage)
 │   │   ├── useNotifications.js # Browser notifications (permission + pre-warning)
 │   │   ├── useLocalBackup.js # Auto local snapshots in IndexedDB (≤ every 30 min, keep 10 per user)
+│   │   ├── usePrivacy.js    # Private mode: opt-out per category (notes, description, reminders)
+│   │   ├── useEncryption.js # Encryption state (enable/unlock/change/disable + row migration)
 │   │   └── useClock.js      # Real-time clock
 │   ├── i18n/                # Translations (es / en / ja) + provider
 │   ├── lib/                 # External service clients + persistence adapters
 │   │   ├── activityStore.js # Store adapter: IndexedDB (guest) / Supabase, one async API
 │   │   │                    # (list, create, update, remove, insertMany,
 │   │   │                    #  replaceDay, clear, count); getActivityStore(isGuest) picks one;
-│   │   │                    #  local part now goes through localDb.js
+│   │   │                    #  local part now goes through localDb.js; encryptAll / decryptAll /
+│   │   │                    #  reencryptAll migrate rows to/from `{ id, enc }`
 │   │   ├── localDb.js       # IndexedDB bootstrap (db `jikan` v2 → stores `activities`, `backups`)
-│   │   ├── backupStore.js   # Versioned local snapshots in the `backups` store (list/latest/create/remove/clear/prune)
+│   │   ├── backupStore.js   # Versioned local snapshots in the `backups` store (list/latest/create/
+│   │   │                    #  remove/clear/prune); same encryptAll/decryptAll/reencryptAll
+│   │   ├── crypto.js        # Web Crypto: AES-GCM 256 + PBKDF2, session key (memory only)
 │   │   └── supabase.js      # Supabase client
 │   ├── utils/               # Utility functions (dates, csv, export, backup.js: pure
 │   │                        #  build/serialize/parse helpers, BACKUP_VERSION = 1, retention 10)
@@ -200,8 +209,8 @@ jikan/
 - [x] **Promote guest data to an account** (ask before migrating)
 - [x] **Local auto-backup** (no internet required)
 - [x] **Full data export** (GDPR compliance)
-- [ ] **Private mode** — opt out of saving certain data
-- [ ] **Local encryption** for sensitive data
+- [x] **Private mode** — opt out of saving certain data
+- [x] **Local encryption** for sensitive data
 - [ ] **Cloud backup** (Google Drive, Dropbox)
 - [ ] **PWA** — offline support, home screen widgets
 
@@ -276,7 +285,11 @@ Jikan ships a **theme-driven CSS architecture** with two selectable styles:
 
 ## Technical Notes
 
-- Guest schedules live in **IndexedDB** (`jikan` → `activities`) and are **not encrypted** — local encryption lands in v4.0 phase C3
+- Guest schedules live in **IndexedDB** (`jikan` → `activities`) and can be encrypted from Settings → Privacy
+- The AES key is derived with **PBKDF2** (250 000 iterations) from a passphrase that is **never stored**: the non-exportable key only lives in memory, so the app asks for the passphrase on every launch — forget it and the local data cannot be recovered (an Unlock screen offers a two-step reset that wipes it)
+- With encryption on, **nothing is stored in clear** in IndexedDB — not even `day_of_week`, which is why `replaceDay` now locates rows in memory instead of using the day index
+- Private mode **avoids the write, it does not delete**: whatever was already saved is discarded the next time that activity is saved
+- Encryption also covers the v4.0 C2 snapshots; enabling, changing or disabling the passphrase re-encrypts both activity rows and backups
 - Guest and account data live in **separate stores**, so alternating between the two can leave them diverged; this is why the app asks before migrating (migration always appends, it never overwrites)
 - Local snapshots share the same IndexedDB database as the guest schedule (`jikan` → `backups`), keeping the **10 most recent per user** (pruned automatically)
 - Both JSON **import** and snapshot **restore** are **append-only** — they never overwrite or delete, so restoring a copy can duplicate blocks (the app asks for confirmation first)

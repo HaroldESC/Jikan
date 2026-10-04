@@ -70,8 +70,15 @@ export function groupActivitiesByDay(rows = []) {
  * Elige el store según la sesión (`localStore` con IndexedDB si `isGuest`,
  * `supabaseStore` si hay cuenta) y centraliza TODO el CRUD: `MainShell` ya no
  * habla con Supabase directamente.
+ *
+ * @param {object} user
+ * @param {object} [options]
+ * @param {boolean} [options.isGuest]
+ * @param {{notes?: boolean, description?: boolean}} [options.privacy]
+ *   Modo privado (v4.0 C3): las categorías desactivadas se descartan al guardar,
+ *   así que nunca se escriben ni se sincronizan.
  */
-export function useActivities(user, { isGuest = false } = {}) {
+export function useActivities(user, { isGuest = false, privacy } = {}) {
   const store = useMemo(() => getActivityStore(isGuest), [isGuest]);
 
   const userId = user?.id ?? GUEST_USER_ID;
@@ -107,12 +114,13 @@ export function useActivities(user, { isGuest = false } = {}) {
       start_time: decimalToTimeString(activity.start),
       end_time: decimalToTimeString(activity.end),
       title: activity.title ?? activity.activity ?? '',
-      description: activity.description ?? '',
-      notes: activity.notes ?? '',
+      // Modo privado: si la categoría está apagada, el dato no se escribe.
+      description: privacy?.description ? (activity.description ?? '') : '',
+      notes: privacy?.notes ? (activity.notes ?? '') : '',
       color: activity.color ?? '#7c5cff',
       user_id: userId,
     }),
-    [userId]
+    [privacy?.description, privacy?.notes, userId]
   );
 
   /** Crea una actividad nueva y recarga. Devuelve la fila creada. */
@@ -168,15 +176,21 @@ export function useActivities(user, { isGuest = false } = {}) {
     [reload, rows, store, toPayload]
   );
 
-  /** Append de filas ya normalizadas (importación CSV, migración desde cuenta). */
+  /** Append de filas ya normalizadas (importación CSV/JSON, migración desde cuenta). */
   const appendRows = useCallback(
     async (payloads = []) => {
       if (payloads.length === 0) return [];
-      const created = await store.insertMany(payloads);
+      // El modo privado también aplica a lo importado: no se escribe lo apagado.
+      const sanitized = payloads.map((payload) => ({
+        ...payload,
+        description: privacy?.description ? (payload.description ?? '') : '',
+        notes: privacy?.notes ? (payload.notes ?? '') : '',
+      }));
+      const created = await store.insertMany(sanitized);
       await reload();
       return created;
     },
-    [reload, store]
+    [privacy?.description, privacy?.notes, reload, store]
   );
 
   // Función para obtener actividades de un día específico

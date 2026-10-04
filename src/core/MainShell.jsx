@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { useTranslation } from '../i18n/useTranslation';
 
 import { useClock } from '../hooks/useClock';
@@ -6,6 +6,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
 import { useGuestMigration } from '../hooks/useGuestMigration';
 import { useLocalBackup } from '../hooks/useLocalBackup';
+import { usePrivacy } from '../hooks/usePrivacy';
 import { getCurrentDay } from '../utils/dates';
 import { exportActivitiesToCsv, parseActivitiesCsv } from '../utils/csv';
 import {
@@ -16,6 +17,7 @@ import {
   serializeBackup,
 } from '../utils/backup';
 import { buildWeekRows, exportWeekToPdf, exportWeekToXlsx } from '../utils/export';
+import { MIN_PASSPHRASE_LENGTH } from '../lib/crypto';
 
 import AppLayout from './AppLayout';
 import DetailViewMaru from './activities/DetailViewMaru';
@@ -24,6 +26,7 @@ import EditViewMaru from './activities/EditViewMaru';
 import GuestMigrationModal from './common/GuestMigrationModal';
 import BackupRestoreModal from './common/BackupRestoreModal';
 import ImportModal from './common/ImportModal';
+import PassphraseModal from './common/PassphraseModal';
 
 const timeToDecimal = (timeString) => {
   if (!timeString) return 0;
@@ -37,7 +40,10 @@ const decimalToTimeString = (decimal) => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
-export default function MainShell({ user, isGuest = false, onExitGuest }) {
+export default function MainShell({ user, isGuest = false, onExitGuest, encryption }) {
+  // Modo privado (v4.0 C3): define qué categorías se descartan al guardar.
+  const privacy = usePrivacy(user?.id);
+
   // Todo el CRUD pasa por el store que corresponda (IndexedDB o Supabase).
   const {
     schedules,
@@ -48,10 +54,17 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
     deleteActivity,
     copyDay: copyDayStore,
     appendRows,
-  } = useActivities(user, { isGuest });
+  } = useActivities(user, { isGuest, privacy });
   const currentTime = useClock();
   const { themeMode, toggleTheme, bgColor, isDarkMode, style } = useTheme();
   const { t, localeForDate } = useTranslation();
+
+  // Cifrado local (v4.0 C3). La instancia viene de `App.jsx`, que ya bloquea la
+  // app si no está desbloqueada: aquí solo se gestionan los diálogos de passphrase.
+  const [passphraseMode, setPassphraseMode] = useState(null); // 'create' | 'change' | 'disable'
+  const [passphraseBusy, setPassphraseBusy] = useState(false);
+  const [passphraseError, setPassphraseError] = useState(null);
+  const [passphraseErrorMessage, setPassphraseErrorMessage] = useState('');
 
   // Oferta de migración del horario local (invitado) a la cuenta y viceversa.
   const migration = useGuestMigration(user, isGuest);
@@ -216,6 +229,60 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
   };
 
   // ── Fin backup local ─────────────────────────────────────────────────────
+
+  // ── Cifrado local (v4.0 C3) ──────────────────────────────────────────────
+
+  const closePassphraseModal = () => {
+    setPassphraseMode(null);
+    setPassphraseError(null);
+    setPassphraseErrorMessage('');
+  };
+
+  const handlePassphraseSubmit = async ({ passphrase, confirmation, newPassphrase }) => {
+    setPassphraseBusy(true);
+    setPassphraseError(null);
+    setPassphraseErrorMessage('');
+
+    const fail = () => {
+      setPassphraseError(encryption.getError() ?? 'unexpected');
+      setPassphraseErrorMessage(encryption.getErrorMessage());
+    };
+
+    try {
+      if (passphraseMode === 'create') {
+        if (passphrase.length < MIN_PASSPHRASE_LENGTH) {
+          setPassphraseError('passphraseTooShort');
+          return;
+        }
+        if (passphrase !== confirmation) {
+          setPassphraseError('passphraseMismatch');
+          return;
+        }
+        if (await encryption.enable(passphrase)) closePassphraseModal();
+        else fail();
+        return;
+      }
+
+      if (passphraseMode === 'change') {
+        if (newPassphrase.length < MIN_PASSPHRASE_LENGTH) {
+          setPassphraseError('passphraseTooShort');
+          return;
+        }
+        if (await encryption.changePassphrase(passphrase, newPassphrase)) closePassphraseModal();
+        else fail();
+        return;
+      }
+
+      if (passphraseMode === 'disable') {
+        if (await encryption.disable(passphrase)) closePassphraseModal();
+        else fail();
+      }
+    } finally {
+      setPassphraseBusy(false);
+    }
+  };
+
+  // ── Fin cifrado local ────────────────────────────────────────────────────
 
   const handleCopyDay = async (sourceDay, targetDay) => {
     const sourceActivities = schedules[sourceDay] || [];
@@ -507,6 +574,17 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
         user={user}
         isGuest={isGuest}
         onExitGuest={onExitGuest}
+        privacy={{
+          privacy,
+          encryption: {
+            supported: encryption.supported,
+            enabled: encryption.enabled,
+            onOpen: (mode) => {
+              setPassphraseError(null);
+              setPassphraseMode(mode);
+            },
+          },
+        }}
       />
 
       <GuestMigrationModal
@@ -546,6 +624,20 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
         isMaru={style === 'maru'}
         isDarkMode={isDarkMode()}
       />
+
+      <PassphraseModal
+        isOpen={passphraseMode != null}
+        mode={passphraseMode ?? 'create'}
+        busy={passphraseBusy}
+        error={passphraseError}
+        errorMessage={passphraseErrorMessage}
+        onSubmit={handlePassphraseSubmit}
+        onClose={closePassphraseModal}
+        isMaru={style === 'maru'}
+        isDarkMode={isDarkMode()}
+      />
     </>
   );
 }
+
+

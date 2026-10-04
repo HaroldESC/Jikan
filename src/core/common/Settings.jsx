@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+﻿import { useRef } from 'react';
 import {
   LogOut,
   LogIn,
@@ -16,11 +16,22 @@ import {
   History,
   Save,
   Info,
+  ShieldCheck,
+  Lock,
+  LockOpen,
+  KeyRound,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../i18n/useTranslation';
 import LanguageSelector from './LanguageSelector';
+
+// Categorías del modo privado (v4.0 C3) mostradas en la sección "Privacidad".
+const PRIVACY_ITEMS = [
+  { key: 'notes', label: 'privacy.notes' },
+  { key: 'description', label: 'privacy.description' },
+  { key: 'reminders', label: 'privacy.reminders' },
+];
 
 // Pre-aviso presets (minutes before an activity starts).
 const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
@@ -35,7 +46,10 @@ const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
 // `isGuest` switches the account section: in guest mode there is no Supabase
 // session to sign out of, so instead of "Log out" we offer "Create account /
 // Log in" plus a secondary "Exit local mode" (both delegate to `onExitGuest`).
-export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = false, onExitGuest }) {
+// `privacy` is optional and enables the "Privacy" section (v4.0 C3):
+//   { privacy: { notes, description, reminders, toggle(category) },
+//     encryption: { supported, enabled, onOpen(mode) } }
+export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = false, onExitGuest, privacy }) {
   const { style, setStyle } = useTheme();
   const { t, localeForDate } = useTranslation();
   // Declared before the early return: hooks must never come after it.
@@ -268,6 +282,82 @@ export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = 
                     ? t('backup.lastBackup', { when: formatWhen(data.lastBackupAt) })
                     : t('backup.noBackups')}
                 </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {privacy && (
+          <div className="mb-4">
+            <p className="text-sm font-semibold mb-1 flex items-center gap-2">
+              <ShieldCheck size={16} />
+              {t('privacy.section')}
+            </p>
+            <p className="text-xs text-white/60 mb-3">{t('privacy.intro')}</p>
+
+            <div className="space-y-2">
+              {PRIVACY_ITEMS.map((item) => {
+                const enabled = privacy.privacy[item.key] !== false;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => privacy.privacy.toggle(item.key)}
+                    aria-pressed={enabled}
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-left transition"
+                  >
+                    <span className="text-sm text-white/90">{t(item.label)}</span>
+                    <span
+                      className={`shrink-0 text-xs font-medium px-2 py-1 rounded-lg ${
+                        enabled ? 'bg-green-500/20 text-green-200' : 'bg-white/10 text-white/60'
+                      }`}
+                    >
+                      {enabled ? t('privacy.on') : t('privacy.off')}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-white/50">{t('privacy.offHint')}</p>
+
+            {privacy.encryption && (
+              <>
+                <p className="text-sm font-semibold mt-5 mb-1 flex items-center gap-2">
+                  <Lock size={16} />
+                  {t('privacy.encryption')}
+                </p>
+                <p className="text-xs text-white/60 mb-3">{t('privacy.encryptionIntro')}</p>
+                {privacy.encryption.enabled && (
+                  <p className="mb-2 text-xs text-green-300">{t('privacy.encryptionActive')}</p>
+                )}
+                {!privacy.encryption.supported ? (
+                  <p className="text-xs text-amber-300">{t('encryption.notSupported')}</p>
+                ) : privacy.encryption.enabled ? (
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      onClick={() => privacy.encryption.onOpen('change')}
+                      className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 transition text-sm font-medium"
+                    >
+                      <KeyRound size={16} />
+                      {t('privacy.changePassphrase')}
+                    </button>
+                    <button
+                      onClick={() => privacy.encryption.onOpen('disable')}
+                      className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-200 border border-red-500/30 transition text-sm font-medium"
+                    >
+                      <LockOpen size={16} />
+                      {t('privacy.disableEncryption')}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => privacy.encryption.onOpen('create')}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 transition text-sm font-medium"
+                  >
+                    <Lock size={16} />
+                    {t('privacy.enableEncryption')}
+                  </button>
+                )}
               </>
             )}
           </div>

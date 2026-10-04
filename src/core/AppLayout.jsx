@@ -73,11 +73,15 @@ export default function AppLayout({
   user,
   isGuest,
   onExitGuest,
+  privacy,
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
   const { t } = useTranslation();
-  const { reminders, addReminder, deleteReminder } = useReminders(user?.id);
+  const { reminders, addReminder, deleteReminder } = useReminders(user?.id, {
+    // Modo privado: con la categoría apagada los recordatorios no se persisten.
+    persist: privacy?.privacy?.reminders !== false,
+  });
 
   // Data/export controls live in the Settings modal ("Data" section).
   const dataActions = useMemo(
@@ -445,6 +449,7 @@ export default function AppLayout({
         data={dataActions}
         isGuest={isGuest}
         onExitGuest={onExitGuest}
+        privacy={privacy}
       />
 
       <ImportModal
