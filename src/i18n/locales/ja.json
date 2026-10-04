@@ -136,6 +136,24 @@
     "languageDescription": "アプリケーションの言語を選択",
     "dataSection": "データ"
   },
+  "guest": {
+    "continueWithoutAccount": "アカウントなしで続ける",
+    "localMode": "ローカルモード",
+    "dataNotice": "データはこの端末にのみ保存されます。",
+    "createAccount": "アカウントを作成 / サインイン",
+    "exitLocalMode": "ローカルモードを終了",
+    "confirmExit": "ローカルモードを終了しますか？サインイン画面に戻ります。ローカルデータは保持されます。",
+    "migrateTitle": "この端末のローカル活動",
+    "migrateUploadDesc": "この端末に {count} 件の活動が保存されています。アカウントにアップロードしますか？既存のデータに追加され、上書きはされません。",
+    "migrateImportDesc": "この端末のローカルスケジュールは空です。アカウントの活動をこの端末にコピーしますか？",
+    "migrateUpload": "アカウントにアップロード",
+    "migrateImport": "この端末にインポート",
+    "discard": "破棄",
+    "migrating": "移行中...",
+    "migrateUploadSuccess": "{count} 件の活動をアカウントにアップロードしました",
+    "migrateImportSuccess": "{count} 件の活動をこの端末にインポートしました",
+    "migrateError": "活動の移行に失敗しました: {msg}"
+  },
   "theme": {
     "auto": "自動",
     "light": "ライト",

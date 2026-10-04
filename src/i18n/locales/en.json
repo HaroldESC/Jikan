@@ -136,6 +136,24 @@
     "languageDescription": "Select the application language",
     "dataSection": "Data"
   },
+  "guest": {
+    "continueWithoutAccount": "Continue without an account",
+    "localMode": "Local mode",
+    "dataNotice": "Your data is only saved on this device.",
+    "createAccount": "Create account / Sign in",
+    "exitLocalMode": "Exit local mode",
+    "confirmExit": "Exit local mode? You will go back to the sign-in screen. Your local data is kept.",
+    "migrateTitle": "Local activities on this device",
+    "migrateUploadDesc": "There are {count} activities saved on this device. Do you want to upload them to your account? They will be added to the ones you already have, overwriting nothing.",
+    "migrateImportDesc": "Your local schedule is empty. Do you want to copy your account activities to this device?",
+    "migrateUpload": "Upload to my account",
+    "migrateImport": "Import to this device",
+    "discard": "Discard",
+    "migrating": "Migrating...",
+    "migrateUploadSuccess": "Uploaded {count} activities to your account",
+    "migrateImportSuccess": "Imported {count} activities to this device",
+    "migrateError": "Error migrating activities: {msg}"
+  },
   "theme": {
     "auto": "Auto",
     "light": "Light",

@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { supabase } from '../lib/supabase';
 import { useTranslation } from '../i18n/useTranslation';
 
 import { useClock } from '../hooks/useClock';
 import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
+import { useGuestMigration } from '../hooks/useGuestMigration';
 import { getCurrentDay } from '../utils/dates';
 import { exportActivitiesToCsv, parseActivitiesCsv } from '../utils/csv';
 import { buildWeekRows, exportWeekToPdf, exportWeekToXlsx } from '../utils/export';
@@ -13,6 +13,7 @@ import AppLayout from './AppLayout';
 import DetailViewMaru from './activities/DetailViewMaru';
 import EditViewSei from './activities/EditViewSei';
 import EditViewMaru from './activities/EditViewMaru';
+import GuestMigrationModal from './common/GuestMigrationModal';
 
 const timeToDecimal = (timeString) => {
   if (!timeString) return 0;
@@ -26,11 +27,23 @@ const decimalToTimeString = (decimal) => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
-export default function MainShell({ user }) {
-  const { schedules, loading, reload } = useActivities(user);
+export default function MainShell({ user, isGuest = false, onExitGuest }) {
+  // Todo el CRUD pasa por el store que corresponda (IndexedDB o Supabase).
+  const {
+    schedules,
+    loading,
+    reload,
+    saveActivity,
+    deleteActivity,
+    copyDay: copyDayStore,
+    appendRows,
+  } = useActivities(user, { isGuest });
   const currentTime = useClock();
   const { themeMode, toggleTheme, bgColor, isDarkMode, style } = useTheme();
   const { t } = useTranslation();
+
+  // Oferta de migración del horario local (invitado) a la cuenta y viceversa.
+  const migration = useGuestMigration(user, isGuest);
 
   const [currentDay, setCurrentDay] = useState(getCurrentDay());
   const [view, setView] = useState('main');
@@ -76,6 +89,22 @@ export default function MainShell({ user }) {
     [t]
   );
 
+  // Ejecuta la oferta de migración (subir / importar / descartar) y avisa.
+  const handleMigrationConfirm = async (mode) => {
+    try {
+      const count = await migration.run(mode);
+      // Tras subir filas a la cuenta, el store activo (Supabase) debe releer.
+      if (mode === 'upload') {
+        await reload();
+        alert(t('guest.migrateUploadSuccess', { count }));
+      } else if (mode === 'import') {
+        alert(t('guest.migrateImportSuccess', { count }));
+      }
+    } catch (error) {
+      alert(t('guest.migrateError', { msg: error.message }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white bg-slate-900">
@@ -94,29 +123,8 @@ export default function MainShell({ user }) {
     if (!window.confirm(t('messages.confirmReplace', { target: targetDay, source: sourceDay }) + '\n\n' + t('messages.willDelete', { count: (schedules[targetDay] || []).length }))) return;
 
     try {
-      const existingActivities = schedules[targetDay] || [];
-      for (const activity of existingActivities) {
-        if (activity.id) {
-          await supabase.from('activities').delete().eq('id', activity.id);
-        }
-      }
-
-      const newActivities = sourceActivities.map((activity) => ({
-        day_of_week: targetDay,
-        start_time: decimalToTimeString(activity.start),
-        end_time: decimalToTimeString(activity.end),
-        title: activity.title,
-        description: activity.description || '',
-        notes: activity.notes || '',
-        color: activity.color || '#7c5cff',
-        user_id: user.id,
-      }));
-
-      const { error } = await supabase.from('activities').insert(newActivities);
-      if (error) throw error;
-
-      await reload();
-      alert(t('messages.copiedSuccess', { count: sourceActivities.length, source: sourceDay, target: targetDay }));
+      const count = await copyDayStore(sourceDay, targetDay);
+      alert(t('messages.copiedSuccess', { count, source: sourceDay, target: targetDay }));
     } catch (error) {
       alert(t('messages.copyError', { msg: error.message }));
     }
@@ -202,10 +210,7 @@ export default function MainShell({ user }) {
 
     try {
       const payload = importPreview.rows.map((row) => ({ ...row, user_id: user.id }));
-      const { error } = await supabase.from('activities').insert(payload);
-      if (error) throw error;
-
-      await reload();
+      await appendRows(payload);
       alert(t('csv.importSuccess', { count: payload.length }));
     } catch (error) {
       alert(t('csv.importError', { msg: error.message }));
@@ -219,12 +224,11 @@ export default function MainShell({ user }) {
     const activity = schedule[activityIndex];
     if (!activity?.id) return;
 
-    const { error } = await supabase.from('activities').delete().eq('id', activity.id);
-    if (error) {
+    try {
+      await deleteActivity(activity.id);
+    } catch (error) {
       alert(t('messages.deleteError', { msg: error.message }));
-      return;
     }
-    await reload();
   };
 
   const handleSaveActivity = async (day, originalActivity, updatedActivity) => {
@@ -237,30 +241,13 @@ export default function MainShell({ user }) {
       return;
     }
 
-    const payload = {
-      day_of_week: day,
-      start_time: decimalToTimeString(updatedActivity.start),
-      end_time: decimalToTimeString(updatedActivity.end),
-      title: updatedActivity.activity,
-      description: updatedActivity.description,
-      notes: updatedActivity.notes ?? '',
-      color: updatedActivity.color,
-      user_id: user.id,
-    };
-
-    let result;
-    if (originalActivity?.id) {
-      result = await supabase.from('activities').update(payload).eq('id', originalActivity.id);
-    } else {
-      result = await supabase.from('activities').insert([payload]);
-    }
-
-    if (result.error) {
-      alert(t('messages.error', { msg: result.error.message }));
+    try {
+      await saveActivity(day, originalActivity, updatedActivity);
+    } catch (error) {
+      alert(t('messages.error', { msg: error.message }));
       return;
     }
 
-    await reload();
     setView('main');
     setEditingActivity(null);
     setEditingDay(null);
@@ -380,30 +367,43 @@ export default function MainShell({ user }) {
   }
 
   return (
-    <AppLayout
-      style={style}
-      schedules={schedules}
-      currentDay={currentDay}
-      onSelectDay={setCurrentDay}
-      onActivitySelect={handleActivitySelect}
-      onAddActivity={handleAddActivity}
-      onEditActivity={handleEditActivity}
-      showCopyModal={showCopyModal}
-      setShowCopyModal={setShowCopyModal}
-      onCopyDay={handleCopyDay}
-      onExportCsv={handleExportCsv}
-      onExportPdf={handleExportPdf}
-      onExportXlsx={handleExportXlsx}
-      onImportFile={handleImportFile}
-      importPreview={importPreview}
-      onCloseImport={() => setImportPreview(null)}
-      onConfirmImport={handleConfirmImport}
-      currentTime={currentTime}
-      themeMode={themeMode}
-      toggleTheme={toggleTheme}
-      bgColor={bgColor}
-      isDarkMode={isDarkMode}
-      user={user}
-    />
+    <>
+      <AppLayout
+        style={style}
+        schedules={schedules}
+        currentDay={currentDay}
+        onSelectDay={setCurrentDay}
+        onActivitySelect={handleActivitySelect}
+        onAddActivity={handleAddActivity}
+        onEditActivity={handleEditActivity}
+        showCopyModal={showCopyModal}
+        setShowCopyModal={setShowCopyModal}
+        onCopyDay={handleCopyDay}
+        onExportCsv={handleExportCsv}
+        onExportPdf={handleExportPdf}
+        onExportXlsx={handleExportXlsx}
+        onImportFile={handleImportFile}
+        importPreview={importPreview}
+        onCloseImport={() => setImportPreview(null)}
+        onConfirmImport={handleConfirmImport}
+        currentTime={currentTime}
+        themeMode={themeMode}
+        toggleTheme={toggleTheme}
+        bgColor={bgColor}
+        isDarkMode={isDarkMode}
+        user={user}
+        isGuest={isGuest}
+        onExitGuest={onExitGuest}
+      />
+
+      <GuestMigrationModal
+        prompt={migration.prompt}
+        busy={migration.busy}
+        onConfirm={handleMigrationConfirm}
+        onClose={migration.dismiss}
+        isMaru={style === 'maru'}
+        isDarkMode={isDarkMode()}
+      />
+    </>
   );
 }

@@ -136,6 +136,24 @@
     "languageDescription": "Selecciona el idioma de la aplicación",
     "dataSection": "Datos"
   },
+  "guest": {
+    "continueWithoutAccount": "Continuar sin cuenta",
+    "localMode": "Modo local",
+    "dataNotice": "Tus datos solo se guardan en este dispositivo.",
+    "createAccount": "Crear cuenta / Iniciar sesión",
+    "exitLocalMode": "Salir del modo local",
+    "confirmExit": "¿Salir del modo local? Volverás a la pantalla de inicio de sesión. Tus datos locales se conservan.",
+    "migrateTitle": "Actividades locales en este dispositivo",
+    "migrateUploadDesc": "Hay {count} actividades guardadas en este dispositivo. ¿Quieres subirlas a tu cuenta? Se añadirán a las que ya tienes, sin sobrescribir nada.",
+    "migrateImportDesc": "Tu horario local está vacío. ¿Quieres copiar las actividades de tu cuenta a este dispositivo?",
+    "migrateUpload": "Subir a mi cuenta",
+    "migrateImport": "Importar a este dispositivo",
+    "discard": "Descartar",
+    "migrating": "Migrando...",
+    "migrateUploadSuccess": "Se subieron {count} actividades a tu cuenta",
+    "migrateImportSuccess": "Se importaron {count} actividades a este dispositivo",
+    "migrateError": "Error al migrar las actividades: {msg}"
+  },
   "theme": {
     "auto": "Automático",
     "light": "Claro",

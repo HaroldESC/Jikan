@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { LogOut, Palette, Globe, Bell, Database, Download, Upload, FileText, FileSpreadsheet } from 'lucide-react';
+import { LogOut, LogIn, Palette, Globe, Bell, Database, Download, Upload, FileText, FileSpreadsheet, Info } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -11,7 +11,10 @@ const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
 // `csv` is optional: when provided ({ onExport, onExportPdf, onExportXlsx,
 // onImport }), the "Data" section with the CSV/PDF/XLSX export and CSV import
 // controls is rendered.
-export function SettingsModal({ isOpen, onClose, notifications, csv }) {
+// `isGuest` switches the account section: in guest mode there is no Supabase
+// session to sign out of, so instead of "Log out" we offer "Create account /
+// Log in" plus a secondary "Exit local mode" (both delegate to `onExitGuest`).
+export function SettingsModal({ isOpen, onClose, notifications, csv, isGuest = false, onExitGuest }) {
   const { style, setStyle } = useTheme();
   const { t } = useTranslation();
   // Declared before the early return: hooks must never come after it.
@@ -39,6 +42,14 @@ export function SettingsModal({ isOpen, onClose, notifications, csv }) {
     } catch (error) {
       alert(t('settings.unexpectedError', { msg: error.message }));
     }
+  };
+
+  // Guest mode: leaving the local mode returns to the login screen. Local data
+  // is kept, hence the explicit confirmation.
+  const handleExitGuest = () => {
+    const accepted = window.confirm(t('guest.confirmExit'));
+    if (!accepted) return;
+    onExitGuest?.();
   };
 
   return (
@@ -167,13 +178,36 @@ export function SettingsModal({ isOpen, onClose, notifications, csv }) {
           </div>
         )}
 
-        <button
-            onClick={handleLogout}
-            className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 hover:border-red-500/50 transition duration-200 font-medium"
-        >
-            <LogOut size={18} />
-            {t('settings.logout')}
-        </button>
+        {isGuest ? (
+          <div>
+            <p className="mb-3 text-xs text-white/70 flex items-start gap-2">
+              <Info size={14} className="mt-0.5 shrink-0" />
+              <span>{t('guest.dataNotice')}</span>
+            </p>
+            <button
+              onClick={() => onExitGuest?.()}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 hover:text-blue-100 border border-blue-500/30 hover:border-blue-500/50 transition duration-200 font-medium"
+            >
+              <LogIn size={18} />
+              {t('guest.createAccount')}
+            </button>
+            <button
+              onClick={handleExitGuest}
+              className="flex items-center justify-center gap-2 w-full px-4 py-2 mt-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white border border-white/10 transition duration-200 text-sm font-medium"
+            >
+              <LogOut size={16} />
+              {t('guest.exitLocalMode')}
+            </button>
+          </div>
+        ) : (
+          <button
+              onClick={handleLogout}
+              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 hover:border-red-500/50 transition duration-200 font-medium"
+          >
+              <LogOut size={18} />
+              {t('settings.logout')}
+          </button>
+        )}
 
         <button
           onClick={onClose}

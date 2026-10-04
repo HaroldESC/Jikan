@@ -5,7 +5,7 @@ import MainShell from './core/MainShell';
 import { useSession } from './hooks/useSession';
 
 export default function App() {
-  const { user, loading } = useSession();
+  const { user, loading, isGuest, startGuest, exitGuest, guestUser } = useSession();
   const [recoveryMode, setRecoveryMode] = useState(false);
 
   useEffect(() => {
@@ -24,9 +24,16 @@ export default function App() {
     return null;
   }
 
-  if (!user) {
-    return <LoginScreen />;
+  // Sin sesión de Supabase y sin modo invitado → pantalla de acceso.
+  if (!user && !isGuest) {
+    return <LoginScreen onContinueAsGuest={startGuest} />;
   }
 
-  return <MainShell user={user} />;
+  return (
+    <MainShell
+      user={user ?? guestUser}
+      isGuest={isGuest}
+      onExitGuest={exitGuest}
+    />
+  );
 }

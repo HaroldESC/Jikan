@@ -30,6 +30,7 @@
 - **PDF & XLSX Export** — Export the full week as a landscape PDF (summary + one table per day, color-coded) or as an XLSX workbook (Week + Summary sheets)
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
 - **User Authentication** — Email/password login & registration via Supabase
+- **Guest Mode** — Use Jikan without an account: the schedule lives in IndexedDB on the device, with an optional offer to upload it to an account later
 - **Cloud Sync** — Activities stored in Supabase PostgreSQL, synced across your devices
 - **Responsive Design** — Fully functional on mobile, tablet, and desktop
 
@@ -101,6 +102,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 |---|---|
 | Supabase Auth | Authentication (email/password) |
 | Supabase PostgreSQL | Data storage |
+| IndexedDB | Guest-mode data storage (device only, db `jikan`) |
 | Supabase Realtime | Live sync — not wired yet (data refreshes via explicit `reload()`) |
 
 ### Dev Tools
@@ -118,16 +120,18 @@ jikan/
 │   ├── core/                # Main application components
 │   │   ├── activities/      # Activity list, detail views, editors (Maru/Sei)
 │   │   ├── common/          # Settings, LanguageSelector, ThemeToggle, modals
+│   │   │                    # (incl. GuestMigrationModal.jsx — guest ↔ account migration)
 │   │   ├── stats/           # Daily statistics dashboard, reminders
 │   │   ├── wheel/           # SVG circular chart (WheelMaru / WheelSei)
 │   │   ├── utils/           # Maru ↔ Sei adapters
 │   │   ├── AppLayout.jsx    # Dual-style layout (renders both styles)
-│   │   ├── MainShell.jsx    # Views & activity CRUD orchestration
-│   │   ├── LoginScreen.jsx  # Authentication screen
+│   │   ├── MainShell.jsx    # View orchestration (activity CRUD lives in useActivities)
+│   │   ├── LoginScreen.jsx  # Authentication screen (email/password + "continue without an account")
 │   │   └── ResetPassword.jsx # Password recovery
 │   ├── hooks/               # Custom React hooks
-│   │   ├── useActivities.js # Activity CRUD operations
-│   │   ├── useSession.js    # User session management
+│   │   ├── useActivities.js # Store-aware activity CRUD (local or Supabase) + day copy / row append
+│   │   ├── useGuestMigration.js # Guest ↔ account migration offer (once per session)
+│   │   ├── useSession.js    # User session (+ isGuest, startGuest, exitGuest, guestUser)
 │   │   ├── useTheme.jsx     # Theme + visual style state
 │   │   ├── useReminders.js  # Reminders (localStorage, per user)
 │   │   ├── usePanels.js     # Panel layout: visibility + order (localStorage)
@@ -135,14 +139,17 @@ jikan/
 │   │   ├── useNotifications.js # Browser notifications (permission + pre-warning)
 │   │   └── useClock.js      # Real-time clock
 │   ├── i18n/                # Translations (es / en / ja) + provider
-│   ├── lib/                 # External service clients
+│   ├── lib/                 # External service clients + persistence adapters
+│   │   ├── activityStore.js # Store adapter: IndexedDB (guest) / Supabase, one async API
+│   │   │                    # (list, create, update, remove, insertMany,
+│   │   │                    #  replaceDay, clear, count); getActivityStore(isGuest) picks one
 │   │   └── supabase.js      # Supabase client
 │   ├── utils/               # Utility functions
 │   ├── styles/              # CSS by theme
 │   │   ├── maru/            # Maru style (glassmorphism)
 │   │   └── sei/             # Sei style (mostly Tailwind)
 │   ├── assets/              # Images & resources
-│   ├── App.jsx              # Auth gate
+│   ├── App.jsx              # Session gate (auth or guest mode)
 │   └── main.jsx             # Entry point
 ├── README.md                # This file
 ├── README_ES.md             # Spanish documentation (local)
@@ -181,8 +188,8 @@ jikan/
 - [x] **Export to PDF / XLSX** — landscape PDF (summary + per-day tables) and XLSX workbook (Week + Summary sheets), generated client-side; export only (import stays CSV)
 
 ### v4.0 — Privacy, Local-first & PWA
-- [ ] **Usable without an account** — local guest mode (data stays on device)
-- [ ] **Promote guest data to an account** (ask before migrating)
+- [x] **Usable without an account** — local guest mode (data stays on device)
+- [x] **Promote guest data to an account** (ask before migrating)
 - [ ] **Local auto-backup** (no internet required)
 - [ ] **Full data export** (GDPR compliance)
 - [ ] **Private mode** — opt out of saving certain data
@@ -258,6 +265,11 @@ Jikan ships a **theme-driven CSS architecture** with two selectable styles:
 - Data stored in PostgreSQL (encrypted at rest)
 - API credentials managed through environment variables
 - No exposed secrets in client-side code
+
+## Technical Notes
+
+- Guest schedules live in **IndexedDB** (`jikan` → `activities`) and are **not encrypted** — local encryption lands in v4.0 phase C3
+- Guest and account data live in **separate stores**, so alternating between the two can leave them diverged; this is why the app asks before migrating (migration always appends, it never overwrites)
 
 ## Contributing
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Mail, Lock, Eye, EyeOff, User, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Clock, Mail, Lock, Eye, EyeOff, User, ArrowLeft, CheckCircle, UserX } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from '../i18n/useTranslation';
 
-const LoginScreen = () => {
+const LoginScreen = ({ onContinueAsGuest }) => {
   const { t, localeForDate } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -354,6 +354,16 @@ const LoginScreen = () => {
                   Google
                 </button>
               </div>
+
+              {/* ── Guest mode (local storage, no account) ── */}
+              <button
+                type="button"
+                onClick={() => onContinueAsGuest?.()}
+                className="mt-3 flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-xl transition"
+              >
+                <UserX size={18} />
+                {t('guest.continueWithoutAccount')}
+              </button>
             </>
           )}
         </div>

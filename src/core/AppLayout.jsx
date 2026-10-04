@@ -70,6 +70,8 @@ export default function AppLayout({
   bgColor,
   isDarkMode,
   user,
+  isGuest,
+  onExitGuest,
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
@@ -420,6 +422,8 @@ export default function AppLayout({
         onClose={() => setIsSettingsOpen(false)}
         notifications={notifications}
         csv={dataActions}
+        isGuest={isGuest}
+        onExitGuest={onExitGuest}
       />
 
       <ImportModal
