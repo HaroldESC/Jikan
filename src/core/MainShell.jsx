@@ -5,8 +5,16 @@ import { useClock } from '../hooks/useClock';
 import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
 import { useGuestMigration } from '../hooks/useGuestMigration';
+import { useLocalBackup } from '../hooks/useLocalBackup';
 import { getCurrentDay } from '../utils/dates';
 import { exportActivitiesToCsv, parseActivitiesCsv } from '../utils/csv';
+import {
+  backupFileName,
+  buildBackup,
+  downloadTextFile,
+  parseBackup,
+  serializeBackup,
+} from '../utils/backup';
 import { buildWeekRows, exportWeekToPdf, exportWeekToXlsx } from '../utils/export';
 
 import AppLayout from './AppLayout';
@@ -14,6 +22,8 @@ import DetailViewMaru from './activities/DetailViewMaru';
 import EditViewSei from './activities/EditViewSei';
 import EditViewMaru from './activities/EditViewMaru';
 import GuestMigrationModal from './common/GuestMigrationModal';
+import BackupRestoreModal from './common/BackupRestoreModal';
+import ImportModal from './common/ImportModal';
 
 const timeToDecimal = (timeString) => {
   if (!timeString) return 0;
@@ -33,6 +43,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
     schedules,
     loading,
     reload,
+    rows,
     saveActivity,
     deleteActivity,
     copyDay: copyDayStore,
@@ -40,10 +51,18 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
   } = useActivities(user, { isGuest });
   const currentTime = useClock();
   const { themeMode, toggleTheme, bgColor, isDarkMode, style } = useTheme();
-  const { t } = useTranslation();
+  const { t, localeForDate } = useTranslation();
 
   // Oferta de migración del horario local (invitado) a la cuenta y viceversa.
   const migration = useGuestMigration(user, isGuest);
+
+  // Auto-backup local en IndexedDB (v4.0 C2), sin conexión.
+  const localBackup = useLocalBackup({
+    userId: user?.id,
+    activities: rows,
+    loading,
+    isGuest,
+  });
 
   const [currentDay, setCurrentDay] = useState(getCurrentDay());
   const [view, setView] = useState('main');
@@ -54,6 +73,9 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
   const [showCopyModal, setShowCopyModal] = useState(false);
   // Vista previa de importación CSV: { fileName, rows, errors } | null
   const [importPreview, setImportPreview] = useState(null);
+  // Vista previa de importación de backup JSON: { fileName, rows, errors } | null
+  const [backupImportPreview, setBackupImportPreview] = useState(null);
+  const [showBackupModal, setShowBackupModal] = useState(false);
   const [tempActivity, setTempActivity] = useState({
     start: 9,
     end: 10,
@@ -112,6 +134,88 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
       </div>
     );
   }
+
+  // ── Backup local (v4.0 C2) ───────────────────────────────────────────────
+
+  /** Exportación completa en JSON (actividades + ajustes locales, formato GDPR). */
+  const handleExportBackup = () => {
+    try {
+      const payload = buildBackup({ activities: rows, userId: user?.id, isGuest });
+      downloadTextFile(serializeBackup(payload), backupFileName());
+    } catch (error) {
+      alert(t('backup.exportError', { msg: error.message }));
+    }
+  };
+
+  /** Lee el archivo JSON y muestra la vista previa antes de insertar (append). */
+  const handleImportBackupFile = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = ''; // permite volver a elegir el mismo archivo
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const { rows: validRows, errors } = parseBackup(String(reader.result ?? ''));
+      setBackupImportPreview({ fileName: file.name, rows: validRows, errors });
+    };
+    reader.onerror = () => alert(t('backup.importError', { msg: 'read error' }));
+    reader.readAsText(file);
+  };
+
+  const handleConfirmImportBackup = async () => {
+    if (!backupImportPreview || backupImportPreview.rows.length === 0) return;
+
+    try {
+      const payload = backupImportPreview.rows.map((row) => ({ ...row, user_id: user.id }));
+      await appendRows(payload);
+      alert(t('backup.importSuccess', { count: payload.length }));
+    } catch (error) {
+      alert(t('backup.importError', { msg: error.message }));
+    } finally {
+      setBackupImportPreview(null);
+    }
+  };
+
+  /** Snapshot manual inmediato. */
+  const handleSaveBackupNow = async () => {
+    const snapshot = await localBackup.createSnapshot();
+    alert(snapshot ? t('backup.saved') : t('backup.localError', { msg: 'unknown' }));
+  };
+
+  /**
+   * Restaura un snapshot local: **append** de sus actividades al horario actual,
+   * sin borrar nada. Pide confirmación porque puede duplicar bloques.
+   */
+  const handleRestoreSnapshot = async (snapshot) => {
+    const { rows: validRows } = localBackup.readSnapshotActivities(snapshot);
+    if (validRows.length === 0) {
+      alert(t('backup.restoreEmpty'));
+      return;
+    }
+
+    const when = new Date(snapshot.created_at).toLocaleString(localeForDate);
+    if (!window.confirm(t('backup.restoreConfirm', { count: validRows.length, when }))) return;
+
+    try {
+      const payload = validRows.map((row) => ({ ...row, user_id: user.id }));
+      await appendRows(payload);
+      setShowBackupModal(false);
+      alert(t('backup.restoreSuccess', { count: payload.length }));
+    } catch (error) {
+      alert(t('backup.localError', { msg: error.message }));
+    }
+  };
+
+  const handleDeleteSnapshot = async (snapshot) => {
+    if (!window.confirm(t('backup.confirmDelete'))) return;
+    try {
+      await localBackup.deleteSnapshot(snapshot.id);
+    } catch (error) {
+      alert(t('backup.localError', { msg: error.message }));
+    }
+  };
+
+  // ── Fin backup local ─────────────────────────────────────────────────────
 
   const handleCopyDay = async (sourceDay, targetDay) => {
     const sourceActivities = schedules[sourceDay] || [];
@@ -386,6 +490,15 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
         importPreview={importPreview}
         onCloseImport={() => setImportPreview(null)}
         onConfirmImport={handleConfirmImport}
+        backupActions={{
+          onExportJson: handleExportBackup,
+          onImportJson: handleImportBackupFile,
+          onOpenBackups: () => setShowBackupModal(true),
+          onSaveBackupNow: handleSaveBackupNow,
+          snapshotCount: localBackup.snapshots.length,
+          lastBackupAt: localBackup.lastBackupAt,
+          busy: localBackup.busy,
+        }}
         currentTime={currentTime}
         themeMode={themeMode}
         toggleTheme={toggleTheme}
@@ -401,6 +514,35 @@ export default function MainShell({ user, isGuest = false, onExitGuest }) {
         busy={migration.busy}
         onConfirm={handleMigrationConfirm}
         onClose={migration.dismiss}
+        isMaru={style === 'maru'}
+        isDarkMode={isDarkMode()}
+      />
+
+      <ImportModal
+        isOpen={!!backupImportPreview}
+        fileName={backupImportPreview?.fileName || ''}
+        rows={backupImportPreview?.rows || []}
+        errors={backupImportPreview?.errors || []}
+        onConfirm={handleConfirmImportBackup}
+        onClose={() => setBackupImportPreview(null)}
+        isMaru={style === 'maru'}
+        isDarkMode={isDarkMode()}
+        labels={{
+          title: t('backup.importTitle'),
+          file: t('backup.importFile', { file: backupImportPreview?.fileName || '' }),
+          confirm: t('backup.importConfirm', { count: backupImportPreview?.rows?.length || 0 }),
+          nothingToImport: t('backup.nothingToImport'),
+          confirmButton: t('backup.importConfirmButton'),
+        }}
+      />
+
+      <BackupRestoreModal
+        isOpen={showBackupModal}
+        snapshots={localBackup.snapshots}
+        busy={localBackup.busy}
+        onRestore={handleRestoreSnapshot}
+        onDelete={handleDeleteSnapshot}
+        onClose={() => setShowBackupModal(false)}
         isMaru={style === 'maru'}
         isDarkMode={isDarkMode()}
       />

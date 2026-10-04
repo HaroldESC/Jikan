@@ -4,8 +4,9 @@
  * Dos implementaciones intercambiables con la misma interfaz asíncrona:
  *
  *   localStore    → IndexedDB (modo invitado, sin cuenta). db `jikan`,
- *                   store `activities`. Los ids los genera `crypto.randomUUID()`
- *                   y la forma de fila es idéntica a la de Supabase.
+ *                   store `activities` (ver `localDb.js`). Los ids los genera
+ *                   `crypto.randomUUID()` y la forma de fila es idéntica a la de
+ *                   Supabase.
  *   supabaseStore → tabla `activities` (RLS por `user_id`).
  *
  * Interfaz común (todas las funciones son async y lanzan Error con `message`):
@@ -26,12 +27,16 @@
  */
 
 import { supabase } from './supabase';
+import {
+  ACTIVITIES_STORE,
+  openDb,
+  toPromise,
+  getAllFromStore,
+  countFromStore,
+  withTransaction,
+} from './localDb';
 
 export const GUEST_USER_ID = 'guest';
-
-const DB_NAME = 'jikan';
-const DB_VERSION = 1;
-const STORE_NAME = 'activities';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Utilidades de fila
@@ -60,100 +65,43 @@ const newId = () =>
 // IndexedDB (modo invitado)
 // ─────────────────────────────────────────────────────────────────────────────
 
-let dbPromise = null;
-
-/** Abre (o reutiliza) la conexión a la base local. Lanza si IndexedDB no existe. */
-function openDb() {
-  if (!dbPromise) {
-    dbPromise = new Promise((resolve, reject) => {
-      if (!globalThis.indexedDB) {
-        reject(new Error('IndexedDB no disponible en este navegador'));
-        return;
-      }
-      const request = globalThis.indexedDB.open(DB_NAME, DB_VERSION);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-          store.createIndex('day_of_week', 'day_of_week', { unique: false });
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-  }
-  return dbPromise;
-}
-
-/** Envuelve una IDBRequest en una promesa. */
-const toPromise = (request) =>
-  new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-
-/**
- * Ejecuta `fn` dentro de una transacción de escritura y resuelve cuando la
- * transacción confirma (no cuando finishes de escribir: solo entonces los datos
- * están realmente en disco).
- */
-async function withTransaction(mode, fn) {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, mode);
-    const store = tx.objectStore(STORE_NAME);
-    let result;
-    try {
-      result = fn(store);
-    } catch (error) {
-      tx.abort();
-      reject(error);
-      return;
-    }
-    tx.oncomplete = () => resolve(result instanceof IDBRequest ? undefined : result);
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error ?? new Error('Transacción cancelada'));
-  });
-}
-
 export const localStore = {
   async list() {
-    const db = await openDb();
-    const rows = await toPromise(db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).getAll());
-    return rows ?? [];
+    return getAllFromStore(ACTIVITIES_STORE);
   },
 
   async create(payload) {
     const row = { id: newId(), ...normalizeRow(payload) };
-    await withTransaction('readwrite', (store) => store.add(row));
+    await withTransaction(ACTIVITIES_STORE, (store) => store.add(row));
     return row;
   },
 
   async update(id, payload) {
     const db = await openDb();
-    const existing = await toPromise(db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(id));
+    const existing = await toPromise(
+      db.transaction(ACTIVITIES_STORE, 'readonly').objectStore(ACTIVITIES_STORE).get(id)
+    );
     if (!existing) throw new Error(`Actividad local no encontrada: ${id}`);
     const row = { ...existing, ...normalizeRow(payload), id };
-    await withTransaction('readwrite', (store) => store.put(row));
+    await withTransaction(ACTIVITIES_STORE, (store) => store.put(row));
     return row;
   },
 
   async remove(id) {
-    await withTransaction('readwrite', (store) => store.delete(id));
+    await withTransaction(ACTIVITIES_STORE, (store) => store.delete(id));
   },
 
   async insertMany(payloads = []) {
     const rows = payloads.map((payload) => ({ id: newId(), ...normalizeRow(payload) }));
     if (rows.length === 0) return [];
-    await withTransaction('readwrite', (store) => rows.forEach((row) => store.add(row)));
+    await withTransaction(ACTIVITIES_STORE, (store) => rows.forEach((row) => store.add(row)));
     return rows;
   },
 
   async replaceDay(day, items = []) {
     const rows = items.map((item) => ({ id: newId(), ...normalizeRow({ ...item, day_of_week: day }) }));
-    await withTransaction('readwrite', (store) => {
-      const index = store.index('day_of_week');
-      const request = index.openKeyCursor(IDBKeyRange.only(day));
+    await withTransaction(ACTIVITIES_STORE, (store) => {
+      const request = store.index('day_of_week').openKeyCursor(IDBKeyRange.only(day));
       request.onsuccess = () => {
         const cursor = request.result;
         if (!cursor) return;
@@ -166,12 +114,11 @@ export const localStore = {
   },
 
   async clear() {
-    await withTransaction('readwrite', (store) => store.clear());
+    await withTransaction(ACTIVITIES_STORE, (store) => store.clear());
   },
 
   async count() {
-    const db = await openDb();
-    return toPromise(db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).count());
+    return countFromStore(ACTIVITIES_STORE);
   },
 };
 

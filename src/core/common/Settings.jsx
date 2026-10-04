@@ -1,5 +1,22 @@
 import { useRef } from 'react';
-import { LogOut, LogIn, Palette, Globe, Bell, Database, Download, Upload, FileText, FileSpreadsheet, Info } from 'lucide-react';
+import {
+  LogOut,
+  LogIn,
+  Palette,
+  Globe,
+  Bell,
+  Database,
+  Download,
+  Upload,
+  FileText,
+  FileSpreadsheet,
+  FileDown,
+  FileUp,
+  Archive,
+  History,
+  Save,
+  Info,
+} from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -8,26 +25,46 @@ import LanguageSelector from './LanguageSelector';
 // Pre-aviso presets (minutes before an activity starts).
 const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
 
-// `csv` is optional: when provided ({ onExport, onExportPdf, onExportXlsx,
-// onImport }), the "Data" section with the CSV/PDF/XLSX export and CSV import
-// controls is rendered.
+// `data` is optional: when provided it enables the "Data" section with the
+// CSV/PDF/XLSX export, CSV import and the JSON backup controls (v4.0 C2):
+//   {
+//     onExport, onExportPdf, onExportXlsx, onImport,
+//     onExportJson, onImportJson, onOpenBackups, onSaveBackupNow,
+//     snapshotCount, lastBackupAt, backupBusy
+//   }
 // `isGuest` switches the account section: in guest mode there is no Supabase
 // session to sign out of, so instead of "Log out" we offer "Create account /
 // Log in" plus a secondary "Exit local mode" (both delegate to `onExitGuest`).
-export function SettingsModal({ isOpen, onClose, notifications, csv, isGuest = false, onExitGuest }) {
+export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = false, onExitGuest }) {
   const { style, setStyle } = useTheme();
-  const { t } = useTranslation();
+  const { t, localeForDate } = useTranslation();
   // Declared before the early return: hooks must never come after it.
   const fileInputRef = useRef(null);
+  const backupInputRef = useRef(null);
 
   if (!isOpen) return null;
 
   // Delegated to MainShell.handleImportFile (which reads files[0] itself).
   // Reset after the call so re-picking the same file fires onChange again.
   const handleImportChange = (event) => {
-    if (!csv?.onImport) return;
-    csv.onImport(event);
+    if (!data?.onImport) return;
+    data.onImport(event);
     event.target.value = '';
+  };
+
+  const handleBackupImportChange = (event) => {
+    if (!data?.onImportJson) return;
+    data.onImportJson(event);
+    event.target.value = '';
+  };
+
+  const formatWhen = (iso) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleString(localeForDate);
+    } catch {
+      return iso;
+    }
   };
 
   const handleLogout = async () => {
@@ -124,7 +161,7 @@ export function SettingsModal({ isOpen, onClose, notifications, csv, isGuest = f
           </div>
         )}
 
-        {csv && (
+        {data && (
           <div className="mb-4">
             <p className="text-sm font-semibold mb-3 flex items-center gap-2">
               <Database size={16} />
@@ -139,7 +176,7 @@ export function SettingsModal({ isOpen, onClose, notifications, csv, isGuest = f
             />
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={csv.onExport}
+                onClick={data.onExport}
                 aria-label={t('csv.export')}
                 className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
               >
@@ -154,9 +191,9 @@ export function SettingsModal({ isOpen, onClose, notifications, csv, isGuest = f
                 <Upload size={16} />
                 {t('csv.import')}
               </button>
-              {csv.onExportPdf && (
+              {data.onExportPdf && (
                 <button
-                  onClick={csv.onExportPdf}
+                  onClick={data.onExportPdf}
                   aria-label={t('export.pdf')}
                   className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
                 >
@@ -164,9 +201,9 @@ export function SettingsModal({ isOpen, onClose, notifications, csv, isGuest = f
                   {t('export.pdf')}
                 </button>
               )}
-              {csv.onExportXlsx && (
+              {data.onExportXlsx && (
                 <button
-                  onClick={csv.onExportXlsx}
+                  onClick={data.onExportXlsx}
                   aria-label={t('export.xlsx')}
                   className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
                 >
@@ -175,6 +212,64 @@ export function SettingsModal({ isOpen, onClose, notifications, csv, isGuest = f
                 </button>
               )}
             </div>
+
+            {data.onExportJson && (
+              <>
+                {/* ── Local backup (v4.0 C2) ── */}
+                <p className="text-sm font-semibold mt-5 mb-1 flex items-center gap-2">
+                  <Archive size={16} />
+                  {t('backup.title')}
+                </p>
+                <p className="text-xs text-white/60 mb-3">{t('backup.intro')}</p>
+                <input
+                  ref={backupInputRef}
+                  type="file"
+                  accept=".json,application/json"
+                  className="hidden"
+                  onChange={handleBackupImportChange}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={data.onExportJson}
+                    aria-label={t('backup.exportJson')}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+                  >
+                    <FileDown size={16} />
+                    {t('backup.exportJson')}
+                  </button>
+                  <button
+                    onClick={() => backupInputRef.current?.click()}
+                    aria-label={t('backup.importJson')}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+                  >
+                    <FileUp size={16} />
+                    {t('backup.importJson')}
+                  </button>
+                  <button
+                    onClick={data.onOpenBackups}
+                    aria-label={t('backup.backups')}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+                  >
+                    <History size={16} />
+                    {t('backup.backups')}
+                  </button>
+                  <button
+                    onClick={data.onSaveBackupNow}
+                    disabled={data.backupBusy}
+                    aria-label={t('backup.saveNow')}
+                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium disabled:opacity-50"
+                  >
+                    <Save size={16} />
+                    {t('backup.saveNow')}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-white/60">
+                  {data.lastBackupAt
+                    ? t('backup.lastBackup', { when: formatWhen(data.lastBackupAt) })
+                    : t('backup.noBackups')}
+                </p>
+              </>
+            )}
           </div>
         )}
 

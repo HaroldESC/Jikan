@@ -20,10 +20,23 @@ const ImportModal = ({
   onClose,
   isMaru,
   isDarkMode,
+  labels,
 }) => {
   const { t } = useTranslation();
 
   if (!isOpen) return null;
+
+  // `labels` permite reutilizar el modal con otra fuente (p. ej. backup JSON)
+  // sin duplicar el componente. Los errores por fila siempre usan `csv.err*`
+  // porque son genéricos (día inválido, título vacío, rango de horas).
+  const copy = {
+    title: t('csv.importTitle'),
+    file: t('csv.importFile', { file: fileName }),
+    confirm: t('csv.importConfirm', { count: rows.length }),
+    nothingToImport: t('csv.nothingToImport'),
+    confirmButton: t('csv.importConfirmButton'),
+    ...(labels || {}),
+  };
 
   const canImport = rows.length > 0;
   const shownErrors = errors.slice(0, MAX_ERRORS_SHOWN);
@@ -54,9 +67,9 @@ const ImportModal = ({
       <div className={cardClass}>
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h2 className="text-2xl font-bold">{t('csv.importTitle')}</h2>
+            <h2 className="text-2xl font-bold">{copy.title}</h2>
             <p className={`text-sm mt-1 ${isMaru ? 'text-white/70' : isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              {t('csv.importFile', { file: fileName })}
+              {copy.file}
             </p>
           </div>
           <button onClick={onClose} className={closeBtnClass} aria-label={t('common.close')}>
@@ -68,11 +81,11 @@ const ImportModal = ({
           {canImport ? (
             <p className="text-sm font-medium">
               <Upload size={16} className="inline mr-2 -mt-0.5" />
-              {t('csv.importConfirm', { count: rows.length })}
+              {copy.confirm}
             </p>
           ) : (
             <p className={`text-sm font-medium ${isMaru ? 'text-white/70' : isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-              {t('csv.nothingToImport')}
+              {copy.nothingToImport}
             </p>
           )}
 
@@ -109,7 +122,7 @@ const ImportModal = ({
           </button>
           {canImport && (
             <button onClick={onConfirm} className={confirmBtnClass}>
-              {t('csv.importConfirmButton')}
+              {copy.confirmButton}
             </button>
           )}
         </div>

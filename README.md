@@ -28,6 +28,8 @@
 - **Browser Notifications** — Alert on activity change plus a configurable pre-activity warning
 - **CSV Import / Export** — Export the full week to CSV (UTF-8) and import schedules back with per-row validation
 - **PDF & XLSX Export** — Export the full week as a landscape PDF (summary + one table per day, color-coded) or as an XLSX workbook (Week + Summary sheets)
+- **Local Auto-Backup** — A versioned snapshot is written to IndexedDB whenever your state changes (at most every 30 min), keeping the 10 most recent copies per user; browse, restore or delete them from Settings (no internet required)
+- **Full JSON Export / Import (GDPR)** — The "Data" section of Settings exports everything the app keeps in your browser (activities, reminders, panels, settings, pomodoro, notifications) to a `jikan-backup-YYYY-MM-DD.json` file, and imports it back with per-row validation
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
 - **User Authentication** — Email/password login & registration via Supabase
 - **Guest Mode** — Use Jikan without an account: the schedule lives in IndexedDB on the device, with an optional offer to upload it to an account later
@@ -102,7 +104,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 |---|---|
 | Supabase Auth | Authentication (email/password) |
 | Supabase PostgreSQL | Data storage |
-| IndexedDB | Guest-mode data storage (device only, db `jikan`) |
+| IndexedDB | Local storage (device only, db `jikan` v2 → `activities` + `backups`) |
 | Supabase Realtime | Live sync — not wired yet (data refreshes via explicit `reload()`) |
 
 ### Dev Tools
@@ -120,7 +122,8 @@ jikan/
 │   ├── core/                # Main application components
 │   │   ├── activities/      # Activity list, detail views, editors (Maru/Sei)
 │   │   ├── common/          # Settings, LanguageSelector, ThemeToggle, modals
-│   │   │                    # (incl. GuestMigrationModal.jsx — guest ↔ account migration)
+│   │   │                    # (incl. GuestMigrationModal.jsx — guest ↔ account migration,
+│   │   │                    #  BackupRestoreModal.jsx — local snapshot list: restore/delete)
 │   │   ├── stats/           # Daily statistics dashboard, reminders
 │   │   ├── wheel/           # SVG circular chart (WheelMaru / WheelSei)
 │   │   ├── utils/           # Maru ↔ Sei adapters
@@ -137,14 +140,19 @@ jikan/
 │   │   ├── usePanels.js     # Panel layout: visibility + order (localStorage)
 │   │   ├── usePomodoro.js   # Pomodoro focus/break timer (localStorage)
 │   │   ├── useNotifications.js # Browser notifications (permission + pre-warning)
+│   │   ├── useLocalBackup.js # Auto local snapshots in IndexedDB (≤ every 30 min, keep 10 per user)
 │   │   └── useClock.js      # Real-time clock
 │   ├── i18n/                # Translations (es / en / ja) + provider
 │   ├── lib/                 # External service clients + persistence adapters
 │   │   ├── activityStore.js # Store adapter: IndexedDB (guest) / Supabase, one async API
 │   │   │                    # (list, create, update, remove, insertMany,
-│   │   │                    #  replaceDay, clear, count); getActivityStore(isGuest) picks one
+│   │   │                    #  replaceDay, clear, count); getActivityStore(isGuest) picks one;
+│   │   │                    #  local part now goes through localDb.js
+│   │   ├── localDb.js       # IndexedDB bootstrap (db `jikan` v2 → stores `activities`, `backups`)
+│   │   ├── backupStore.js   # Versioned local snapshots in the `backups` store (list/latest/create/remove/clear/prune)
 │   │   └── supabase.js      # Supabase client
-│   ├── utils/               # Utility functions
+│   ├── utils/               # Utility functions (dates, csv, export, backup.js: pure
+│   │                        #  build/serialize/parse helpers, BACKUP_VERSION = 1, retention 10)
 │   ├── styles/              # CSS by theme
 │   │   ├── maru/            # Maru style (glassmorphism)
 │   │   └── sei/             # Sei style (mostly Tailwind)
@@ -190,8 +198,8 @@ jikan/
 ### v4.0 — Privacy, Local-first & PWA
 - [x] **Usable without an account** — local guest mode (data stays on device)
 - [x] **Promote guest data to an account** (ask before migrating)
-- [ ] **Local auto-backup** (no internet required)
-- [ ] **Full data export** (GDPR compliance)
+- [x] **Local auto-backup** (no internet required)
+- [x] **Full data export** (GDPR compliance)
 - [ ] **Private mode** — opt out of saving certain data
 - [ ] **Local encryption** for sensitive data
 - [ ] **Cloud backup** (Google Drive, Dropbox)
@@ -270,6 +278,9 @@ Jikan ships a **theme-driven CSS architecture** with two selectable styles:
 
 - Guest schedules live in **IndexedDB** (`jikan` → `activities`) and are **not encrypted** — local encryption lands in v4.0 phase C3
 - Guest and account data live in **separate stores**, so alternating between the two can leave them diverged; this is why the app asks before migrating (migration always appends, it never overwrites)
+- Local snapshots share the same IndexedDB database as the guest schedule (`jikan` → `backups`), keeping the **10 most recent per user** (pruned automatically)
+- Both JSON **import** and snapshot **restore** are **append-only** — they never overwrite or delete, so restoring a copy can duplicate blocks (the app asks for confirmation first)
+- `src/utils/backup.js` is a **pure module** (no React, Supabase or i18n): `parseBackup()` never throws and accumulates per-row errors instead of failing the whole file
 
 ## Contributing
 

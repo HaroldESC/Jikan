@@ -64,6 +64,7 @@ export default function AppLayout({
   importPreview,
   onCloseImport,
   onConfirmImport,
+  backupActions,
   currentTime,
   themeMode,
   toggleTheme,
@@ -85,8 +86,28 @@ export default function AppLayout({
       onExportPdf,
       onExportXlsx,
       onImport: onImportFile,
+      // Local backup (v4.0 C2): JSON export/import + auto-backup snapshots.
+      onExportJson: backupActions?.onExportJson,
+      onImportJson: backupActions?.onImportJson,
+      onOpenBackups: backupActions?.onOpenBackups,
+      onSaveBackupNow: backupActions?.onSaveBackupNow,
+      snapshotCount: backupActions?.snapshotCount ?? 0,
+      lastBackupAt: backupActions?.lastBackupAt ?? null,
+      backupBusy: backupActions?.busy ?? false,
     }),
-    [onExportCsv, onExportPdf, onExportXlsx, onImportFile]
+    [
+      onExportCsv,
+      onExportPdf,
+      onExportXlsx,
+      onImportFile,
+      backupActions?.onExportJson,
+      backupActions?.onImportJson,
+      backupActions?.onOpenBackups,
+      backupActions?.onSaveBackupNow,
+      backupActions?.snapshotCount,
+      backupActions?.lastBackupAt,
+      backupActions?.busy,
+    ]
   );
 
   // ── Layout editor state ──
@@ -421,7 +442,7 @@ export default function AppLayout({
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         notifications={notifications}
-        csv={dataActions}
+        data={dataActions}
         isGuest={isGuest}
         onExitGuest={onExitGuest}
       />
