@@ -27,6 +27,7 @@
 - **Pomodoro Timer** — Shared focus/break panel with configurable durations and a daily session counter
 - **Browser Notifications** — Alert on activity change plus a configurable pre-activity warning
 - **CSV Import / Export** — Export the full week to CSV (UTF-8) and import schedules back with per-row validation
+- **PDF & XLSX Export** — Export the full week as a landscape PDF (summary + one table per day, color-coded) or as an XLSX workbook (Week + Summary sheets)
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
 - **User Authentication** — Email/password login & registration via Supabase
 - **Cloud Sync** — Activities stored in Supabase PostgreSQL, synced across your devices
@@ -177,7 +178,7 @@ jikan/
 - [x] **Notes** per activity block (stored in the `activities` table)
 - [x] **Browser notifications** — activity change alerts + pre-activity warnings (0/5/10/15/30 min, configurable in Settings)
 - [x] **Import/export schedules** — CSV only (UTF-8 export with BOM, validated import in append mode)
-- [ ] **Export to PDF / XLSX** (pending)
+- [x] **Export to PDF / XLSX** — landscape PDF (summary + per-day tables) and XLSX workbook (Week + Summary sheets), generated client-side; export only (import stays CSV)
 
 ### v4.0 — Privacy, Local-first & PWA
 - [ ] **Usable without an account** — local guest mode (data stays on device)
