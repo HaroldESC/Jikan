@@ -133,7 +133,8 @@
     "logoutError": "ログアウトエラー：{msg}",
     "unexpectedError": "予期しないエラー：{msg}",
     "language": "言語",
-    "languageDescription": "アプリケーションの言語を選択"
+    "languageDescription": "アプリケーションの言語を選択",
+    "dataSection": "データ"
   },
   "theme": {
     "auto": "自動",

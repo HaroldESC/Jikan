@@ -133,7 +133,8 @@
     "logoutError": "Logout error: {msg}",
     "unexpectedError": "Unexpected error: {msg}",
     "language": "Language",
-    "languageDescription": "Select the application language"
+    "languageDescription": "Select the application language",
+    "dataSection": "Data"
   },
   "theme": {
     "auto": "Auto",

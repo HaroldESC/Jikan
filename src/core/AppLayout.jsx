@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Copy, Download, Upload } from 'lucide-react';
+import { Plus, Copy } from 'lucide-react';
 import { useTranslation } from '../i18n/useTranslation';
 
 import WheelMaru from './wheel/WheelMaru';
@@ -71,9 +71,14 @@ export default function AppLayout({
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
-  const fileInputRef = useRef(null);
   const { t } = useTranslation();
   const { reminders, addReminder, deleteReminder } = useReminders(user?.id);
+
+  // CSV controls live in the Settings modal ("Data" section).
+  const csvActions = useMemo(
+    () => ({ onExport: onExportCsv, onImport: onImportFile }),
+    [onExportCsv, onImportFile]
+  );
 
   // ── Layout editor state ──
   const isMaru = style === 'maru';
@@ -281,13 +286,6 @@ export default function AppLayout({
             )}
 
             {/* ── ACTION BUTTONS ── */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={onImportFile}
-            />
             {isMaru ? (
               <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center">
                 <button onClick={() => onAddActivity(currentDay)}
@@ -298,28 +296,12 @@ export default function AppLayout({
                   className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
                   <Copy size={20} /> {t('header.copyFromDay')}
                 </button>
-                <button onClick={onExportCsv} aria-label={t('csv.export')}
-                  className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
-                  <Download size={20} /> {t('csv.export')}
-                </button>
-                <button onClick={() => fileInputRef.current?.click()} aria-label={t('csv.import')}
-                  className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
-                  <Upload size={20} /> {t('csv.import')}
-                </button>
               </div>
             ) : (
               <div className="flex flex-wrap justify-center gap-3">
                 <button onClick={() => onAddActivity(currentDay)}
                   className={`px-6 py-3 rounded-xl font-medium transition inline-flex items-center gap-2 ${dark ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-white shadow-sm hover:bg-slate-50 text-slate-700'}`}>
                   <Plus size={18} /> {t('header.addActivity')}
-                </button>
-                <button onClick={onExportCsv} aria-label={t('csv.export')}
-                  className={`px-6 py-3 rounded-xl font-medium transition inline-flex items-center gap-2 ${dark ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-white shadow-sm hover:bg-slate-50 text-slate-700'}`}>
-                  <Download size={18} /> {t('csv.export')}
-                </button>
-                <button onClick={() => fileInputRef.current?.click()} aria-label={t('csv.import')}
-                  className={`px-6 py-3 rounded-xl font-medium transition inline-flex items-center gap-2 ${dark ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-white shadow-sm hover:bg-slate-50 text-slate-700'}`}>
-                  <Upload size={18} /> {t('csv.import')}
                 </button>
               </div>
             )}
@@ -430,6 +412,7 @@ export default function AppLayout({
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         notifications={notifications}
+        csv={csvActions}
       />
 
       <ImportModal

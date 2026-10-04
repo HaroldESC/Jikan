@@ -1,4 +1,5 @@
-import { LogOut, Palette, Globe, Bell } from 'lucide-react';
+import { useRef } from 'react';
+import { LogOut, Palette, Globe, Bell, Database, Download, Upload } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -7,11 +8,23 @@ import LanguageSelector from './LanguageSelector';
 // Pre-aviso presets (minutes before an activity starts).
 const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
 
-export function SettingsModal({ isOpen, onClose, notifications }) {
+// `csv` is optional: when provided ({ onExport, onImport }), the "Data"
+// section with the CSV export/import controls is rendered.
+export function SettingsModal({ isOpen, onClose, notifications, csv }) {
   const { style, setStyle } = useTheme();
   const { t } = useTranslation();
+  // Declared before the early return: hooks must never come after it.
+  const fileInputRef = useRef(null);
 
   if (!isOpen) return null;
+
+  // Delegated to MainShell.handleImportFile (which reads files[0] itself).
+  // Reset after the call so re-picking the same file fires onChange again.
+  const handleImportChange = (event) => {
+    if (!csv?.onImport) return;
+    csv.onImport(event);
+    event.target.value = '';
+  };
 
   const handleLogout = async () => {
     const confirm = window.confirm(t('settings.confirmLogout'));
@@ -96,6 +109,40 @@ export function SettingsModal({ isOpen, onClose, notifications }) {
             {notifications.permission === 'denied' && (
               <p className="mt-2 text-xs text-red-300">{t('notifications.denied')}</p>
             )}
+          </div>
+        )}
+
+        {csv && (
+          <div className="mb-4">
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Database size={16} />
+              {t('settings.dataSection')}
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={handleImportChange}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={csv.onExport}
+                aria-label={t('csv.export')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+              >
+                <Download size={16} />
+                {t('csv.export')}
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={t('csv.import')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+              >
+                <Upload size={16} />
+                {t('csv.import')}
+              </button>
+            </div>
           </div>
         )}
 

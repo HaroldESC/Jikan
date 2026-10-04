@@ -133,7 +133,8 @@
     "logoutError": "Error al cerrar sesión: {msg}",
     "unexpectedError": "Error inesperado: {msg}",
     "language": "Idioma",
-    "languageDescription": "Selecciona el idioma de la aplicación"
+    "languageDescription": "Selecciona el idioma de la aplicación",
+    "dataSection": "Datos"
   },
   "theme": {
     "auto": "Automático",
