@@ -6,6 +6,7 @@ import { useClock } from '../hooks/useClock';
 import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
 import { getCurrentDay } from '../utils/dates';
+import { exportActivitiesToCsv, parseActivitiesCsv } from '../utils/csv';
 
 import AppLayout from './AppLayout';
 import DetailViewMaru from './activities/DetailViewMaru';
@@ -37,11 +38,14 @@ export default function MainShell({ user }) {
   const [editingDay, setEditingDay] = useState(null);
   const [editingActivityIndex, setEditingActivityIndex] = useState(null);
   const [showCopyModal, setShowCopyModal] = useState(false);
+  // Vista previa de importación CSV: { fileName, rows, errors } | null
+  const [importPreview, setImportPreview] = useState(null);
   const [tempActivity, setTempActivity] = useState({
     start: 9,
     end: 10,
     activity: '',
     description: '',
+    notes: '',
     color: '#7c5cff',
   });
   const [tempStartTime, setTempStartTime] = useState('09:00');
@@ -78,6 +82,7 @@ export default function MainShell({ user }) {
         end_time: decimalToTimeString(activity.end),
         title: activity.title,
         description: activity.description || '',
+        notes: activity.notes || '',
         color: activity.color || '#7c5cff',
         user_id: user.id,
       }));
@@ -89,6 +94,68 @@ export default function MainShell({ user }) {
       alert(t('messages.copiedSuccess', { count: sourceActivities.length, source: sourceDay, target: targetDay }));
     } catch (error) {
       alert(t('messages.copyError', { msg: error.message }));
+    }
+  };
+
+  // Exporta la semana completa (7 días) a un archivo CSV con BOM UTF-8.
+  const handleExportCsv = () => {
+    const totalActivities = Object.values(schedules).reduce(
+      (total, day) => total + (day?.length || 0),
+      0
+    );
+    if (totalActivities === 0) {
+      alert(t('csv.noActivities'));
+      return;
+    }
+
+    try {
+      const csv = exportActivitiesToCsv(schedules);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const now = new Date();
+      const dateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      link.href = url;
+      link.download = `jikan-schedule-${dateKey}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert(t('csv.exportError', { msg: error.message }));
+    }
+  };
+
+  // Lee el archivo seleccionado y muestra la vista previa (modal de importación).
+  const handleImportFile = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = ''; // permite volver a elegir el mismo archivo
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const { rows, errors } = parseActivitiesCsv(String(reader.result ?? ''));
+      setImportPreview({ fileName: file.name, rows, errors });
+    };
+    reader.onerror = () => alert(t('csv.parseError'));
+    reader.readAsText(file);
+  };
+
+  // Inserta las filas válidas (append) y recarga el calendario.
+  const handleConfirmImport = async () => {
+    if (!importPreview || importPreview.rows.length === 0) return;
+
+    try {
+      const payload = importPreview.rows.map((row) => ({ ...row, user_id: user.id }));
+      const { error } = await supabase.from('activities').insert(payload);
+      if (error) throw error;
+
+      await reload();
+      alert(t('csv.importSuccess', { count: payload.length }));
+    } catch (error) {
+      alert(t('csv.importError', { msg: error.message }));
+    } finally {
+      setImportPreview(null);
     }
   };
 
@@ -121,6 +188,7 @@ export default function MainShell({ user }) {
       end_time: decimalToTimeString(updatedActivity.end),
       title: updatedActivity.activity,
       description: updatedActivity.description,
+      notes: updatedActivity.notes ?? '',
       color: updatedActivity.color,
       user_id: user.id,
     };
@@ -159,6 +227,7 @@ export default function MainShell({ user }) {
       end: timeToDecimal(endStr),
       activity: '',
       description: '',
+      notes: '',
       color: '#7c5cff',
     });
     setTempStartTime(startStr);
@@ -178,6 +247,7 @@ export default function MainShell({ user }) {
       end: activity.end,
       activity: activity.title,
       description: activity.description || '',
+      notes: activity.notes || '',
       color: activity.color || '#7c5cff',
     });
     setTempStartTime(startStr);
@@ -266,6 +336,11 @@ export default function MainShell({ user }) {
       showCopyModal={showCopyModal}
       setShowCopyModal={setShowCopyModal}
       onCopyDay={handleCopyDay}
+      onExportCsv={handleExportCsv}
+      onImportFile={handleImportFile}
+      importPreview={importPreview}
+      onCloseImport={() => setImportPreview(null)}
+      onConfirmImport={handleConfirmImport}
       currentTime={currentTime}
       themeMode={themeMode}
       toggleTheme={toggleTheme}

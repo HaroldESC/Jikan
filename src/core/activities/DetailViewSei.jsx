@@ -41,6 +41,14 @@ export default function DetailViewSei({ activity, isDarkMode, onClose, onEdit })
             </h3>
             <p className="text-sm leading-relaxed opacity-90">{activity.description}</p>
           </div>
+          {activity.notes && activity.notes.trim() !== '' && (
+            <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+              <h3 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-2 flex items-center gap-2">
+                <Info size={14} /> {t('activity.notes')}
+              </h3>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap opacity-90">{activity.notes}</p>
+            </div>
+          )}
           {onEdit && (
             <button
               onClick={onEdit}

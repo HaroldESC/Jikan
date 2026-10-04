@@ -23,6 +23,10 @@
 - **Copy Day** — Duplicate an entire day's schedule to another day in one click
 - **Statistics Dashboard** — Daily metrics: total time, averages, efficiency, activity distribution
 - **Reminders** — Basic reminder system for your activities
+- **Activity Notes** — Free-text notes per activity block, editable in the editor and shown in the detail view
+- **Pomodoro Timer** — Shared focus/break panel with configurable durations and a daily session counter
+- **Browser Notifications** — Alert on activity change plus a configurable pre-activity warning
+- **CSV Import / Export** — Export the full week to CSV (UTF-8) and import schedules back with per-row validation
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
 - **User Authentication** — Email/password login & registration via Supabase
 - **Cloud Sync** — Activities stored in Supabase PostgreSQL, synced across your devices
@@ -126,6 +130,8 @@ jikan/
 │   │   ├── useTheme.jsx     # Theme + visual style state
 │   │   ├── useReminders.js  # Reminders (localStorage, per user)
 │   │   ├── usePanels.js     # Panel layout: visibility + order (localStorage)
+│   │   ├── usePomodoro.js   # Pomodoro focus/break timer (localStorage)
+│   │   ├── useNotifications.js # Browser notifications (permission + pre-warning)
 │   │   └── useClock.js      # Real-time clock
 │   ├── i18n/                # Translations (es / en / ja) + provider
 │   ├── lib/                 # External service clients
@@ -167,11 +173,11 @@ jikan/
 - [x] **Hideable & draggable widgets** — dedicated header button toggles layout edit mode: eye toggle per panel (wheel, current activity, statistics, reminders, activity list) and drag-to-reorder within each column; layout persisted per user + style in `localStorage`
 
 ### v3.0 — Productivity & Notifications
-- [ ] **Pomodoro Timer** integrated per activity
-- [ ] **Notes** per activity block
-- [ ] **Browser notifications** (activity change alerts, pre-activity warnings)
-- [ ] **Import/export schedules** (XLSX and other formats)
-- [ ] **Export to PDF**
+- [x] **Pomodoro Timer** — focus/break countdown tied to the current activity, configurable durations (25/5 min), daily sessions tracked locally
+- [x] **Notes** per activity block (stored in the `activities` table)
+- [x] **Browser notifications** — activity change alerts + pre-activity warnings (0/5/10/15/30 min, configurable in Settings)
+- [x] **Import/export schedules** — CSV only (UTF-8 export with BOM, validated import in append mode)
+- [ ] **Export to PDF / XLSX** (pending)
 
 ### v4.0 — Privacy, Local-first & PWA
 - [ ] **Usable without an account** — local guest mode (data stays on device)

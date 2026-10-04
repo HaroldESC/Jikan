@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ChevronLeft, Clock, FileText, AlertCircle } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
 import ThemeToggle from '../common/ThemeToggle';
@@ -37,7 +36,6 @@ const DetailViewMaru = ({
   onToggleTheme
 }) => {
   const { t, dayName: translateDay } = useTranslation();
-  const [notes, setNotes] = useState('');
 
   if (!activity) {
     return (
@@ -162,24 +160,11 @@ const DetailViewMaru = ({
               </div>
             </DetailBlock>
 
-            <DetailBlock title={t('detail.personalNotes')} icon={<FileText size={18} />}>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder={t('detail.notesPlaceholder')}
-                className="w-full bg-white/10 rounded-lg p-3 text-white placeholder-white/50 border border-white/20 focus:border-white/50 focus:outline-none resize-none"
-                rows="3"
-              />
-              <div className="flex justify-end mt-2">
-                <button
-                  onClick={() => alert(t('detail.notesSaved'))}
-                  className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg transition text-sm"
-                  disabled={!notes.trim()}
-                >
-                  {t('detail.saveNotes')}
-                </button>
-              </div>
-            </DetailBlock>
+            {activity.notes && activity.notes.trim() !== '' && (
+              <DetailBlock title={t('activity.notes')} icon={<FileText size={18} />}>
+                <p className="text-white/90 leading-relaxed whitespace-pre-wrap">{activity.notes}</p>
+              </DetailBlock>
+            )}
           </div>
         </div>
       </div>

@@ -59,6 +59,8 @@
     "namePlaceholder": "e.g. Study, Work, Exercise...",
     "description": "Description",
     "descriptionPlaceholder": "Describe your activity...",
+    "notes": "Notes",
+    "notesPlaceholder": "Add notes...",
     "color": "Color",
     "schedule": "Schedule",
     "startTime": "Start time",
@@ -84,10 +86,6 @@
     "back": "Back to schedule",
     "noActivity": "No activity selected",
     "exactSchedule": "Exact schedule",
-    "personalNotes": "Personal notes",
-    "notesPlaceholder": "Add your personal notes about this activity...",
-    "saveNotes": "Save notes",
-    "notesSaved": "Notes saved (pending feature)",
     "startsIn": "Starts in {hours}h {minutes}m",
     "startsInHours": "Starts in {hours}h",
     "startsInMinutes": "Starts in {minutes}m",
@@ -205,7 +203,8 @@
       "current": "Current activity",
       "stats": "Statistics",
       "reminders": "Reminders",
-      "list": "Activity list"
+      "list": "Activity list",
+      "pomodoro": "Pomodoro"
     }
   },
   "messages": {
@@ -252,5 +251,45 @@
     "currentCount": "Currently has {count} activity(ies)",
     "sourceCount": "{count} activity(ies)",
     "moreAria": "+{count} more activity(ies)..."
+  },
+  "pomodoro": {
+    "focus": "Focus",
+    "break": "Break",
+    "idle": "Ready",
+    "sessions": "Sessions today: {count}",
+    "start": "Start",
+    "pause": "Pause",
+    "reset": "Reset",
+    "skip": "Skip"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "preAviso": "Pre-alert",
+    "preAvisoUnit": "min",
+    "activityStarting": "Starting soon",
+    "activityNow": "Now: {activity}",
+    "bodyStarting": "{activity} starts at {time}",
+    "denied": "Notifications are blocked in your browser"
+  },
+  "csv": {
+    "export": "Export CSV",
+    "import": "Import CSV",
+    "importTitle": "Import activities",
+    "importFile": "File: {file}",
+    "importConfirm": "{count} activity(ies) will be imported and added to the existing ones.",
+    "importConfirmButton": "Import",
+    "importSuccess": "{count} activity(ies) imported successfully",
+    "importError": "Error importing: {msg}",
+    "exportError": "Error exporting: {msg}",
+    "noActivities": "There are no activities to export",
+    "parseError": "The CSV file could not be read",
+    "nothingToImport": "There are no valid rows to import",
+    "invalidRows": "{count} row(s) with errors that will be skipped:",
+    "moreErrors": "...and {count} more error(s)",
+    "errorsSkipped": "Rows with errors will be skipped.",
+    "errHeader": "The header is missing the expected columns (day, title, start, end)",
+    "errDay": "Row {row}: invalid day",
+    "errTitle": "Row {row}: empty title",
+    "errTime": "Row {row}: invalid time or end not after start"
   }
 }

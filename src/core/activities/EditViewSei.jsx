@@ -64,6 +64,17 @@ export default function EditViewSei({
           </section>
 
           <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>
+            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">{t('activity.notes')}</h2>
+            <textarea
+              value={tempActivity.notes ?? ''}
+              onChange={(e) => onTempActivityChange({ ...tempActivity, notes: e.target.value })}
+              rows="3"
+              placeholder={t('activity.notesPlaceholder')}
+              className={`w-full rounded-xl p-3 text-sm outline-none resize-none transition ${dark ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-400'}`}
+            />
+          </section>
+
+          <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>
             <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">{t('activity.color')}</h2>
             <div className="flex flex-wrap gap-3">
               {COLOR_PALETTE.map((c) => (

@@ -11,6 +11,7 @@ export const toSeiActivity = (maruActivity) => ({
   end: decimalToTimeStr(maruActivity.end),
   color: maruActivity.color,
   description: maruActivity.description || '',
+  notes: maruActivity.notes || '',
   type: maruActivity.type || 'general',
 });
 

@@ -66,6 +66,7 @@ export function useActivities(user) {
           endTime: a.end_time,     // Mantener el string original para referencia
           title: a.title,
           description: a.description,
+          notes: a.notes || '',
           color: a.color,
         });
       });

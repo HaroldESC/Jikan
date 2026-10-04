@@ -68,6 +68,16 @@ export default function EditViewMaru({
                     placeholder={t('activity.descriptionPlaceholder')}
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 opacity-80">{t('activity.notes')}</label>
+                  <textarea
+                    value={tempActivity.notes ?? ''}
+                    onChange={(e) => onTempActivityChange({ ...tempActivity, notes: e.target.value })}
+                    className="w-full bg-white/10 rounded-lg p-3 text-white placeholder-white/50 border border-white/20 focus:border-white/50 focus:outline-none resize-none transition"
+                    rows="3"
+                    placeholder={t('activity.notesPlaceholder')}
+                  />
+                </div>
               </div>
             </SectionBlock>
 

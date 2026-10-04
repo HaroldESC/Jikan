@@ -1,10 +1,13 @@
-import { LogOut, Palette, Globe } from 'lucide-react';
+import { LogOut, Palette, Globe, Bell } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../i18n/useTranslation';
 import LanguageSelector from './LanguageSelector';
 
-export function SettingsModal({ isOpen, onClose }) {
+// Pre-aviso presets (minutes before an activity starts).
+const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
+
+export function SettingsModal({ isOpen, onClose, notifications }) {
   const { style, setStyle } = useTheme();
   const { t } = useTranslation();
 
@@ -65,6 +68,36 @@ export function SettingsModal({ isOpen, onClose }) {
           </p>
           <LanguageSelector />
         </div>
+
+        {notifications && (
+          <div className="mb-4">
+            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+              <Bell size={16} />
+              {t('notifications.title')}
+            </p>
+            <label className="flex items-center justify-between gap-3 text-sm text-white/85">
+              <span>{t('notifications.preAviso')}</span>
+              <span className="flex items-center gap-2">
+                <select
+                  value={notifications.preMinutes}
+                  onChange={(event) => notifications.setPreMinutes(Number(event.target.value))}
+                  className="bg-white/10 border border-white/20 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-blue-400/60"
+                  aria-label={t('notifications.preAviso')}
+                >
+                  {PRE_AVISO_OPTIONS.map((minutes) => (
+                    <option key={minutes} value={minutes} className="text-slate-900">
+                      {minutes}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-white/60">{t('notifications.preAvisoUnit')}</span>
+              </span>
+            </label>
+            {notifications.permission === 'denied' && (
+              <p className="mt-2 text-xs text-red-300">{t('notifications.denied')}</p>
+            )}
+          </div>
+        )}
 
         <button
             onClick={handleLogout}

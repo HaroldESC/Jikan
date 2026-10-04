@@ -59,6 +59,8 @@
     "namePlaceholder": "例：勉強、仕事、運動...",
     "description": "説明",
     "descriptionPlaceholder": "アクティビティの説明を入力...",
+    "notes": "メモ",
+    "notesPlaceholder": "メモを追加...",
     "color": "色",
     "schedule": "スケジュール",
     "startTime": "開始時間",
@@ -84,10 +86,6 @@
     "back": "スケジュールに戻る",
     "noActivity": "アクティビティが選択されていません",
     "exactSchedule": "正確なスケジュール",
-    "personalNotes": "個人メモ",
-    "notesPlaceholder": "このアクティビティに関するメモを追加...",
-    "saveNotes": "メモを保存",
-    "notesSaved": "メモを保存しました（準備中の機能）",
     "startsIn": "あと{hours}時間{minutes}分で開始",
     "startsInHours": "あと{hours}時間で開始",
     "startsInMinutes": "あと{minutes}分で開始",
@@ -205,7 +203,8 @@
       "current": "現在のアクティビティ",
       "stats": "統計",
       "reminders": "リマインダー",
-      "list": "アクティビティ一覧"
+      "list": "アクティビティ一覧",
+      "pomodoro": "ポモドーロ"
     }
   },
   "messages": {
@@ -252,5 +251,45 @@
     "currentCount": "現在 {count} アクティビティ",
     "sourceCount": "{count} アクティビティ",
     "moreAria": "他 {count} アクティビティ..."
+  },
+  "pomodoro": {
+    "focus": "集中",
+    "break": "休憩",
+    "idle": "待機中",
+    "sessions": "今日のセッション: {count}",
+    "start": "開始",
+    "pause": "一時停止",
+    "reset": "リセット",
+    "skip": "スキップ"
+  },
+  "notifications": {
+    "title": "通知",
+    "preAviso": "事前通知",
+    "preAvisoUnit": "分",
+    "activityStarting": "まもなく開始",
+    "activityNow": "今: {activity}",
+    "bodyStarting": "{activity} は {time} に開始します",
+    "denied": "ブラウザで通知がブロックされています"
+  },
+  "csv": {
+    "export": "CSV を書き出す",
+    "import": "CSV を取り込む",
+    "importTitle": "アクティビティの取り込み",
+    "importFile": "ファイル: {file}",
+    "importConfirm": "{count} 件のアクティビティを既存のものに追加して取り込みます。",
+    "importConfirmButton": "取り込む",
+    "importSuccess": "{count} 件のアクティビティを取り込みました",
+    "importError": "取り込みエラー：{msg}",
+    "exportError": "書き出しエラー：{msg}",
+    "noActivities": "書き出すアクティビティがありません",
+    "parseError": "CSV ファイルを読み込めませんでした",
+    "nothingToImport": "取り込める有効な行がありません",
+    "invalidRows": "エラーのある行（{count} 件）は取り込まれません：",
+    "moreErrors": "...他 {count} 件のエラー",
+    "errorsSkipped": "エラーのある行は取り込まれません。",
+    "errHeader": "ヘッダーに必要な列がありません（day, title, start, end）",
+    "errDay": "{row} 行目：日付が無効です",
+    "errTitle": "{row} 行目：タイトルが空です",
+    "errTime": "{row} 行目：時刻が無効か終了時刻が開始時刻より後ではありません"
   }
 }

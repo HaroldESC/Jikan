@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from 'react';
-import { Plus, Copy } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { Plus, Copy, Download, Upload } from 'lucide-react';
 import { useTranslation } from '../i18n/useTranslation';
 
 import WheelMaru from './wheel/WheelMaru';
@@ -11,7 +11,9 @@ import Daily from './stats/Daily';
 import Reminders from './stats/Reminders';
 import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
+import ImportModal from './common/ImportModal';
 import Panel from './common/Panel';
+import Pomodoro from './common/Pomodoro';
 
 import { ActivityList } from './activities/ActivityList';
 import DetailViewSei from './activities/DetailViewSei';
@@ -20,12 +22,29 @@ import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
 import { useReminders } from '../hooks/useReminders';
 import { usePanels } from '../hooks/usePanels';
+import { usePomodoro } from '../hooks/usePomodoro';
+import { useNotifications } from '../hooks/useNotifications';
 
 // Panel groups per style: the wheel lives in its own column, so it only
 // supports hide/show; the content column supports hide + drag-to-reorder.
-const MARU_CONTENT_PANELS = ['current', 'stats', 'reminders'];
-const SEI_CONTENT_PANELS = ['current', 'list', 'reminders'];
+const MARU_CONTENT_PANELS = ['current', 'stats', 'reminders', 'pomodoro'];
+const SEI_CONTENT_PANELS = ['current', 'list', 'reminders', 'pomodoro'];
 const WHEEL_PANELS = ['wheel'];
+
+// Sentinel: distinguishes "no previous activity tracked yet" from "there is
+// genuinely no current activity" (null) when watching activity transitions.
+const UNSET = Symbol('unset');
+
+// Decimal hours → 'HH:MM' (internal time is decimal: 9.5 = 09:30).
+const formatClock = (decimal) => {
+  const hours = Math.floor(decimal);
+  const minutes = Math.round((decimal - hours) * 60);
+  const h = hours === 24 ? 0 : hours;
+  return `${String(h).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const localDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 export default function AppLayout({
   style,
@@ -38,6 +57,11 @@ export default function AppLayout({
   showCopyModal,
   setShowCopyModal,
   onCopyDay,
+  onExportCsv,
+  onImportFile,
+  importPreview,
+  onCloseImport,
+  onConfirmImport,
   currentTime,
   themeMode,
   toggleTheme,
@@ -47,7 +71,7 @@ export default function AppLayout({
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const fileInputRef = useRef(null);
   const { t } = useTranslation();
   const { reminders, addReminder, deleteReminder } = useReminders(user?.id);
 
@@ -105,6 +129,105 @@ export default function AppLayout({
   const seiCurrent = useMemo(() => (rawCurrent ? toSeiActivity(rawCurrent) : null), [rawCurrent]);
   const seiCurrentId = seiCurrent?.id;
 
+  // ── A2: Pomodoro (standalone, tied to the current activity via label) ──
+  const pomodoroLabel = currentDay === getCurrentDay() ? rawCurrent?.title : undefined;
+  const pomodoro = usePomodoro(user?.id, pomodoroLabel);
+
+  // ── A3: browser notifications (settings + permission; no scheduling here) ──
+  const notifications = useNotifications(user?.id);
+  const {
+    permission: notifyPermission,
+    preMinutes,
+    requestPermission,
+    setEnabled: setNotifyEnabled,
+    notify,
+  } = notifications;
+
+  const handleToggleNotifications = async () => {
+    if (notifications.enabled) {
+      setNotifyEnabled(false);
+      return;
+    }
+    let result = notifyPermission;
+    if (result === 'default') result = await requestPermission();
+    if (result === 'granted') {
+      setNotifyEnabled(true);
+    } else {
+      window.alert(t('notifications.denied'));
+    }
+  };
+
+  // Ref of the last observed current activity (real day). `UNSET` on mount so
+  // opening the app mid-activity never fires a notification — only entries do.
+  const prevCurrentIdRef = useRef(UNSET);
+
+  // Notify once per activity entry (one notification per transition).
+  useEffect(() => {
+    const currentId = rawCurrent?.id ?? null;
+    const prevId = prevCurrentIdRef.current;
+    prevCurrentIdRef.current = currentId;
+    if (prevId === UNSET || currentId === prevId || currentId == null) return;
+    if (!notifications.enabled || notifyPermission !== 'granted') return;
+
+    notify(t('notifications.activityNow', { activity: rawCurrent.title || t('activity.noName') }), {
+      body: `${formatClock(rawCurrent.start)} – ${formatClock(rawCurrent.end)}`,
+      tag: `jikan-current-${currentId}`,
+    });
+  }, [rawCurrent, notifications.enabled, notifyPermission, notify, t]);
+
+  // Ref of already-notified pre-avisos (keyed by local date + activity id so
+  // the same recurring activity notifies again on another day).
+  const preAvisoNotifiedRef = useRef(new Set());
+
+  // Pre-aviso: notify once when an upcoming activity starts within `preMinutes`.
+  // Re-evaluated on every `useClock` tick (once per minute); `preMinutes === 0`
+  // disables it.
+  useEffect(() => {
+    if (!notifications.enabled || notifyPermission !== 'granted') return;
+    if (preMinutes <= 0 || realRaw.length === 0) return;
+
+    const dayKey = localDateKey(currentTime);
+    realRaw.forEach((activity) => {
+      const startMinutes = Math.round(activity.start * 60);
+      const deltaMinutes = startMinutes - currentMinutes;
+      if (deltaMinutes <= 0 || deltaMinutes > preMinutes) return;
+
+      const key = `${dayKey}:${activity.id}`;
+      if (preAvisoNotifiedRef.current.has(key)) return;
+      preAvisoNotifiedRef.current.add(key);
+
+      notify(t('notifications.activityStarting'), {
+        body: t('notifications.bodyStarting', {
+          activity: activity.title || t('activity.noName'),
+          time: formatClock(activity.start),
+        }),
+        tag: `jikan-pre-${key}`,
+      });
+    });
+  }, [
+    notifications.enabled,
+    notifyPermission,
+    preMinutes,
+    realRaw,
+    currentMinutes,
+    currentTime,
+    notify,
+    t,
+  ]);
+
+  // Shared props for the Pomodoro panel (rendered by both style branches).
+  const pomodoroPanelProps = {
+    status: pomodoro.status,
+    running: pomodoro.running,
+    secondsLeft: pomodoro.secondsLeft,
+    sessionsToday: pomodoro.sessionsToday,
+    label: pomodoro.label,
+    onToggle: pomodoro.toggle,
+    onReset: pomodoro.reset,
+    onSkip: pomodoro.skip,
+    isDarkMode: dark,
+  };
+
   const handleSeiClick = (activity, index, e) => {
     if (e?.button === 2 || e?.ctrlKey) {
       e.preventDefault();
@@ -127,8 +250,8 @@ export default function AppLayout({
           themeMode={themeMode}
           onToggleTheme={toggleTheme}
           onOpenSettings={() => setIsSettingsOpen(true)}
-          notificationsEnabled={notificationsEnabled}
-          onToggleNotifications={() => setNotificationsEnabled(!notificationsEnabled)}
+          notificationsEnabled={notifications.enabled && notifyPermission === 'granted'}
+          onToggleNotifications={handleToggleNotifications}
           isDarkMode={dark}
           layoutEditMode={layoutEdit}
           onToggleLayoutEdit={() => setLayoutEdit((prev) => !prev)}
@@ -158,8 +281,15 @@ export default function AppLayout({
             )}
 
             {/* ── ACTION BUTTONS ── */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={onImportFile}
+            />
             {isMaru ? (
-              <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <div className="mt-6 flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center">
                 <button onClick={() => onAddActivity(currentDay)}
                   className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
                   <Plus size={20} /> {t('header.addActivity')}
@@ -168,12 +298,28 @@ export default function AppLayout({
                   className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
                   <Copy size={20} /> {t('header.copyFromDay')}
                 </button>
+                <button onClick={onExportCsv} aria-label={t('csv.export')}
+                  className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
+                  <Download size={20} /> {t('csv.export')}
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} aria-label={t('csv.import')}
+                  className="bg-white/20 hover:bg-white/30 text-white font-medium px-6 py-3 rounded-lg transition inline-flex items-center gap-2">
+                  <Upload size={20} /> {t('csv.import')}
+                </button>
               </div>
             ) : (
-              <div className="flex justify-center">
+              <div className="flex flex-wrap justify-center gap-3">
                 <button onClick={() => onAddActivity(currentDay)}
                   className={`px-6 py-3 rounded-xl font-medium transition inline-flex items-center gap-2 ${dark ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-white shadow-sm hover:bg-slate-50 text-slate-700'}`}>
                   <Plus size={18} /> {t('header.addActivity')}
+                </button>
+                <button onClick={onExportCsv} aria-label={t('csv.export')}
+                  className={`px-6 py-3 rounded-xl font-medium transition inline-flex items-center gap-2 ${dark ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-white shadow-sm hover:bg-slate-50 text-slate-700'}`}>
+                  <Download size={18} /> {t('csv.export')}
+                </button>
+                <button onClick={() => fileInputRef.current?.click()} aria-label={t('csv.import')}
+                  className={`px-6 py-3 rounded-xl font-medium transition inline-flex items-center gap-2 ${dark ? 'bg-slate-800 hover:bg-slate-700 text-white' : 'bg-white shadow-sm hover:bg-slate-50 text-slate-700'}`}>
+                  <Upload size={18} /> {t('csv.import')}
                 </button>
               </div>
             )}
@@ -201,6 +347,8 @@ export default function AppLayout({
                       )
                     ) : id === 'stats' ? (
                       <Daily schedule={rawActivities} />
+                    ) : id === 'pomodoro' ? (
+                      <Pomodoro {...pomodoroPanelProps} isMaru />
                     ) : (
                       <Reminders
                         reminders={reminders}
@@ -238,6 +386,10 @@ export default function AppLayout({
                   ) : id === 'list' ? (
                     <ActivityList activities={seiActivities} isDarkMode={dark} isViewingToday={isViewingToday}
                       currentActivityId={seiCurrentId} dayName={currentDay} onActivitySelect={handleSeiClick} />
+                  ) : id === 'pomodoro' ? (
+                    <div className="w-full mt-6">
+                      <Pomodoro {...pomodoroPanelProps} isMaru={false} />
+                    </div>
                   ) : (
                     <div className="w-full mt-6">
                       <Reminders
@@ -274,7 +426,22 @@ export default function AppLayout({
         />
       )}
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        notifications={notifications}
+      />
+
+      <ImportModal
+        isOpen={!!importPreview}
+        fileName={importPreview?.fileName || ''}
+        rows={importPreview?.rows || []}
+        errors={importPreview?.errors || []}
+        onConfirm={onConfirmImport}
+        onClose={onCloseImport}
+        isMaru={isMaru}
+        isDarkMode={dark}
+      />
     </div>
   );
 }

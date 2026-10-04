@@ -59,6 +59,8 @@
     "namePlaceholder": "Ej: Estudio, Trabajo, Ejercicio...",
     "description": "Descripción",
     "descriptionPlaceholder": "Describe tu actividad...",
+    "notes": "Notas",
+    "notesPlaceholder": "Añade notas...",
     "color": "Color",
     "schedule": "Horario",
     "startTime": "Hora de inicio",
@@ -84,10 +86,6 @@
     "back": "Volver al horario",
     "noActivity": "No hay actividad seleccionada",
     "exactSchedule": "Horarios exactos",
-    "personalNotes": "Notas personales",
-    "notesPlaceholder": "Añade tus notas personales sobre esta actividad...",
-    "saveNotes": "Guardar notas",
-    "notesSaved": "Notas guardadas (función pendiente)",
     "startsIn": "Comienza en {hours}h {minutes}m",
     "startsInHours": "Comienza en {hours}h",
     "startsInMinutes": "Comienza en {minutes}m",
@@ -205,7 +203,8 @@
       "current": "Actividad actual",
       "stats": "Estadísticas",
       "reminders": "Recordatorios",
-      "list": "Lista de actividades"
+      "list": "Lista de actividades",
+      "pomodoro": "Pomodoro"
     }
   },
   "messages": {
@@ -252,5 +251,45 @@
     "currentCount": "Actualmente tiene {count} actividad(es)",
     "sourceCount": "{count} actividad(es)",
     "moreAria": "+{count} actividad(es) más..."
+  },
+  "pomodoro": {
+    "focus": "Foco",
+    "break": "Descanso",
+    "idle": "Listo",
+    "sessions": "Sesiones hoy: {count}",
+    "start": "Empezar",
+    "pause": "Pausar",
+    "reset": "Reiniciar",
+    "skip": "Saltar"
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "preAviso": "Pre-aviso",
+    "preAvisoUnit": "min",
+    "activityStarting": "Próximamente",
+    "activityNow": "Ahora: {activity}",
+    "bodyStarting": "{activity} empieza a las {time}",
+    "denied": "Las notificaciones están bloqueadas en tu navegador"
+  },
+  "csv": {
+    "export": "Exportar CSV",
+    "import": "Importar CSV",
+    "importTitle": "Importar actividades",
+    "importFile": "Archivo: {file}",
+    "importConfirm": "Se importarán {count} actividad(es) y se añadirán a las existentes.",
+    "importConfirmButton": "Importar",
+    "importSuccess": "{count} actividad(es) importadas correctamente",
+    "importError": "Error al importar: {msg}",
+    "exportError": "Error al exportar: {msg}",
+    "noActivities": "No hay actividades para exportar",
+    "parseError": "No se pudo leer el archivo CSV",
+    "nothingToImport": "No hay filas válidas para importar",
+    "invalidRows": "{count} fila(s) con error que se omitirán:",
+    "moreErrors": "...y {count} error(es) más",
+    "errorsSkipped": "Las filas con error se omitirán.",
+    "errHeader": "La cabecera no tiene las columnas esperadas (day, title, start, end)",
+    "errDay": "Fila {row}: día no válido",
+    "errTitle": "Fila {row}: título vacío",
+    "errTime": "Fila {row}: hora inválida o fin no posterior al inicio"
   }
 }
