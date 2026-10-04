@@ -42,7 +42,7 @@ export function SettingsModal({ isOpen, onClose, notifications, csv }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 w-80 shadow-2xl text-white border border-white/20">
+      <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 w-80 max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl text-white border border-white/20">
         <h2 className="text-2xl font-bold mb-6">{t('settings.title')}</h2>
 
         <div className="mb-4">
