@@ -292,5 +292,27 @@
     "errDay": "Row {row}: invalid day",
     "errTitle": "Row {row}: empty title",
     "errTime": "Row {row}: invalid time or end not after start"
+  },
+  "export": {
+    "pdf": "Export PDF",
+    "xlsx": "Export XLSX",
+    "exportError": "Error exporting: {msg}",
+    "noActivities": "There are no activities to export",
+    "docTitle": "Weekly schedule",
+    "generatedOn": "Generated on {date}",
+    "summaryTitle": "Summary",
+    "totalActivities": "Activities",
+    "totalHours": "Scheduled hours",
+    "colDay": "Day",
+    "colTitle": "Activity",
+    "colStart": "Start",
+    "colEnd": "End",
+    "colDuration": "Duration",
+    "colColor": "Color",
+    "colDescription": "Description",
+    "colNotes": "Notes",
+    "sheetWeek": "Week",
+    "sheetSummary": "Summary",
+    "pageNumber": "Page {page} of {total}"
   }
 }

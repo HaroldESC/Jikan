@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { LogOut, Palette, Globe, Bell, Database, Download, Upload } from 'lucide-react';
+import { LogOut, Palette, Globe, Bell, Database, Download, Upload, FileText, FileSpreadsheet } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -8,8 +8,9 @@ import LanguageSelector from './LanguageSelector';
 // Pre-aviso presets (minutes before an activity starts).
 const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
 
-// `csv` is optional: when provided ({ onExport, onImport }), the "Data"
-// section with the CSV export/import controls is rendered.
+// `csv` is optional: when provided ({ onExport, onExportPdf, onExportXlsx,
+// onImport }), the "Data" section with the CSV/PDF/XLSX export and CSV import
+// controls is rendered.
 export function SettingsModal({ isOpen, onClose, notifications, csv }) {
   const { style, setStyle } = useTheme();
   const { t } = useTranslation();
@@ -142,6 +143,26 @@ export function SettingsModal({ isOpen, onClose, notifications, csv }) {
                 <Upload size={16} />
                 {t('csv.import')}
               </button>
+              {csv.onExportPdf && (
+                <button
+                  onClick={csv.onExportPdf}
+                  aria-label={t('export.pdf')}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+                >
+                  <FileText size={16} />
+                  {t('export.pdf')}
+                </button>
+              )}
+              {csv.onExportXlsx && (
+                <button
+                  onClick={csv.onExportXlsx}
+                  aria-label={t('export.xlsx')}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+                >
+                  <FileSpreadsheet size={16} />
+                  {t('export.xlsx')}
+                </button>
+              )}
             </div>
           </div>
         )}

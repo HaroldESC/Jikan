@@ -58,6 +58,8 @@ export default function AppLayout({
   setShowCopyModal,
   onCopyDay,
   onExportCsv,
+  onExportPdf,
+  onExportXlsx,
   onImportFile,
   importPreview,
   onCloseImport,
@@ -74,10 +76,15 @@ export default function AppLayout({
   const { t } = useTranslation();
   const { reminders, addReminder, deleteReminder } = useReminders(user?.id);
 
-  // CSV controls live in the Settings modal ("Data" section).
-  const csvActions = useMemo(
-    () => ({ onExport: onExportCsv, onImport: onImportFile }),
-    [onExportCsv, onImportFile]
+  // Data/export controls live in the Settings modal ("Data" section).
+  const dataActions = useMemo(
+    () => ({
+      onExport: onExportCsv,
+      onExportPdf,
+      onExportXlsx,
+      onImport: onImportFile,
+    }),
+    [onExportCsv, onExportPdf, onExportXlsx, onImportFile]
   );
 
   // ── Layout editor state ──
@@ -412,7 +419,7 @@ export default function AppLayout({
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         notifications={notifications}
-        csv={csvActions}
+        csv={dataActions}
       />
 
       <ImportModal

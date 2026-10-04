@@ -292,5 +292,27 @@
     "errDay": "Fila {row}: día no válido",
     "errTitle": "Fila {row}: título vacío",
     "errTime": "Fila {row}: hora inválida o fin no posterior al inicio"
+  },
+  "export": {
+    "pdf": "Exportar PDF",
+    "xlsx": "Exportar XLSX",
+    "exportError": "Error al exportar: {msg}",
+    "noActivities": "No hay actividades para exportar",
+    "docTitle": "Horario semanal",
+    "generatedOn": "Generado el {date}",
+    "summaryTitle": "Resumen",
+    "totalActivities": "Actividades",
+    "totalHours": "Horas programadas",
+    "colDay": "Día",
+    "colTitle": "Actividad",
+    "colStart": "Inicio",
+    "colEnd": "Fin",
+    "colDuration": "Duración",
+    "colColor": "Color",
+    "colDescription": "Descripción",
+    "colNotes": "Notas",
+    "sheetWeek": "Semana",
+    "sheetSummary": "Resumen",
+    "pageNumber": "Página {page} de {total}"
   }
 }

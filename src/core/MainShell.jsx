@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useTranslation } from '../i18n/useTranslation';
 
@@ -7,6 +7,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
 import { getCurrentDay } from '../utils/dates';
 import { exportActivitiesToCsv, parseActivitiesCsv } from '../utils/csv';
+import { buildWeekRows, exportWeekToPdf, exportWeekToXlsx } from '../utils/export';
 
 import AppLayout from './AppLayout';
 import DetailViewMaru from './activities/DetailViewMaru';
@@ -50,6 +51,30 @@ export default function MainShell({ user }) {
   });
   const [tempStartTime, setTempStartTime] = useState('09:00');
   const [tempEndTime, setTempEndTime] = useState('10:00');
+
+  // Etiquetas traducidas que consumen los exportadores de PDF/XLSX
+  // (src/utils/export.js no depende del i18n).
+  const exportLabels = useMemo(
+    () => ({
+      docTitle: t('export.docTitle'),
+      generatedOn: t('export.generatedOn'),
+      summaryTitle: t('export.summaryTitle'),
+      totalActivities: t('export.totalActivities'),
+      totalHours: t('export.totalHours'),
+      colDay: t('export.colDay'),
+      colTitle: t('export.colTitle'),
+      colStart: t('export.colStart'),
+      colEnd: t('export.colEnd'),
+      colDuration: t('export.colDuration'),
+      colColor: t('export.colColor'),
+      colDescription: t('export.colDescription'),
+      colNotes: t('export.colNotes'),
+      sheetWeek: t('export.sheetWeek'),
+      sheetSummary: t('export.sheetSummary'),
+      pageNumber: t('export.pageNumber'),
+    }),
+    [t]
+  );
 
   if (loading) {
     return (
@@ -123,6 +148,36 @@ export default function MainShell({ user }) {
       URL.revokeObjectURL(url);
     } catch (error) {
       alert(t('csv.exportError', { msg: error.message }));
+    }
+  };
+
+  // Exporta la semana completa a un PDF A4 apaisado (resumen + tabla por día).
+  const handleExportPdf = async () => {
+    const rows = buildWeekRows(schedules);
+    if (rows.length === 0) {
+      alert(t('export.noActivities'));
+      return;
+    }
+
+    try {
+      await exportWeekToPdf({ rows, labels: exportLabels });
+    } catch (error) {
+      alert(t('export.exportError', { msg: error.message }));
+    }
+  };
+
+  // Exporta la semana completa a un XLSX de dos hojas (Semana + Resumen).
+  const handleExportXlsx = async () => {
+    const rows = buildWeekRows(schedules);
+    if (rows.length === 0) {
+      alert(t('export.noActivities'));
+      return;
+    }
+
+    try {
+      await exportWeekToXlsx({ rows, labels: exportLabels });
+    } catch (error) {
+      alert(t('export.exportError', { msg: error.message }));
     }
   };
 
@@ -337,6 +392,8 @@ export default function MainShell({ user }) {
       setShowCopyModal={setShowCopyModal}
       onCopyDay={handleCopyDay}
       onExportCsv={handleExportCsv}
+      onExportPdf={handleExportPdf}
+      onExportXlsx={handleExportXlsx}
       onImportFile={handleImportFile}
       importPreview={importPreview}
       onCloseImport={() => setImportPreview(null)}

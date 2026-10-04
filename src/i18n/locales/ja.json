@@ -292,5 +292,27 @@
     "errDay": "{row} 行目：日付が無効です",
     "errTitle": "{row} 行目：タイトルが空です",
     "errTime": "{row} 行目：時刻が無効か終了時刻が開始時刻より後ではありません"
+  },
+  "export": {
+    "pdf": "PDF を書き出す",
+    "xlsx": "XLSX を書き出す",
+    "exportError": "書き出しエラー：{msg}",
+    "noActivities": "書き出すアクティビティがありません",
+    "docTitle": "週間スケジュール",
+    "generatedOn": "生成日: {date}",
+    "summaryTitle": "サマリー",
+    "totalActivities": "アクティビティ数",
+    "totalHours": "予定時間",
+    "colDay": "曜日",
+    "colTitle": "アクティビティ",
+    "colStart": "開始",
+    "colEnd": "終了",
+    "colDuration": "所要時間",
+    "colColor": "色",
+    "colDescription": "説明",
+    "colNotes": "メモ",
+    "sheetWeek": "週間",
+    "sheetSummary": "サマリー",
+    "pageNumber": "ページ {page} / {total}"
   }
 }
