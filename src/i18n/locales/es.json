@@ -228,6 +228,18 @@
     "disableTitle": "Desactivar el cifrado",
     "disableDescription": "Confirma tu frase para volver a guardar tu horario local sin cifrar en este dispositivo."
   },
+  "pwa": {
+    "title": "Aplicación",
+    "intro": "Instala Jikan para abrirla como app y usarla sin conexión.",
+    "install": "Instalar app",
+    "installed": "App instalada",
+    "installedApp": "Jikan ya está instalada en este dispositivo.",
+    "manualInstall": "Usa «Añadir a pantalla de inicio» en el menú del navegador para instalarla.",
+    "online": "Conectado a internet",
+    "offline": "Sin conexión",
+    "offlineReady": "Disponible sin conexión",
+    "offlinePending": "Preparando el modo sin conexión…"
+  },
   "theme": {
     "auto": "Automático",
     "light": "Claro",
@@ -362,7 +374,8 @@
     "activityStarting": "Próximamente",
     "activityNow": "Ahora: {activity}",
     "bodyStarting": "{activity} empieza a las {time}",
-    "denied": "Las notificaciones están bloqueadas en tu navegador"
+    "denied": "Las notificaciones están bloqueadas en tu navegador",
+    "viaServiceWorker": "Las notificaciones se envían a través del service worker, así que también llegan con la app en segundo plano."
   },
   "csv": {
     "export": "Exportar CSV",

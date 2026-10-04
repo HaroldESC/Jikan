@@ -20,6 +20,9 @@ import {
   Lock,
   LockOpen,
   KeyRound,
+  Smartphone,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useTheme } from '../../hooks/useTheme';
@@ -49,7 +52,9 @@ const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
 // `privacy` is optional and enables the "Privacy" section (v4.0 C3):
 //   { privacy: { notes, description, reminders, toggle(category) },
 //     encryption: { supported, enabled, onOpen(mode) } }
-export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = false, onExitGuest, privacy }) {
+// `pwa` is optional and enables the "App" section (v4.0 C4):
+//   { canInstall, isInstalled, isOffline, offlineReady, supported, onInstall }
+export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = false, onExitGuest, privacy, pwa }) {
   const { style, setStyle } = useTheme();
   const { t, localeForDate } = useTranslation();
   // Declared before the early return: hooks must never come after it.
@@ -171,6 +176,9 @@ export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = 
             </label>
             {notifications.permission === 'denied' && (
               <p className="mt-2 text-xs text-red-300">{t('notifications.denied')}</p>
+            )}
+            {notifications.viaServiceWorker && (
+              <p className="mt-2 text-xs text-white/50">{t('notifications.viaServiceWorker')}</p>
             )}
           </div>
         )}
@@ -363,6 +371,41 @@ export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = 
           </div>
         )}
 
+        {pwa && (
+          <div className="mb-4">
+            <p className="text-sm font-semibold mb-1 flex items-center gap-2">
+              <Smartphone size={16} />
+              {t('pwa.title')}
+            </p>
+            <p className="text-xs text-white/60 mb-3">{t('pwa.intro')}</p>
+
+            {pwa.isInstalled ? (
+              <p className="text-xs text-green-300">{t('pwa.installedApp')}</p>
+            ) : pwa.canInstall ? (
+              <button
+                onClick={pwa.onInstall}
+                aria-label={t('pwa.install')}
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
+              >
+                <Download size={16} />
+                {t('pwa.install')}
+              </button>
+            ) : (
+              <p className="text-xs text-white/60">{t('pwa.manualInstall')}</p>
+            )}
+
+            <div className="mt-3 space-y-1">
+              <p className="text-xs text-white/60 flex items-center gap-2">
+                <Wifi size={14} className="shrink-0" />
+                {pwa.isOffline ? t('pwa.offline') : t('pwa.online')}
+              </p>
+              <p className="text-xs text-white/60 flex items-center gap-2">
+                <WifiOff size={14} className="shrink-0" />
+                {pwa.offlineReady ? t('pwa.offlineReady') : t('pwa.offlinePending')}
+              </p>
+            </div>
+          </div>
+        )}
         {isGuest ? (
           <div>
             <p className="mb-3 text-xs text-white/70 flex items-start gap-2">

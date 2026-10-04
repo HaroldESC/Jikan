@@ -74,6 +74,7 @@ export default function AppLayout({
   isGuest,
   onExitGuest,
   privacy,
+  pwa,
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
@@ -208,9 +209,12 @@ export default function AppLayout({
     if (prevId === UNSET || currentId === prevId || currentId == null) return;
     if (!notifications.enabled || notifyPermission !== 'granted') return;
 
-    notify(t('notifications.activityNow', { activity: rawCurrent.title || t('activity.noName') }), {
+    // `notify` is fire-and-forget; it never rejects (it falls back internally).
+    void notify(t('notifications.activityNow', { activity: rawCurrent.title || t('activity.noName') }), {
       body: `${formatClock(rawCurrent.start)} – ${formatClock(rawCurrent.end)}`,
       tag: `jikan-current-${currentId}`,
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
     });
   }, [rawCurrent, notifications.enabled, notifyPermission, notify, t]);
 
@@ -235,12 +239,14 @@ export default function AppLayout({
       if (preAvisoNotifiedRef.current.has(key)) return;
       preAvisoNotifiedRef.current.add(key);
 
-      notify(t('notifications.activityStarting'), {
+      void notify(t('notifications.activityStarting'), {
         body: t('notifications.bodyStarting', {
           activity: activity.title || t('activity.noName'),
           time: formatClock(activity.start),
         }),
         tag: `jikan-pre-${key}`,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
       });
     });
   }, [
@@ -450,6 +456,7 @@ export default function AppLayout({
         isGuest={isGuest}
         onExitGuest={onExitGuest}
         privacy={privacy}
+        pwa={pwa}
       />
 
       <ImportModal

@@ -228,6 +228,18 @@
     "disableTitle": "暗号化の無効化",
     "disableDescription": "パスフレーズを確認すると、ローカルスケジュールがこの端末に暗号化されずに保存されるようになります。"
   },
+  "pwa": {
+    "title": "アプリ",
+    "intro": "Jikan をインストールするとアプリとして開き、オフラインでも使えます。",
+    "install": "アプリをインストール",
+    "installed": "アプリをインストールしました",
+    "installedApp": "Jikan はすでにこの端末にインストールされています。",
+    "manualInstall": "ブラウザーのメニューから「ホーム画面に追加」でインストールできます。",
+    "online": "オンライン",
+    "offline": "オフライン",
+    "offlineReady": "オフラインでも利用可能",
+    "offlinePending": "オフラインの準備中…"
+  },
   "theme": {
     "auto": "自動",
     "light": "ライト",
@@ -362,7 +374,8 @@
     "activityStarting": "まもなく開始",
     "activityNow": "今: {activity}",
     "bodyStarting": "{activity} は {time} に開始します",
-    "denied": "ブラウザで通知がブロックされています"
+    "denied": "ブラウザで通知がブロックされています",
+    "viaServiceWorker": "通知は service worker 経由で配信されるため、アプリがバックグラウンドでも届きます。"
   },
   "csv": {
     "export": "CSV を書き出す",

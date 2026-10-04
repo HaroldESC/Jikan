@@ -7,6 +7,7 @@ import { useActivities } from '../hooks/useActivities';
 import { useGuestMigration } from '../hooks/useGuestMigration';
 import { useLocalBackup } from '../hooks/useLocalBackup';
 import { usePrivacy } from '../hooks/usePrivacy';
+import { usePwa } from '../hooks/usePwa';
 import { getCurrentDay } from '../utils/dates';
 import { exportActivitiesToCsv, parseActivitiesCsv } from '../utils/csv';
 import {
@@ -65,6 +66,9 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   const [passphraseBusy, setPassphraseBusy] = useState(false);
   const [passphraseError, setPassphraseError] = useState(null);
   const [passphraseErrorMessage, setPassphraseErrorMessage] = useState('');
+
+  // PWA (v4.0 C4): instalación, estado offline y service worker.
+  const pwa = usePwa();
 
   // Oferta de migración del horario local (invitado) a la cuenta y viceversa.
   const migration = useGuestMigration(user, isGuest);
@@ -283,6 +287,19 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   };
 
   // ── Fin cifrado local ────────────────────────────────────────────────────
+
+  // ── PWA (v4.0 C4) ───────────────────────────────────────────────────────
+
+  const handleInstall = async () => {
+    const outcome = await pwa.promptInstall();
+    if (outcome === 'accepted') {
+      alert(t('pwa.installed'));
+    } else if (outcome === 'dismissed') {
+      alert(t('pwa.installDismissed'));
+    }
+  };
+
+  // ── Fin PWA ─────────────────────────────────────────────────────────────
 
   const handleCopyDay = async (sourceDay, targetDay) => {
     const sourceActivities = schedules[sourceDay] || [];
@@ -584,6 +601,14 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
               setPassphraseMode(mode);
             },
           },
+        }}
+        pwa={{
+          canInstall: pwa.canInstall,
+          isInstalled: pwa.isInstalled,
+          isOffline: pwa.isOffline,
+          offlineReady: pwa.offlineReady,
+          supported: pwa.supported,
+          onInstall: handleInstall,
         }}
       />
 

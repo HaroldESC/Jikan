@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
 /**
- * Browser notifications settings (Web Notifications API, no service worker —
- * that arrives with PWA support in a later version).
+ * Browser notifications settings (Web Notifications API, delivered through the
+ * service worker when one is available — see v4.0 C4).
  *
  * - `permission` mirrors `Notification.permission` ('default' | 'granted' |
  *   'denied'); `requestPermission()` prompts the browser the first time.
@@ -13,6 +13,12 @@ import { useCallback, useEffect, useState } from 'react';
  *   when permission is granted, guards against unsupported/insecure contexts
  *   and passes a stable `tag` so duplicate notifications collapse.
  *
+ * Delivery order (why): `ServiceWorkerRegistration.showNotification()` is used
+ * when a service worker controls the page, because notifications raised through
+ * `new Notification()` are **not** shown once the tab is in the background on
+ * most browsers. The plain constructor stays as a fallback so notifications keep
+ * working in dev (no service worker) and on browsers without one.
+ *
  * This hook owns no scheduling: the event logic (activity change / pre-aviso)
  * lives in AppLayout, driven by `useClock`.
  */
@@ -20,6 +26,24 @@ import { useCallback, useEffect, useState } from 'react';
 const storageKey = (userId) => `jikan.notify.${userId || 'anon'}`;
 
 const DEFAULTS = { enabled: false, preMinutes: 5 };
+
+/**
+ * Registro **activo** del service worker, o `null` si no hay ninguno.
+ *
+ * Ojo: `navigator.serviceWorker.controller` es un `ServiceWorker`, no un
+ * `ServiceWorkerRegistration` — `showNotification()` vive en el registro, así que
+ * hay que pasar por `getRegistration()` y comprobar que esté activo.
+ */
+const activeRegistration = async () => {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return null;
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    return registration?.active ? registration : null;
+  } catch (error) {
+    console.warn('Error reading the service worker registration:', error);
+    return null;
+  }
+};
 
 const clampPreMinutes = (value) => {
   const numeric = Math.round(Number(value));
@@ -58,6 +82,9 @@ export function useNotifications(userId) {
   const [permission, setPermission] = useState(() =>
     isSupported() ? Notification.permission : 'denied'
   );
+  // ¿Hay un service worker activo? Se resuelve de forma asíncrona y se mantiene
+  // en estado para que la UI pueda reflejarlo (y para no leerlo en cada render).
+  const [hasServiceWorker, setHasServiceWorker] = useState(false);
 
   // Re-read when the signed-in user changes.
   useEffect(() => {
@@ -67,6 +94,25 @@ export function useNotifications(userId) {
   useEffect(() => {
     writeSettings(userId, settings);
   }, [settings, userId]);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return undefined;
+
+    let cancelled = false;
+    const sync = async () => {
+      const registration = await activeRegistration();
+      if (!cancelled) setHasServiceWorker(Boolean(registration));
+    };
+
+    sync();
+    // El service worker se registra tras cargar la página, así que hay que
+    // reaccionar a `controllerchange` además de al montaje.
+    navigator.serviceWorker.addEventListener('controllerchange', sync);
+    return () => {
+      cancelled = true;
+      navigator.serviceWorker.removeEventListener('controllerchange', sync);
+    };
+  }, []);
 
   const requestPermission = useCallback(async () => {
     if (!isSupported()) {
@@ -94,12 +140,29 @@ export function useNotifications(userId) {
   }, []);
 
   /**
-   * Fire a notification. Returns true when it was actually shown.
-   * `options.tag` is recommended so repeated events collapse into one.
+   * Fires a notification. Returns a promise resolving to true when it was
+   * actually handed to the platform.
+   *
+   * `options.tag` is recommended so repeated events collapse into one. Prefers
+   * the service worker (works with the tab in the background) and falls back to
+   * the `Notification` constructor when there is none (dev, no SW support).
    */
-  const notify = useCallback((title, options = {}) => {
+  const notify = useCallback(async (title, options = {}) => {
     if (!isSupported() || Notification.permission !== 'granted') return false;
+
+    const registration = await activeRegistration();
+    if (registration?.showNotification) {
+      try {
+        await registration.showNotification(title, options);
+        return true;
+      } catch (error) {
+        // Some browsers reject the SW path (e.g. insecure context): fall back.
+        console.warn('Service worker notification failed, using fallback:', error);
+      }
+    }
+
     try {
+      // eslint-disable-next-line no-new
       new Notification(title, options);
       return true;
     } catch (error) {
@@ -117,6 +180,8 @@ export function useNotifications(userId) {
     preMinutes: settings.preMinutes,
     setPreMinutes,
     notify,
+    /** `true` cuando las notificaciones salen por el service worker (C4). */
+    viaServiceWorker: hasServiceWorker,
   };
 }
 

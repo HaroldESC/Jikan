@@ -228,6 +228,18 @@
     "disableTitle": "Disable encryption",
     "disableDescription": "Confirm your passphrase to store your local schedule unencrypted on this device again."
   },
+  "pwa": {
+    "title": "App",
+    "intro": "Install Jikan to open it as an app and use it offline.",
+    "install": "Install app",
+    "installed": "App installed",
+    "installedApp": "Jikan is already installed on this device.",
+    "manualInstall": "Use “Add to Home Screen” in the browser menu to install it.",
+    "online": "Online",
+    "offline": "Offline",
+    "offlineReady": "Available offline",
+    "offlinePending": "Preparing offline mode…"
+  },
   "theme": {
     "auto": "Auto",
     "light": "Light",
@@ -362,7 +374,8 @@
     "activityStarting": "Starting soon",
     "activityNow": "Now: {activity}",
     "bodyStarting": "{activity} starts at {time}",
-    "denied": "Notifications are blocked in your browser"
+    "denied": "Notifications are blocked in your browser",
+    "viaServiceWorker": "Notifications go through the service worker, so they also arrive while the app is in the background."
   },
   "csv": {
     "export": "Export CSV",
