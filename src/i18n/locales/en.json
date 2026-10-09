@@ -124,17 +124,21 @@
   },
   "settings": {
     "title": "Settings",
+    "appearance": "Appearance",
+    "appearanceIntro": "Choose the visual style and the interface language.",
     "visualStyle": "Visual style",
-    "close": "Close",
     "logout": "Log out",
-    "open": "Open settings",
     "ariaOpen": "Open settings",
+    "nav": "Settings sections",
     "confirmLogout": "Are you sure you want to log out?",
     "logoutError": "Logout error: {msg}",
     "unexpectedError": "Unexpected error: {msg}",
     "language": "Language",
     "languageDescription": "Select the application language",
-    "dataSection": "Data"
+    "dataSection": "Data",
+    "dataIntro": "Import and export your schedule, or save local backups.",
+    "account": "Account",
+    "accountIntro": "Manage your account session or the local mode."
   },
   "guest": {
     "continueWithoutAccount": "Continue without an account",

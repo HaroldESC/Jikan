@@ -1,448 +1,244 @@
-﻿import { useRef } from 'react';
-import {
-  LogOut,
-  LogIn,
-  Palette,
-  Globe,
-  Bell,
-  Database,
-  Download,
-  Upload,
-  FileText,
-  FileSpreadsheet,
-  FileDown,
-  FileUp,
-  Archive,
-  History,
-  Save,
-  Info,
-  ShieldCheck,
-  Lock,
-  LockOpen,
-  KeyRound,
-  Smartphone,
-  Wifi,
-  WifiOff,
-} from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-import { useTheme } from '../../hooks/useTheme';
-import { useTranslation } from '../../i18n/useTranslation';
-import LanguageSelector from './LanguageSelector';
+/**
+ * SettingsModal — the application settings dialog.
+ *
+ * Layout is a two-pane "sidebar + panel" shell: a list of sections on the left
+ * (a vertical `tablist` on desktop, a horizontally scrollable chip row on
+ * phones) and the active section rendered on the right. Each section is an
+ * isolated component in `./settings/`, so no file has to know about the others.
+ *
+ * Styling follows the pattern used by the other modals in the app: a single
+ * implementation fed by `isMaru` / `isDarkMode`, with every colour resolved in
+ * `./settings/settingsStyles.js`.
+ *
+ * Props:
+ *   isOpen, onClose   — visibility.
+ *   notifications     — { preMinutes, setPreMinutes, permission, viaServiceWorker }
+ *                       Enables the "Notifications" section when present.
+ *   data              — { onExport, onExportPdf, onExportXlsx, onImport,
+ *                         onExportJson, onImportJson, onOpenBackups,
+ *                         onSaveBackupNow, snapshotCount, lastBackupAt,
+ *                         backupBusy }
+ *                       Enables the "Data" section (CSV/PDF/XLSX + local backup).
+ *   privacy           — { privacy: { notes, description, reminders, toggle },
+ *                         encryption: { supported, enabled, onOpen } }
+ *                       Enables the "Privacy" section.
+ *   pwa               — { canInstall, isInstalled, isOffline, offlineReady, onInstall }
+ *                       Enables the "App" section.
+ *   isGuest           — switches the "Account" section to local-mode actions.
+ *   onExitGuest       — leaves the account-free local mode.
+ *   isMaru/isDarkMode — visual variant of the app currently in use.
+ */
 
-// Categorías del modo privado (v4.0 C3) mostradas en la sección "Privacidad".
-const PRIVACY_ITEMS = [
-  { key: 'notes', label: 'privacy.notes' },
-  { key: 'description', label: 'privacy.description' },
-  { key: 'reminders', label: 'privacy.reminders' },
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { X, Palette, Bell, Database, ShieldCheck, Smartphone, User } from 'lucide-react';
+import { useTranslation } from '../../i18n/useTranslation';
+import { useSettingsStyles } from './settings/settingsStyles';
+import AppearanceSection from './settings/AppearanceSection';
+import NotificationsSection from './settings/NotificationsSection';
+import DataSection from './settings/DataSection';
+import PrivacySection from './settings/PrivacySection';
+import AppSection from './settings/AppSection';
+import AccountSection from './settings/AccountSection';
+
+// Section registry: the order here is the order shown in the sidebar. Optional
+// sections disappear when the props that feed them are missing.
+const SECTIONS = [
+  { id: 'appearance', icon: Palette, labelKey: 'settings.appearance', enabled: () => true },
+  { id: 'notifications', icon: Bell, labelKey: 'notifications.title', enabled: ({ notifications }) => !!notifications },
+  { id: 'data', icon: Database, labelKey: 'settings.dataSection', enabled: ({ data }) => !!data },
+  { id: 'privacy', icon: ShieldCheck, labelKey: 'privacy.section', enabled: ({ privacy }) => !!privacy },
+  { id: 'app', icon: Smartphone, labelKey: 'pwa.title', enabled: ({ pwa }) => !!pwa },
+  { id: 'account', icon: User, labelKey: 'settings.account', enabled: () => true },
 ];
 
-// Pre-aviso presets (minutes before an activity starts).
-const PRE_AVISO_OPTIONS = [0, 5, 10, 15, 30];
+const SECTION_VIEWS = {
+  appearance: AppearanceSection,
+  notifications: NotificationsSection,
+  data: DataSection,
+  privacy: PrivacySection,
+  app: AppSection,
+  account: AccountSection,
+};
 
-// `data` is optional: when provided it enables the "Data" section with the
-// CSV/PDF/XLSX export, CSV import and the JSON backup controls (v4.0 C2):
-//   {
-//     onExport, onExportPdf, onExportXlsx, onImport,
-//     onExportJson, onImportJson, onOpenBackups, onSaveBackupNow,
-//     snapshotCount, lastBackupAt, backupBusy
-//   }
-// `isGuest` switches the account section: in guest mode there is no Supabase
-// session to sign out of, so instead of "Log out" we offer "Create account /
-// Log in" plus a secondary "Exit local mode" (both delegate to `onExitGuest`).
-// `privacy` is optional and enables the "Privacy" section (v4.0 C3):
-//   { privacy: { notes, description, reminders, toggle(category) },
-//     encryption: { supported, enabled, onOpen(mode) } }
-// `pwa` is optional and enables the "App" section (v4.0 C4):
-//   { canInstall, isInstalled, isOffline, offlineReady, supported, onInstall }
-export function SettingsModal({ isOpen, onClose, notifications, data, isGuest = false, onExitGuest, privacy, pwa }) {
-  const { style, setStyle } = useTheme();
-  const { t, localeForDate } = useTranslation();
-  // Declared before the early return: hooks must never come after it.
-  const fileInputRef = useRef(null);
-  const backupInputRef = useRef(null);
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const tabId = (id) => `settings-tab-${id}`;
+const panelId = (id) => `settings-panel-${id}`;
+
+export function SettingsModal({
+  isOpen,
+  onClose,
+  notifications,
+  data,
+  isGuest = false,
+  onExitGuest,
+  privacy,
+  pwa,
+  isMaru = true,
+  isDarkMode = false,
+}) {
+  const { t } = useTranslation();
+  const s = useSettingsStyles(isMaru, isDarkMode);
+  const dialogRef = useRef(null);
+
+  const [activeId, setActiveId] = useState(SECTIONS[0].id);
+
+  const enabledIds = useMemo(
+    () =>
+      SECTIONS.filter((section) => section.enabled({ notifications, data, privacy, pwa })).map((section) => section.id),
+    [notifications, data, privacy, pwa]
+  );
+
+  // The active section must always be one that is actually rendered.
+  useEffect(() => {
+    setActiveId((prev) => (enabledIds.includes(prev) ? prev : enabledIds[0] ?? null));
+  }, [enabledIds]);
+
+  // Always reopen on the first section.
+  useEffect(() => {
+    if (isOpen) setActiveId(SECTIONS[0].id);
+  }, [isOpen]);
+
+  // Move focus into the dialog on open and give it back to the trigger on close.
+  // No requestAnimationFrame: the DOM is already committed when this effect
+  // runs, and rAF never fires in a fully hidden tab, which would silently skip
+  // the focus move.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const previous = document.activeElement;
+    const target =
+      dialogRef.current?.querySelector(`#${tabId(enabledIds[0] ?? 'appearance')}`) || dialogRef.current;
+    target?.focus();
+    return () => {
+      if (previous instanceof HTMLElement) previous.focus();
+    };
+  }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const close = useCallback(() => onClose?.(), [onClose]);
+
+  // Escape closes, Tab is trapped inside the dialog.
+  const handleDialogKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      close();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+
+    const focusables = dialogRef.current?.querySelectorAll(FOCUSABLE);
+    if (!focusables?.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  // Roving focus on the section list (WAI-ARIA tabs pattern).
+  const handleNavKeyDown = (event) => {
+    const isNext = event.key === 'ArrowDown' || event.key === 'ArrowRight';
+    const isPrev = event.key === 'ArrowUp' || event.key === 'ArrowLeft';
+    if (!isNext && !isPrev && event.key !== 'Home' && event.key !== 'End') return;
+
+    event.preventDefault();
+    const index = enabledIds.indexOf(activeId);
+    let nextIndex = index;
+    if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = enabledIds.length - 1;
+    else nextIndex = (index + (isNext ? 1 : -1) + enabledIds.length) % enabledIds.length;
+
+    const nextId = enabledIds[nextIndex];
+    if (!nextId) return;
+    setActiveId(nextId);
+    // Every section button is always mounted (only the panel swaps), so the
+    // target exists before the state update and can be focused right away.
+    document.getElementById(tabId(nextId))?.focus();
+  };
+
+  // Clicking the backdrop closes; clicks inside the card must not bubble out.
+  const handleScrimClick = (event) => {
+    if (event.target === event.currentTarget) close();
+  };
 
   if (!isOpen) return null;
 
-  // Delegated to MainShell.handleImportFile (which reads files[0] itself).
-  // Reset after the call so re-picking the same file fires onChange again.
-  const handleImportChange = (event) => {
-    if (!data?.onImport) return;
-    data.onImport(event);
-    event.target.value = '';
-  };
-
-  const handleBackupImportChange = (event) => {
-    if (!data?.onImportJson) return;
-    data.onImportJson(event);
-    event.target.value = '';
-  };
-
-  const formatWhen = (iso) => {
-    if (!iso) return null;
-    try {
-      return new Date(iso).toLocaleString(localeForDate);
-    } catch {
-      return iso;
-    }
-  };
-
-  const handleLogout = async () => {
-    const confirm = window.confirm(t('settings.confirmLogout'));
-    if (!confirm) return;
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        alert(t('settings.logoutError', { msg: error.message }));
-        return;
-      }
-    } catch (error) {
-      alert(t('settings.unexpectedError', { msg: error.message }));
-    }
-  };
-
-  // Guest mode: leaving the local mode returns to the login screen. Local data
-  // is kept, hence the explicit confirmation.
-  const handleExitGuest = () => {
-    const accepted = window.confirm(t('guest.confirmExit'));
-    if (!accepted) return;
-    onExitGuest?.();
-  };
+  const ActiveView = activeId ? SECTION_VIEWS[activeId] : null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 w-80 max-h-[90vh] overflow-y-auto custom-scrollbar shadow-2xl text-white border border-white/20">
-        <h2 className="text-2xl font-bold mb-6">{t('settings.title')}</h2>
-
-        <div className="mb-4">
-          <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Palette size={16} />
-            {t('settings.visualStyle')}
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setStyle('maru')}
-              className={`px-4 py-3 rounded-xl font-medium border transition duration-200 ${
-                style === 'maru'
-                  ? 'bg-blue-500/40 border-blue-400/60 text-white'
-                  : 'bg-white/10 border-white/20 text-white/70 hover:bg-white/20'
-              }`}
-            >
-              Maru
-            </button>
-            <button
-              onClick={() => setStyle('sei')}
-              className={`px-4 py-3 rounded-xl font-medium border transition duration-200 ${
-                style === 'sei'
-                  ? 'bg-blue-500/40 border-blue-400/60 text-white'
-                  : 'bg-white/10 border-white/20 text-white/70 hover:bg-white/20'
-              }`}
-            >
-              Sei
-            </button>
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Globe size={16} />
-            {t('settings.language')}
-          </p>
-          <LanguageSelector />
-        </div>
-
-        {notifications && (
-          <div className="mb-4">
-            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Bell size={16} />
-              {t('notifications.title')}
-            </p>
-            <label className="flex items-center justify-between gap-3 text-sm text-white/85">
-              <span>{t('notifications.preAviso')}</span>
-              <span className="flex items-center gap-2">
-                <select
-                  value={notifications.preMinutes}
-                  onChange={(event) => notifications.setPreMinutes(Number(event.target.value))}
-                  className="bg-white/10 border border-white/20 rounded-lg px-2 py-1.5 text-white focus:outline-none focus:border-blue-400/60"
-                  aria-label={t('notifications.preAviso')}
-                >
-                  {PRE_AVISO_OPTIONS.map((minutes) => (
-                    <option key={minutes} value={minutes} className="text-slate-900">
-                      {minutes}
-                    </option>
-                  ))}
-                </select>
-                <span className="text-white/60">{t('notifications.preAvisoUnit')}</span>
-              </span>
-            </label>
-            {notifications.permission === 'denied' && (
-              <p className="mt-2 text-xs text-red-300">{t('notifications.denied')}</p>
-            )}
-            {notifications.viaServiceWorker && (
-              <p className="mt-2 text-xs text-white/50">{t('notifications.viaServiceWorker')}</p>
-            )}
-          </div>
-        )}
-
-        {data && (
-          <div className="mb-4">
-            <p className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Database size={16} />
-              {t('settings.dataSection')}
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={handleImportChange}
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={data.onExport}
-                aria-label={t('csv.export')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-              >
-                <Download size={16} />
-                {t('csv.export')}
-              </button>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                aria-label={t('csv.import')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-              >
-                <Upload size={16} />
-                {t('csv.import')}
-              </button>
-              {data.onExportPdf && (
-                <button
-                  onClick={data.onExportPdf}
-                  aria-label={t('export.pdf')}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-                >
-                  <FileText size={16} />
-                  {t('export.pdf')}
-                </button>
-              )}
-              {data.onExportXlsx && (
-                <button
-                  onClick={data.onExportXlsx}
-                  aria-label={t('export.xlsx')}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-                >
-                  <FileSpreadsheet size={16} />
-                  {t('export.xlsx')}
-                </button>
-              )}
-            </div>
-
-            {data.onExportJson && (
-              <>
-                {/* ── Local backup (v4.0 C2) ── */}
-                <p className="text-sm font-semibold mt-5 mb-1 flex items-center gap-2">
-                  <Archive size={16} />
-                  {t('backup.title')}
-                </p>
-                <p className="text-xs text-white/60 mb-3">{t('backup.intro')}</p>
-                <input
-                  ref={backupInputRef}
-                  type="file"
-                  accept=".json,application/json"
-                  className="hidden"
-                  onChange={handleBackupImportChange}
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={data.onExportJson}
-                    aria-label={t('backup.exportJson')}
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-                  >
-                    <FileDown size={16} />
-                    {t('backup.exportJson')}
-                  </button>
-                  <button
-                    onClick={() => backupInputRef.current?.click()}
-                    aria-label={t('backup.importJson')}
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-                  >
-                    <FileUp size={16} />
-                    {t('backup.importJson')}
-                  </button>
-                  <button
-                    onClick={data.onOpenBackups}
-                    aria-label={t('backup.backups')}
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-                  >
-                    <History size={16} />
-                    {t('backup.backups')}
-                  </button>
-                  <button
-                    onClick={data.onSaveBackupNow}
-                    disabled={data.backupBusy}
-                    aria-label={t('backup.saveNow')}
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium disabled:opacity-50"
-                  >
-                    <Save size={16} />
-                    {t('backup.saveNow')}
-                  </button>
-                </div>
-                <p className="mt-2 text-xs text-white/60">
-                  {data.lastBackupAt
-                    ? t('backup.lastBackup', { when: formatWhen(data.lastBackupAt) })
-                    : t('backup.noBackups')}
-                </p>
-              </>
-            )}
-          </div>
-        )}
-
-        {privacy && (
-          <div className="mb-4">
-            <p className="text-sm font-semibold mb-1 flex items-center gap-2">
-              <ShieldCheck size={16} />
-              {t('privacy.section')}
-            </p>
-            <p className="text-xs text-white/60 mb-3">{t('privacy.intro')}</p>
-
-            <div className="space-y-2">
-              {PRIVACY_ITEMS.map((item) => {
-                const enabled = privacy.privacy[item.key] !== false;
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => privacy.privacy.toggle(item.key)}
-                    aria-pressed={enabled}
-                    className="flex w-full items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-left transition"
-                  >
-                    <span className="text-sm text-white/90">{t(item.label)}</span>
-                    <span
-                      className={`shrink-0 text-xs font-medium px-2 py-1 rounded-lg ${
-                        enabled ? 'bg-green-500/20 text-green-200' : 'bg-white/10 text-white/60'
-                      }`}
-                    >
-                      {enabled ? t('privacy.on') : t('privacy.off')}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="mt-2 text-xs text-white/50">{t('privacy.offHint')}</p>
-
-            {privacy.encryption && (
-              <>
-                <p className="text-sm font-semibold mt-5 mb-1 flex items-center gap-2">
-                  <Lock size={16} />
-                  {t('privacy.encryption')}
-                </p>
-                <p className="text-xs text-white/60 mb-3">{t('privacy.encryptionIntro')}</p>
-                {privacy.encryption.enabled && (
-                  <p className="mb-2 text-xs text-green-300">{t('privacy.encryptionActive')}</p>
-                )}
-                {!privacy.encryption.supported ? (
-                  <p className="text-xs text-amber-300">{t('encryption.notSupported')}</p>
-                ) : privacy.encryption.enabled ? (
-                  <div className="grid grid-cols-1 gap-2">
-                    <button
-                      onClick={() => privacy.encryption.onOpen('change')}
-                      className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 transition text-sm font-medium"
-                    >
-                      <KeyRound size={16} />
-                      {t('privacy.changePassphrase')}
-                    </button>
-                    <button
-                      onClick={() => privacy.encryption.onOpen('disable')}
-                      className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-200 border border-red-500/30 transition text-sm font-medium"
-                    >
-                      <LockOpen size={16} />
-                      {t('privacy.disableEncryption')}
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => privacy.encryption.onOpen('create')}
-                    className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 transition text-sm font-medium"
-                  >
-                    <Lock size={16} />
-                    {t('privacy.enableEncryption')}
-                  </button>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {pwa && (
-          <div className="mb-4">
-            <p className="text-sm font-semibold mb-1 flex items-center gap-2">
-              <Smartphone size={16} />
-              {t('pwa.title')}
-            </p>
-            <p className="text-xs text-white/60 mb-3">{t('pwa.intro')}</p>
-
-            {pwa.isInstalled ? (
-              <p className="text-xs text-green-300">{t('pwa.installedApp')}</p>
-            ) : pwa.canInstall ? (
-              <button
-                onClick={pwa.onInstall}
-                aria-label={t('pwa.install')}
-                className="flex items-center justify-center gap-2 w-full px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-              >
-                <Download size={16} />
-                {t('pwa.install')}
-              </button>
-            ) : (
-              <p className="text-xs text-white/60">{t('pwa.manualInstall')}</p>
-            )}
-
-            <div className="mt-3 space-y-1">
-              <p className="text-xs text-white/60 flex items-center gap-2">
-                <Wifi size={14} className="shrink-0" />
-                {pwa.isOffline ? t('pwa.offline') : t('pwa.online')}
-              </p>
-              <p className="text-xs text-white/60 flex items-center gap-2">
-                <WifiOff size={14} className="shrink-0" />
-                {pwa.offlineReady ? t('pwa.offlineReady') : t('pwa.offlinePending')}
-              </p>
-            </div>
-          </div>
-        )}
-        {isGuest ? (
-          <div>
-            <p className="mb-3 text-xs text-white/70 flex items-start gap-2">
-              <Info size={14} className="mt-0.5 shrink-0" />
-              <span>{t('guest.dataNotice')}</span>
-            </p>
-            <button
-              onClick={() => onExitGuest?.()}
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 hover:text-blue-100 border border-blue-500/30 hover:border-blue-500/50 transition duration-200 font-medium"
-            >
-              <LogIn size={18} />
-              {t('guest.createAccount')}
-            </button>
-            <button
-              onClick={handleExitGuest}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2 mt-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white border border-white/10 transition duration-200 text-sm font-medium"
-            >
-              <LogOut size={16} />
-              {t('guest.exitLocalMode')}
-            </button>
-          </div>
-        ) : (
-          <button
-              onClick={handleLogout}
-              className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 hover:border-red-500/50 transition duration-200 font-medium"
-          >
-              <LogOut size={18} />
-              {t('settings.logout')}
+    <div className={s.scrim} onMouseDown={handleScrimClick} role="presentation">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        className={s.card}
+        onKeyDown={handleDialogKeyDown}
+      >
+        {/* ── HEADER ── */}
+        <div className={`${s.header} ${s.headerBorder}`}>
+          <h2 id="settings-title" className={s.title}>
+            {t('settings.title')}
+          </h2>
+          <button type="button" onClick={close} className={`${s.closeBtn} ${s.focusRing}`} aria-label={t('common.close')}>
+            <X size={22} />
           </button>
-        )}
+        </div>
 
-        <button
-          onClick={onClose}
-          className="w-full mt-4 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white border border-white/10 hover:border-white/20 transition duration-200 text-sm font-medium"
-        >
-          {t('settings.close')}
-        </button>
+        {/* ── BODY: sidebar + panel ── */}
+        <div className={s.body}>
+          <nav
+            className={s.nav}
+            role="tablist"
+            aria-orientation="vertical"
+            aria-label={t('settings.nav')}
+            onKeyDown={handleNavKeyDown}
+          >
+            {SECTIONS.filter((section) => enabledIds.includes(section.id)).map((section) => {
+              const Icon = section.icon;
+              const isActive = section.id === activeId;
+              return (
+                <button
+                  key={section.id}
+                  id={tabId(section.id)}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={panelId(section.id)}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => setActiveId(section.id)}
+                  className={`${s.navBtn} ${isActive ? s.navBtnActive : s.navBtnIdle} ${s.focusRing}`}
+                >
+                  <Icon size={16} className="shrink-0" />
+                  {t(section.labelKey)}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div
+            id={panelId(activeId)}
+            role="tabpanel"
+            aria-labelledby={tabId(activeId)}
+            tabIndex={0}
+            className={`${s.panel} ${s.focusRing}`}
+          >
+            {ActiveView && (
+              <ActiveView
+                s={s}
+                notifications={notifications}
+                data={data}
+                privacy={privacy}
+                pwa={pwa}
+                isGuest={isGuest}
+                onExitGuest={onExitGuest}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

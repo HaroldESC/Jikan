@@ -1,0 +1,119 @@
+/**
+ * Settings › Data section.
+ * Owns the CSV import/export grid, the optional PDF/XLSX exports and the JSON
+ * local-backup sub-block. Every visual comes from the `s` tokens plus the
+ * primitives in `./ui.jsx`, so Maru and Sei share a single implementation.
+ */
+
+import { useRef } from 'react';
+import {
+  Archive,
+  Database,
+  Download,
+  FileDown,
+  FileSpreadsheet,
+  FileText,
+  FileUp,
+  History,
+  Save,
+  Upload,
+} from 'lucide-react';
+import { useTranslation } from '../../../i18n/useTranslation';
+import { Section, SubGroup, ActionGrid, ActionButton, Note } from './ui';
+
+export default function DataSection({ s, data }) {
+  const { t, localeForDate } = useTranslation();
+  // Declared before the early return: hooks must never come after it.
+  const fileInputRef = useRef(null);
+  const backupInputRef = useRef(null);
+
+  if (!data) return null;
+
+  // Delegated to MainShell.handleImportFile (which reads files[0] itself).
+  // Reset after the call so re-picking the same file fires onChange again.
+  const handleImportChange = (event) => {
+    if (!data.onImport) return;
+    data.onImport(event);
+    event.target.value = '';
+  };
+
+  const handleBackupImportChange = (event) => {
+    if (!data.onImportJson) return;
+    data.onImportJson(event);
+    event.target.value = '';
+  };
+
+  const formatWhen = (iso) => {
+    if (!iso) return null;
+    try {
+      return new Date(iso).toLocaleString(localeForDate);
+    } catch {
+      return iso;
+    }
+  };
+
+  return (
+    <Section s={s} title={t('settings.dataSection')} description={t('settings.dataIntro')} icon={Database}>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv,text/csv"
+        className="hidden"
+        onChange={handleImportChange}
+      />
+
+      <ActionGrid>
+        <ActionButton s={s} icon={Download} onClick={data.onExport}>
+          {t('csv.export')}
+        </ActionButton>
+        <ActionButton s={s} icon={Upload} onClick={() => fileInputRef.current?.click()}>
+          {t('csv.import')}
+        </ActionButton>
+        {data.onExportPdf && (
+          <ActionButton s={s} icon={FileText} onClick={data.onExportPdf}>
+            {t('export.pdf')}
+          </ActionButton>
+        )}
+        {data.onExportXlsx && (
+          <ActionButton s={s} icon={FileSpreadsheet} onClick={data.onExportXlsx}>
+            {t('export.xlsx')}
+          </ActionButton>
+        )}
+      </ActionGrid>
+
+      {/* ── Local backup (v4.0 C2) ── */}
+      {data.onExportJson && (
+        <SubGroup s={s} icon={Archive} title={t('backup.title')} description={t('backup.intro')}>
+          <input
+            ref={backupInputRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={handleBackupImportChange}
+          />
+
+          <ActionGrid>
+            <ActionButton s={s} icon={FileDown} onClick={data.onExportJson}>
+              {t('backup.exportJson')}
+            </ActionButton>
+            <ActionButton s={s} icon={FileUp} onClick={() => backupInputRef.current?.click()}>
+              {t('backup.importJson')}
+            </ActionButton>
+            <ActionButton s={s} icon={History} onClick={data.onOpenBackups}>
+              {t('backup.backups')}
+            </ActionButton>
+            <ActionButton s={s} icon={Save} onClick={data.onSaveBackupNow} disabled={data.backupBusy}>
+              {t('backup.saveNow')}
+            </ActionButton>
+          </ActionGrid>
+
+          <Note s={s} className="mt-2">
+            {data.lastBackupAt
+              ? t('backup.lastBackup', { when: formatWhen(data.lastBackupAt) })
+              : t('backup.noBackups')}
+          </Note>
+        </SubGroup>
+      )}
+    </Section>
+  );
+}

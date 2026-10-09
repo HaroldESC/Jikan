@@ -124,17 +124,21 @@
   },
   "settings": {
     "title": "Configuración",
+    "appearance": "Apariencia",
+    "appearanceIntro": "Elige el estilo visual y el idioma de la interfaz.",
     "visualStyle": "Estilo visual",
-    "close": "Cerrar",
     "logout": "Cerrar sesión",
-    "open": "Abrir configuración",
     "ariaOpen": "Abrir ajustes",
+    "nav": "Secciones de configuración",
     "confirmLogout": "¿Estás seguro de que deseas cerrar sesión?",
     "logoutError": "Error al cerrar sesión: {msg}",
     "unexpectedError": "Error inesperado: {msg}",
     "language": "Idioma",
     "languageDescription": "Selecciona el idioma de la aplicación",
-    "dataSection": "Datos"
+    "dataSection": "Datos",
+    "dataIntro": "Importa y exporta tu horario, o guarda copias locales de seguridad.",
+    "account": "Cuenta",
+    "accountIntro": "Gestiona la sesión de tu cuenta o el modo local."
   },
   "guest": {
     "continueWithoutAccount": "Continuar sin cuenta",

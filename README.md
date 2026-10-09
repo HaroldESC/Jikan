@@ -41,11 +41,16 @@
 
 ### Settings
 
-The settings panel is split into three sections:
+The settings dialog uses a **sidebar + panel** layout: the sidebar lists every section with an icon and a label, and the right panel shows the active one (on phones the sidebar becomes a horizontally scrollable chip row). It renders correctly in both visual styles and covers six sections:
 
-- **Data** — local snapshots (browse / restore / delete) and the full JSON export & import
-- **Privacy** — private mode (opt out per category) and the local encryption passphrase
+- **Appearance** — visual style (Maru / Sei) and interface language
+- **Notifications** — pre-activity warning offset, permission status and service-worker delivery
+- **Data** — CSV / PDF / XLSX import and export, plus the "Local backup" sub-block (snapshots to browse / restore / delete and the full JSON export & import)
+- **Privacy** — private mode (opt out per category) and the "Local encryption" sub-block
 - **App** — install Jikan as a native app, plus the connection status and whether the app is already available offline
+- **Account** — sign out, or create an account / leave guest mode
+
+Each section lives in its own component under `src/core/common/settings/` (`Settings.jsx` is just the shell). Keyboard and accessibility: close button, <kbd>Escape</kbd>, click-outside, focus trap, arrow-key navigation across the section list and focus restored to the gear icon on close.
 
 ### Dual-Style Architecture (Maru + Sei)
 
@@ -136,11 +141,14 @@ jikan/
 │   ├── components/          # Shared UI (Header, DaySelector, ActivityCard)
 │   ├── core/                # Main application components
 │   │   ├── activities/      # Activity list, detail views, editors (Maru/Sei)
-│   │   ├── common/          # Settings, LanguageSelector, ThemeToggle, modals
+│   │   ├── common/          # Settings, ThemeToggle, modals
 │   │   │                    # (incl. GuestMigrationModal.jsx — guest ↔ account migration,
 │   │   │                    #  BackupRestoreModal.jsx — local snapshot list: restore/delete,
 │   │   │                    #  UnlockScreen.jsx — full-screen lock when encryption is on,
-│   │   │                    #  PassphraseModal.jsx — enable/change/disable encryption)
+│   │   │                    #  PassphraseModal.jsx — enable/change/disable encryption;
+│   │   │                    #  settings/ — the settings dialog split per section and styled
+│   │   │                    #  for both Maru and Sei: settingsStyles.js, ui.jsx,
+│   │   │                    #  LanguageSelector.jsx + one file per section)
 │   │   ├── stats/           # Daily statistics dashboard, reminders
 │   │   ├── wheel/           # SVG circular chart (WheelMaru / WheelSei)
 │   │   ├── utils/           # Maru ↔ Sei adapters

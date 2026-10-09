@@ -457,6 +457,8 @@ export default function AppLayout({
         onExitGuest={onExitGuest}
         privacy={privacy}
         pwa={pwa}
+        isMaru={isMaru}
+        isDarkMode={dark}
       />
 
       <ImportModal

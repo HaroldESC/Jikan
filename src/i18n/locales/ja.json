@@ -124,17 +124,21 @@
   },
   "settings": {
     "title": "設定",
+    "appearance": "外観",
+    "appearanceIntro": "表示スタイルと表示言語を選択してください。",
     "visualStyle": "表示スタイル",
-    "close": "閉じる",
     "logout": "ログアウト",
-    "open": "設定を開く",
     "ariaOpen": "設定を開く",
+    "nav": "設定のセクション",
     "confirmLogout": "ログアウトしてもよろしいですか？",
     "logoutError": "ログアウトエラー：{msg}",
     "unexpectedError": "予期しないエラー：{msg}",
     "language": "言語",
     "languageDescription": "アプリケーションの言語を選択",
-    "dataSection": "データ"
+    "dataSection": "データ",
+    "dataIntro": "時間割のインポート・エクスポート、ローカルバックアップを行います。",
+    "account": "アカウント",
+    "accountIntro": "アカウントのセッションとローカルモードを管理します。"
   },
   "guest": {
     "continueWithoutAccount": "アカウントなしで続ける",
