@@ -32,6 +32,7 @@
 - **Full JSON Export / Import (GDPR)** — The "Data" section of Settings exports everything the app keeps in your browser (activities, reminders, panels, settings, pomodoro, notifications) to a `jikan-backup-YYYY-MM-DD.json` file, and imports it back with per-row validation
 - **Private Mode** — Opt out of saving notes, descriptions or reminders; disabled categories are discarded on save (and on import), living only in memory for the current session. Configured in the new "Privacy" section of Settings, next to the "Data" section
 - **Local Encryption** — AES-GCM 256 + PBKDF2-SHA256 (250 000 iterations) over your whole local schedule and your local snapshots, with a full-screen lock asking for the passphrase on every launch; set up from the "Privacy" section of Settings (enable / change passphrase / disable)
+- **Cloud Backup (Google Drive)** — Manually upload the full backup to your own Drive, list the stored copies and restore or delete them from Settings → Data; the access token lives only in memory (no refresh token is stored) and uploads are encrypted client-side whenever local encryption is enabled
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
 - **User Authentication** — Email/password login & registration via Supabase
 - **Guest Mode** — Use Jikan without an account: the schedule lives in IndexedDB on the device, with an optional offer to upload it to an account later
@@ -45,7 +46,7 @@ The settings dialog uses a **sidebar + panel** layout: the sidebar lists every s
 
 - **Appearance** — visual style (Maru / Sei) and interface language
 - **Notifications** — pre-activity warning offset, permission status and service-worker delivery
-- **Data** — CSV / PDF / XLSX import and export, plus the "Local backup" sub-block (snapshots to browse / restore / delete and the full JSON export & import)
+- **Data** — CSV / PDF / XLSX import and export, the "Local backup" sub-block (snapshots to browse / restore / delete and the full JSON export & import) and the "Cloud backup" sub-block (connect Google Drive, upload, list, restore and delete copies — shown only when `VITE_GOOGLE_CLIENT_ID` is configured)
 - **Privacy** — private mode (opt out per category) and the "Local encryption" sub-block
 - **App** — install Jikan as a native app, plus the connection status and whether the app is already available offline
 - **Account** — sign out, or create an account / leave guest mode
@@ -93,7 +94,14 @@ npm run dev
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
+
+# Optional — enables the Google Drive cloud backup block in Settings → Data
+# (Google Cloud Console → OAuth client ID, Web application, Authorized
+# JavaScript origins only; no redirect URI needed)
+VITE_GOOGLE_CLIENT_ID=
 ```
+
+Without `VITE_GOOGLE_CLIENT_ID` the app works exactly the same, minus the cloud backup block.
 
 ### Commands
 
@@ -149,6 +157,8 @@ jikan/
 │   │   ├── common/          # Settings, ThemeToggle, modals
 │   │   │                    # (incl. GuestMigrationModal.jsx — guest ↔ account migration,
 │   │   │                    #  BackupRestoreModal.jsx — local snapshot list: restore/delete,
+│   │   │                    #  CloudBackupModal.jsx — Drive backup list: restore/delete with an
+│   │   │                    #  inline passphrase prompt for encrypted files,
 │   │   │                    #  UnlockScreen.jsx — full-screen lock when encryption is on,
 │   │   │                    #  PassphraseModal.jsx — enable/change/disable encryption;
 │   │   │                    #  settings/ — the settings dialog split per section and styled
@@ -175,6 +185,7 @@ jikan/
 │   │   ├── usePwa.js       # PWA state: canInstall, isInstalled, isOffline, offlineReady
 │   │                        # (captures beforeinstallprompt + service worker status)
 │   │   ├── useLocalBackup.js # Auto local snapshots in IndexedDB (≤ every 30 min, keep 10 per user)
+│   │   ├── useCloudBackup.js # Google Drive connection state + manual cloud backups (v4.0 C5)
 │   │   ├── usePrivacy.js    # Private mode: opt-out per category (notes, description, reminders)
 │   │   ├── useEncryption.js # Encryption state (enable/unlock/change/disable + row migration)
 │   │   └── useClock.js      # Real-time clock
@@ -189,6 +200,8 @@ jikan/
 │   │   ├── backupStore.js   # Versioned local snapshots in the `backups` store (list/latest/create/
 │   │   │                    #  remove/clear/prune); same encryptAll/decryptAll/reencryptAll
 │   │   ├── crypto.js        # Web Crypto: AES-GCM 256 + PBKDF2, session key (memory only)
+│   │   ├── gdrive.js        # Google Drive client (GIS token flow, scope drive.file; the OAuth
+│   │   │                    #  access token lives only in module memory)
 │   │   └── supabase.js      # Supabase client
 │   ├── utils/               # Utility functions (dates, csv, export, backup.js: pure
 │   │                        #  build/serialize/parse helpers, BACKUP_VERSION = 1, retention 10)
@@ -241,7 +254,7 @@ jikan/
 - [x] **Full data export** (GDPR compliance)
 - [x] **Private mode** — opt out of saving certain data
 - [x] **Local encryption** for sensitive data
-- [ ] **Cloud backup** (Google Drive, Dropbox)
+- [x] **Cloud backup** — manual upload/list/restore/delete on Google Drive (Dropbox deferred to v4.1)
 - [x] **PWA** — offline support, installable (home screen widgets are not a standard PWA capability and are out of scope)
 
 ### v5.0 — Study & Content Tools

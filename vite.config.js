@@ -77,7 +77,10 @@ export default defineConfig({
           },
           {
             // Lazy chunks (PDF/XLSX export): cached the first time they are used.
-            urlPattern: ({ request }) => request.destination === 'script',
+            // Same-origin only: cross-origin scripts (e.g. accounts.google.com/gsi)
+            // must never be cached (opaque responses served stale/offline).
+            urlPattern: ({ request, url }) =>
+              request.destination === 'script' && url.origin === self.location.origin,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'jikan-assets',

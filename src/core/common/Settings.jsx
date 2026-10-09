@@ -17,8 +17,11 @@
  *   data              — { onExport, onExportPdf, onExportXlsx, onImport,
  *                         onExportJson, onImportJson, onOpenBackups,
  *                         onSaveBackupNow, snapshotCount, lastBackupAt,
- *                         backupBusy }
- *                       Enables the "Data" section (CSV/PDF/XLSX + local backup).
+ *                         backupBusy,
+ *                         onCloudConnect, onCloudDisconnect, onCloudUpload,
+ *                         onOpenCloudList, status, cloudBusy }
+ *                       Enables the "Data" section (CSV/PDF/XLSX + local backup
+ *                       + cloud backup on Google Drive when present).
  *   privacy           — { privacy: { notes, description, reminders, toggle },
  *                         encryption: { supported, enabled, onOpen } }
  *                       Enables the "Privacy" section.

@@ -6,6 +6,7 @@ import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
 import { useGuestMigration } from '../hooks/useGuestMigration';
 import { useLocalBackup } from '../hooks/useLocalBackup';
+import { useCloudBackup } from '../hooks/useCloudBackup';
 import { usePrivacy } from '../hooks/usePrivacy';
 import { usePwa } from '../hooks/usePwa';
 import { getCurrentDay } from '../utils/dates';
@@ -14,11 +15,12 @@ import {
   backupFileName,
   buildBackup,
   downloadTextFile,
+  isCloudEnvelope,
   parseBackup,
   serializeBackup,
 } from '../utils/backup';
 import { buildWeekRows, exportWeekToPdf, exportWeekToXlsx } from '../utils/export';
-import { MIN_PASSPHRASE_LENGTH } from '../lib/crypto';
+import { decryptValue, deriveKey, MIN_PASSPHRASE_LENGTH } from '../lib/crypto';
 
 import AppLayout from './AppLayout';
 import DetailViewMaru from './activities/DetailViewMaru';
@@ -26,6 +28,7 @@ import EditViewSei from './activities/EditViewSei';
 import EditViewMaru from './activities/EditViewMaru';
 import GuestMigrationModal from './common/GuestMigrationModal';
 import BackupRestoreModal from './common/BackupRestoreModal';
+import CloudBackupModal from './common/CloudBackupModal';
 import ImportModal from './common/ImportModal';
 import PassphraseModal from './common/PassphraseModal';
 
@@ -80,6 +83,11 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
     loading,
     isGuest,
   });
+
+  // Backup en la nube (v4.0 C5): Google Drive, manual. El hook y el estado del
+  // modal se declaran ANTES del early return de `loading` (orden de hooks).
+  const cloud = useCloudBackup({ rows, user, isGuest, encryption });
+  const [showCloudModal, setShowCloudModal] = useState(false);
 
   const [currentDay, setCurrentDay] = useState(getCurrentDay());
   const [view, setView] = useState('main');
@@ -233,6 +241,118 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   };
 
   // ── Fin backup local ─────────────────────────────────────────────────────
+
+  // ── Backup en la nube (v4.0 C5) ─────────────────────────────────────────
+
+  /** Traduce los códigos de error de Drive a i18n; el resto usa `genericKey`. */
+  const cloudAlert = (error, genericKey) => {
+    const code = error?.code;
+    if (code === 'offline') alert(t('backup.cloudOffline'));
+    else if (code === 'expired') alert(t('backup.cloudExpired'));
+    else if (code === 'forbidden') alert(t('backup.cloudNeedConnect'));
+    else alert(t(genericKey, { msg: String(error?.message ?? code ?? 'unknown') }));
+  };
+
+  const handleCloudConnect = async () => {
+    try {
+      await cloud.connect();
+    } catch (error) {
+      // Cerrar el popup de consentimiento no es un error: no alertar.
+      if (error?.code === 'popup_closed') return;
+      cloudAlert(error, 'backup.cloudUploadError');
+    }
+  };
+
+  const handleCloudDisconnect = () => {
+    cloud.disconnect();
+  };
+
+  const handleCloudUpload = async () => {
+    try {
+      await cloud.upload();
+      alert(t('backup.cloudUploaded'));
+    } catch (error) {
+      cloudAlert(error, 'backup.cloudUploadError');
+    }
+  };
+
+  /** Abre el modal de copias en la nube y refresca la lista (errores → modal). */
+  const handleOpenCloudList = () => {
+    setShowCloudModal(true);
+    cloud.list().catch(() => {}); // el modal pinta listBusy/listError
+  };
+
+  const handleCloudDelete = async (item) => {
+    if (!window.confirm(t('backup.cloudConfirmDelete'))) return;
+    try {
+      await cloud.remove(item.id);
+    } catch (error) {
+      cloudAlert(error, 'backup.cloudListError');
+    }
+  };
+
+  /**
+   * Restaura una copia de la nube (append). Devuelve una promise que:
+   *  - resuelve al completarse,
+   *  - rechaza con `{ code: 'needsPassphrase' | 'wrongPassphrase' }` (el
+   *    modal repite el prompt de frase inline, sin alert),
+   *  - rechaza con `{ code: 'download' | 'format' | 'empty' | 'cancelled' |
+   *    'append' }` para el resto (los no-inline ya han alertado aquí).
+   */
+  const handleCloudRestore = async (item, passphrase) => {
+    let text;
+    try {
+      text = await cloud.download(item.id);
+    } catch (error) {
+      cloudAlert(error, 'backup.cloudRestoreError');
+      throw { code: 'download' };
+    }
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      alert(t('backup.cloudRestoreError', { msg: 'invalid JSON' }));
+      throw { code: 'format' };
+    }
+
+    let parsed;
+    if (isCloudEnvelope(json)) {
+      if (!passphrase) throw { code: 'needsPassphrase' };
+      let inner;
+      try {
+        const { key } = await deriveKey(passphrase, json.kdf);
+        inner = await decryptValue(key, json.payload);
+      } catch {
+        throw { code: 'wrongPassphrase' };
+      }
+      parsed = parseBackup(serializeBackup(inner));
+    } else {
+      parsed = parseBackup(text);
+    }
+
+    if (!parsed.payload || parsed.rows.length === 0) {
+      alert(t('backup.restoreEmpty'));
+      throw { code: 'empty' };
+    }
+
+    const when = new Date(item.createdTime).toLocaleString(localeForDate);
+    if (!window.confirm(t('backup.restoreConfirm', { count: parsed.rows.length, when }))) {
+      throw { code: 'cancelled' };
+    }
+
+    try {
+      const payload = parsed.rows.map((row) => ({ ...row, user_id: user.id }));
+      await appendRows(payload);
+      setShowCloudModal(false);
+      alert(t('backup.restoreSuccess', { count: payload.length }));
+    } catch (error) {
+      cloudAlert(error, 'backup.cloudRestoreError');
+      throw { code: 'append' };
+    }
+  };
+
+  // ── Fin backup en la nube ───────────────────────────────────────────────
 
   // ── Cifrado local (v4.0 C3) ──────────────────────────────────────────────
 
@@ -583,6 +703,14 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
           lastBackupAt: localBackup.lastBackupAt,
           busy: localBackup.busy,
         }}
+        cloudActions={{
+          onCloudConnect: handleCloudConnect,
+          onCloudDisconnect: handleCloudDisconnect,
+          onCloudUpload: handleCloudUpload,
+          onOpenCloudList: handleOpenCloudList,
+          status: cloud.status,
+          cloudBusy: cloud.busy,
+        }}
         currentTime={currentTime}
         themeMode={themeMode}
         toggleTheme={toggleTheme}
@@ -646,6 +774,20 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
         onRestore={handleRestoreSnapshot}
         onDelete={handleDeleteSnapshot}
         onClose={() => setShowBackupModal(false)}
+        isMaru={style === 'maru'}
+        isDarkMode={isDarkMode()}
+      />
+
+      <CloudBackupModal
+        isOpen={showCloudModal}
+        items={cloud.items}
+        busy={cloud.busy}
+        listBusy={cloud.listBusy}
+        listError={cloud.listError}
+        status={cloud.status}
+        onRestore={handleCloudRestore}
+        onDelete={handleCloudDelete}
+        onClose={() => setShowCloudModal(false)}
         isMaru={style === 'maru'}
         isDarkMode={isDarkMode()}
       />

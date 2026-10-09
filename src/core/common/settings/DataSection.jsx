@@ -8,6 +8,10 @@
 import { useRef } from 'react';
 import {
   Archive,
+  Cloud,
+  CloudDownload,
+  CloudOff,
+  CloudUpload,
   Database,
   Download,
   FileDown,
@@ -17,6 +21,7 @@ import {
   History,
   Save,
   Upload,
+  UploadCloud,
 } from 'lucide-react';
 import { useTranslation } from '../../../i18n/useTranslation';
 import { Section, SubGroup, ActionGrid, ActionButton, Note } from './ui';
@@ -111,6 +116,51 @@ export default function DataSection({ s, data }) {
             {data.lastBackupAt
               ? t('backup.lastBackup', { when: formatWhen(data.lastBackupAt) })
               : t('backup.noBackups')}
+          </Note>
+        </SubGroup>
+      )}
+
+      {/* ── Cloud backup (v4.0 C5) ── */}
+      {data.onCloudUpload && (
+        <SubGroup s={s} icon={CloudUpload} title={t('backup.cloudTitle')} description={t('backup.cloudIntro')}>
+          <ActionGrid>
+            {data.status === 'connected' ? (
+              <ActionButton s={s} icon={CloudOff} onClick={data.onCloudDisconnect} disabled={data.cloudBusy}>
+                {t('backup.cloudDisconnect')}
+              </ActionButton>
+            ) : (
+              <ActionButton s={s} icon={Cloud} onClick={data.onCloudConnect} disabled={data.cloudBusy}>
+                {t('backup.cloudConnect')}
+              </ActionButton>
+            )}
+            <ActionButton
+              s={s}
+              icon={UploadCloud}
+              onClick={data.onCloudUpload}
+              disabled={data.cloudBusy || data.status !== 'connected'}
+            >
+              {t('backup.cloudUpload')}
+            </ActionButton>
+            <ActionButton
+              s={s}
+              icon={CloudDownload}
+              onClick={data.onOpenCloudList}
+              disabled={data.status !== 'connected'}
+            >
+              {t('backup.cloudList')}
+            </ActionButton>
+          </ActionGrid>
+
+          <Note
+            s={s}
+            tone={data.status === 'expired' ? 'warn' : 'info'}
+            className="mt-2"
+          >
+            {data.status === 'connected'
+              ? t('backup.cloudConnected')
+              : data.status === 'expired'
+                ? t('backup.cloudExpired')
+                : t('backup.cloudDisconnected')}
           </Note>
         </SubGroup>
       )}

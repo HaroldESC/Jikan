@@ -130,6 +130,51 @@ export const serializeBackup = (payload) => JSON.stringify(payload, null, 2);
 export const backupFileName = (date = new Date()) => `jikan-backup-${exportDateKey(date)}.json`;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Envolvente de la copia en la nube (C5)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Versión de la envolvente de la copia subida a la nube.
+ * Se llama `env` y NO `version` para no colisionar con `BACKUP_VERSION`:
+ * la envolvente envuelve un backup ya cifrado, no es un backup en sí.
+ */
+export const CLOUD_ENVELOPE_ENV = 1;
+
+/**
+ * Envuelve un payload (cifrado o no) para subirlo a la nube.
+ *
+ * @param {object} params
+ * @param {*}      params.payload contenido del campo `payload` (si la copia va
+ *                   cifrada, el sobre devuelto por `encryptValue`)
+ * @param {{ salt: string, iterations: number }} params.kdf material de
+ *                   derivación, para rederivar la clave al restaurar
+ * @returns {{ app: string, encrypted: boolean, env: number,
+ *             kdf: { salt: string, iterations: number }, payload: * }}
+ * @throws {Error} si falta `kdf.salt` (sin sal no se puede rederivar la clave)
+ */
+export function buildCloudEnvelope({ payload, kdf } = {}) {
+  if (!kdf?.salt) {
+    throw new Error('buildCloudEnvelope: kdf.salt is required');
+  }
+  return {
+    app: BACKUP_APP,
+    encrypted: true,
+    env: CLOUD_ENVELOPE_ENV,
+    kdf: { salt: kdf.salt, iterations: kdf.iterations },
+    payload,
+  };
+}
+
+/**
+ * Detecta una envolvente de copia en la nube (descargada de Drive).
+ * @param {*} value
+ * @returns {boolean}
+ */
+export function isCloudEnvelope(value) {
+  return Boolean(value && typeof value === 'object' && value.encrypted === true && value.app === BACKUP_APP);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Validación / parseo
 // ─────────────────────────────────────────────────────────────────────────────
 

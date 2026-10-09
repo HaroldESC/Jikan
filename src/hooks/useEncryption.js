@@ -253,6 +253,13 @@ export function useEncryption() {
     supported,
     enabled,
     unlocked: enabled && unlocked,
+    /**
+     * Material de derivación de los ajustes actuales: la envolvente de la copia
+     * en la nube (C5) lo embebe para poder rederivar la clave al restaurar.
+     * `salt`/`iterations` pueden ser `null`/`undefined` si el cifrado nunca se
+     * activó.
+     */
+    kdf: { salt: settings?.salt, iterations: settings?.iterations },
     busy,
     error,
     /** Error del último await, en síncrono (el estado de React llega tarde). */

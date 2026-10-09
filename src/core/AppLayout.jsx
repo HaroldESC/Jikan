@@ -65,6 +65,7 @@ export default function AppLayout({
   onCloseImport,
   onConfirmImport,
   backupActions,
+  cloudActions,
   currentTime,
   themeMode,
   toggleTheme,
@@ -99,6 +100,14 @@ export default function AppLayout({
       snapshotCount: backupActions?.snapshotCount ?? 0,
       lastBackupAt: backupActions?.lastBackupAt ?? null,
       backupBusy: backupActions?.busy ?? false,
+      // Cloud backup (v4.0 C5): Google Drive manual. Delete lives in the
+      // cloud modal, not here, so there's no onCloudDelete.
+      onCloudConnect: cloudActions?.onCloudConnect,
+      onCloudDisconnect: cloudActions?.onCloudDisconnect,
+      onCloudUpload: cloudActions?.onCloudUpload,
+      onOpenCloudList: cloudActions?.onOpenCloudList,
+      status: cloudActions?.status ?? 'disconnected',
+      cloudBusy: cloudActions?.cloudBusy ?? false,
     }),
     [
       onExportCsv,
@@ -112,6 +121,12 @@ export default function AppLayout({
       backupActions?.snapshotCount,
       backupActions?.lastBackupAt,
       backupActions?.busy,
+      cloudActions?.onCloudConnect,
+      cloudActions?.onCloudDisconnect,
+      cloudActions?.onCloudUpload,
+      cloudActions?.onOpenCloudList,
+      cloudActions?.status,
+      cloudActions?.cloudBusy,
     ]
   );
 
