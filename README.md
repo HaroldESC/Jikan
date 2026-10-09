@@ -271,7 +271,7 @@ jikan/
 - [x] **Full data export** (GDPR compliance)
 - [x] **Private mode** — opt out of saving certain data
 - [x] **Local encryption** for sensitive data
-- [x] **Cloud backup** — manual upload/list/restore/delete on Google Drive (Dropbox deferred to v4.1)
+- [x] **Cloud backup** — manual upload/list/restore/delete on Google Drive (the only cloud provider for now)
 - [x] **PWA** — offline support, installable (home screen widgets are not a standard PWA capability and are out of scope)
 
 ### v5.0 — Study & Content Tools
