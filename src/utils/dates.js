@@ -72,3 +72,12 @@ export const decimalToTime = (decimal) => {
   const minutes = totalMinutes % 60;
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
+
+/**
+ * Convierte horas decimales (9.5 = 09:30) en minutos totales (570).
+ * Para cálculos de posiciones/duraciones sobre la rueda del día.
+ *
+ * @param {number} decimalHours horas decimales.
+ * @returns {number} minutos totales redondeados.
+ */
+export const decimalToMinutes = (decimalHours) => Math.round(decimalHours * 60);

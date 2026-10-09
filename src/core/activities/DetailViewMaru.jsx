@@ -1,5 +1,6 @@
 import { ChevronLeft, Clock, FileText, AlertCircle } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { decimalToMinutes } from '../../utils/dates';
 import ThemeToggle from '../common/ThemeToggle';
 
 const formatHour = (decimalHour) => {
@@ -24,8 +25,6 @@ const formatDuration = (decimalHours) => {
   if (minutes === 0) return `${hours}h`;
   return `${hours}h ${minutes}m`;
 };
-
-const decimalToMinutes = (decimalHours) => Math.round(decimalHours * 60);
 
 const DetailViewMaru = ({
   activity,
