@@ -9,7 +9,7 @@ import { useLocalBackup } from '../hooks/useLocalBackup';
 import { useCloudBackup } from '../hooks/useCloudBackup';
 import { usePrivacy } from '../hooks/usePrivacy';
 import { usePwa } from '../hooks/usePwa';
-import { getCurrentDay } from '../utils/dates';
+import { decimalToTime, getCurrentDay, timeToDecimal } from '../utils/dates';
 import { exportActivitiesToCsv, parseActivitiesCsv } from '../utils/csv';
 import {
   backupFileName,
@@ -31,18 +31,6 @@ import BackupRestoreModal from './common/BackupRestoreModal';
 import CloudBackupModal from './common/CloudBackupModal';
 import ImportModal from './common/ImportModal';
 import PassphraseModal from './common/PassphraseModal';
-
-const timeToDecimal = (timeString) => {
-  if (!timeString) return 0;
-  const [hours, minutes] = timeString.split(':').map(Number);
-  return hours + minutes / 60;
-};
-
-const decimalToTimeString = (decimal) => {
-  const hours = Math.floor(decimal);
-  const minutes = Math.round((decimal - hours) * 60);
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-};
 
 export default function MainShell({ user, isGuest = false, onExitGuest, encryption }) {
   // Modo privado (v4.0 C3): define qué categorías se descartan al guardar.
@@ -589,8 +577,8 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
     setEditingDay(day);
     setEditingActivity(activity);
     setEditingActivityIndex(index);
-    const startStr = decimalToTimeString(activity.start);
-    const endStr = decimalToTimeString(activity.end);
+    const startStr = decimalToTime(activity.start);
+    const endStr = decimalToTime(activity.end);
 
     setTempActivity({
       start: activity.start,

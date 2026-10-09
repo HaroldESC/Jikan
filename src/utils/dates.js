@@ -43,3 +43,21 @@ export const getCurrentTimeFormatted = () => {
   const minutes = now.getMinutes().toString().padStart(2, '0');
   return `${hours}:${minutes}`;
 };
+
+/**
+ * Convierte una hora en formato HH:MM a horas decimales (9.5 = 09:30)
+ */
+export const timeToDecimal = (timeString) => {
+  if (!timeString) return 0;
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours + minutes / 60;
+};
+
+/**
+ * Convierte horas decimales (9.5 = 09:30) a una hora en formato HH:MM
+ */
+export const decimalToTime = (decimal) => {
+  const hours = Math.floor(decimal);
+  const minutes = Math.round((decimal - hours) * 60);
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
