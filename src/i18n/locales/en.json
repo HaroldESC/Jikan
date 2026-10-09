@@ -447,5 +447,10 @@
     "sheetWeek": "Week",
     "sheetSummary": "Summary",
     "pageNumber": "Page {page} of {total}"
+  },
+  "legal": {
+    "privacy": "Privacy policy",
+    "terms": "Terms of service",
+    "driveNotice": "Uploaded copies are stored in your own Google Drive account. Jikan can only see the backup files it creates."
   }
 }

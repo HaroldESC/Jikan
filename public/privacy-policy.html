@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jikan 時間 — Política de Privacidad</title>
+  <meta name="description" content="Política de privacidad de Jikan, planificador de horarios. Tus datos se guardan en tu dispositivo o en tu cuenta de Google." />
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.65;
+      color: #1e293b;
+      background: #f8fafc;
+    }
+    main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 4rem; }
+    header.page {
+      border-bottom: 3px solid #7c5cff;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 .25rem; }
+    h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; color: #4f46e5; }
+    .brand { font-weight: 700; background: linear-gradient(90deg, #8b7bff, #4f46e5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .meta { color: #64748b; font-size: .875rem; margin: 0; }
+    nav { margin-top: 1rem; font-size: .875rem; }
+    a { color: #4f46e5; }
+    nav a { margin-right: 1rem; }
+    footer.page { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: .8125rem; color: #64748b; }
+    ul { padding-left: 1.25rem; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #0f172a; color: #e2e8f0; }
+      h2 { color: #a5b4fc; }
+      a { color: #a5b4fc; }
+      .meta, footer.page { color: #94a3b8; }
+      footer.page { border-color: #1e293b; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="page">
+      <h1><span class="brand">Jikan 時間</span> — Política de Privacidad</h1>
+      <p class="meta">Última actualización: 9 de octubre de 2026</p>
+      <nav>
+        <a href="/privacy-policy.html">Política de privacidad</a>
+        <a href="/terms-of-service.html">Términos del servicio</a>
+        <a href="/">Volver a la aplicación</a>
+      </nav>
+    </header>
+
+    <h2>1. Qué es Jikan</h2>
+    <p>
+      Jikan es un planificador de horarios con visualización en rueda de 24 horas. Tus horarios,
+      recordatorios y ajustes son <strong>tuyos</strong>: la aplicación es una herramienta de gestión
+      personal, no un servicio de publicidad ni de analítica.
+    </p>
+
+    <h2>2. Qué datos se tratan y dónde se guardan</h2>
+    <ul>
+      <li><strong>Sin cuenta (modo invitado)</strong>: las actividades se guardan en una base de datos
+      local del navegador (IndexedDB) en este dispositivo. No se envían a ningún servidor.</li>
+      <li><strong>Con cuenta</strong>: las actividades se guardan en una base de datos PostgreSQL
+      (Supabase) asociada a tu usuario, para poder acceder a ellas desde otros dispositivos.</li>
+      <li><strong>Ajustes locales</strong>: recordatorios, disposición de paneles, tema, idioma y
+      contadores del temporizador viven en el almacenamiento local del navegador
+      (<code>localStorage</code>), ligados a tu usuario.</li>
+      <li><strong>Cifrado</strong>: si activas el cifrado local, tu horario en el dispositivo se cifra
+      con AES-GCM 256 antes de guardarse. La frase nunca se transmite ni se guarda: solo existe en
+      memoria mientras la aplicación está abierta. Si la olvidas, no se puede recuperar.</li>
+    </ul>
+    <p>Jikan no vende, alquila ni comparte tus datos con terceros con fines comerciales.</p>
+
+    <h2>3. Copias de seguridad en Google Drive (opcional)</h2>
+    <p>
+      Si eliges usar la función «Copia en la nube», Jikan conecta con <strong>tu propia cuenta de
+      Google</strong> para guardar copias de seguridad en tu Google Drive. Sobre esta integración:
+    </p>
+    <ul>
+      <li>La aplicación solicita únicamente el permiso <code>drive.file</code>: solo puede ver y
+      gestionar los archivos de copia que <strong>ella misma</strong> crea. No accede al resto de tus
+      archivos de Drive.</li>
+      <li>El token de acceso de Google se conserva <strong>solo en memoria</strong> mientras dura la
+      sesión del navegador (se borra al recargar). No se almacena ningún token de renovación.</li>
+      <li>Las copias subidas se guardan como archivos JSON en tu Drive, en tu propio espacio de
+      almacenamiento y sujetos a la política de privacidad de Google. Tú puedes eliminarlos
+      cuando quieras desde la aplicación o desde Drive.</li>
+      <li>Si tienes el cifrado local activo, el contenido de la copia se cifra en tu dispositivo
+      <strong>antes</strong> de subirse, de modo que Google no recibe el horario en claro.</li>
+    </ul>
+
+    <h2>4. Uso de información de las API de Google</h2>
+    <p>
+      El uso que Jikan hace de la información recibida a través de las API de Google y su
+      transferencia a cualquier otra aplicación se ajustan a la política de datos de usuario de los
+      Servicios de API de Google (<em>Google API Services User Data Policy</em>), incluidos los
+      requisitos de <em>Limited Use</em>. Los datos obtenidos de Google se usan exclusivamente para
+      crear y restaurar tus copias de seguridad en Drive; no se usan para entrenar modelos, ni se
+      transfieren a terceros, ni se muestran en publicidad.
+    </p>
+
+    <h2>5. Tus derechos</h2>
+    <ul>
+      <li><strong>Acceso y portabilidad</strong>: en Configuración → Datos puedes exportar todos tus
+      datos en un archivo JSON (formato GDPR).</li>
+      <li><strong>Supresión</strong>: puedes borrar actividades individualmente, restaurar ajustes o
+      —con cifrado activo— usar el borrado de emergencia. Con cuenta, al cerrar sesión en otro
+      dispositivo tus datos permanecen en tu cuenta; para eliminarlos definitivamente escríbenos.</li>
+      <li><strong>Copias en la nube</strong>: se eliminan desde la propia aplicación (Configuración →
+      Datos → Copia en la nube) o directamente desde tu Google Drive.</li>
+    </ul>
+
+    <h2>6. Contacto</h2>
+    <p>
+      Para cualquier cuestión sobre privacidad o para solicitar la eliminación de datos de una
+      cuenta, abre una incidencia en el repositorio público del proyecto
+      (<a href="https://github.com/Harold-ESC/Jikan-Maru">github.com/Harold-ESC/Jikan-Maru</a>).
+    </p>
+
+    <h2>7. Cambios</h2>
+    <p>
+      Cualquier cambio en esta política se publicará en esta misma página con una nueva fecha de
+      actualización. Si un cambio fuera sustancial y afectase al tratamiento de datos ya guardados,
+      se avisará dentro de la aplicación.
+    </p>
+
+    <footer class="page">
+      Jikan 時間 — planificador de horarios. Esta política cubre tanto el modo sin cuenta como el
+      modo con cuenta y la integración opcional con Google Drive.
+    </footer>
+  </main>
+</body>
+</html>

@@ -367,6 +367,26 @@ const LoginScreen = ({ onContinueAsGuest }) => {
             </>
           )}
         </div>
+
+        <div className="mt-6 flex items-center justify-center gap-3 text-xs text-white/50">
+          <a
+            href="/privacy-policy.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white/80 underline underline-offset-2 transition"
+          >
+            {t('legal.privacy')}
+          </a>
+          <span aria-hidden="true">·</span>
+          <a
+            href="/terms-of-service.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-white/80 underline underline-offset-2 transition"
+          >
+            {t('legal.terms')}
+          </a>
+        </div>
       </div>
 
       <style>{`

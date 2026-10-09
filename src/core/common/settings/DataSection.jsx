@@ -162,8 +162,21 @@ export default function DataSection({ s, data }) {
                 ? t('backup.cloudExpired')
                 : t('backup.cloudDisconnected')}
           </Note>
+          <Note s={s} className="mt-2">
+            {t('legal.driveNotice')}
+          </Note>
         </SubGroup>
       )}
+
+      <Note s={s} className="mt-4">
+        <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer" className="underline">
+          {t('legal.privacy')}
+        </a>
+        {' · '}
+        <a href="/terms-of-service.html" target="_blank" rel="noopener noreferrer" className="underline">
+          {t('legal.terms')}
+        </a>
+      </Note>
     </Section>
   );
 }

@@ -447,5 +447,10 @@
     "sheetWeek": "Semana",
     "sheetSummary": "Resumen",
     "pageNumber": "Página {page} de {total}"
+  },
+  "legal": {
+    "privacy": "Política de privacidad",
+    "terms": "Términos del servicio",
+    "driveNotice": "Las copias subidas se guardan en tu cuenta de Google Drive. Jikan solo puede ver los archivos de copia que él mismo crea."
   }
 }

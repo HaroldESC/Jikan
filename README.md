@@ -103,6 +103,20 @@ VITE_GOOGLE_CLIENT_ID=
 
 Without `VITE_GOOGLE_CLIENT_ID` the app works exactly the same, minus the cloud backup block.
 
+**Google Cloud setup for the cloud backup** — the OAuth consent screen must be **External**, with:
+
+| Field | Value (production) |
+|---|---|
+| Application home page | `https://jikan-self.vercel.app` |
+| Privacy policy link | `https://jikan-self.vercel.app/privacy-policy.html` |
+| Terms of service link | `https://jikan-self.vercel.app/terms-of-service.html` |
+| Authorized JavaScript origins | `http://localhost:7000` + the production origin |
+
+Both legal pages live in `public/` and ship with every deploy, so the URLs must be filled **after**
+the first deploy that contains them. While the consent screen is in *Testing*, only the Google
+accounts added as test users can connect (the "Google hasn't verified this app" screen is expected
+— proceed via *Advanced* → *Continue*).
+
 ### Commands
 
 | Command | Description |
@@ -144,7 +158,10 @@ Without `VITE_GOOGLE_CLIENT_ID` the app works exactly the same, minus the cloud 
 ```
 jikan/
 ├── public/                  # Static assets
-│                            # (PWA icons — icon.svg and icon-maskable.svg are the SOURCES:
+│                            # (privacy-policy.html + terms-of-service.html — required by the
+│                            #  Google OAuth consent screen, served at the app root so they are
+│                            #  live on any deploy; linked from the login footer and Data section.
+│                            #  PWA icons — icon.svg and icon-maskable.svg are the SOURCES:
 │                            #  icon.svg, icon-192.png, icon-512.png, icon-maskable-512.png,
 │                            #  apple-touch-icon.png, icon.ico; run `npm run icons` after
 │                            #  editing an SVG; the web manifest comes from vite-plugin-pwa)

@@ -447,5 +447,10 @@
     "sheetWeek": "週間",
     "sheetSummary": "サマリー",
     "pageNumber": "ページ {page} / {total}"
+  },
+  "legal": {
+    "privacy": "プライバシーポリシー",
+    "terms": "利用規約",
+    "driveNotice": "アップロードされたコピーは、あなた自身のGoogleドライブアカウントに保存されます。Jikanは自分が作成したバックアップファイルのみを閲覧できます。"
   }
 }
