@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getActivityStore, GUEST_USER_ID } from '../lib/activityStore';
-
-// Función auxiliar para convertir string "HH:MM" a decimal
-const timeToDecimal = (timeString) => {
-  if (!timeString) return 0;
-  const [hours, minutes] = timeString.split(':').map(Number);
-  return hours + (minutes / 60);
-};
+import { timeToDecimal, decimalToTime } from '../utils/dates';
 
 // Función para convertir decimal a string de hora legible
 const decimalToDisplayTime = (decimal) => {
@@ -15,12 +9,6 @@ const decimalToDisplayTime = (decimal) => {
 
   if (minutes === 0) return `${hours}h`;
   return `${hours}:${minutes.toString().padStart(2, '0')}`;
-};
-
-const decimalToTimeString = (decimal) => {
-  const hours = Math.floor(decimal);
-  const minutes = Math.round((decimal - hours) * 60);
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
 const DAYS_OF_WEEK = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -111,8 +99,8 @@ export function useActivities(user, { isGuest = false, privacy } = {}) {
   const toPayload = useCallback(
     (day, activity) => ({
       day_of_week: day,
-      start_time: decimalToTimeString(activity.start),
-      end_time: decimalToTimeString(activity.end),
+      start_time: decimalToTime(activity.start),
+      end_time: decimalToTime(activity.end),
       title: activity.title ?? activity.activity ?? '',
       // Modo privado: si la categoría está apagada, el dato no se escribe.
       description: privacy?.description ? (activity.description ?? '') : '',

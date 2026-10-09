@@ -1,14 +1,10 @@
-const decimalToTimeStr = (decimal) => {
-  const hours = Math.floor(decimal);
-  const minutes = Math.round((decimal - hours) * 60);
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-};
+import { decimalToTime } from '../../utils/dates';
 
 export const toSeiActivity = (maruActivity) => ({
   id: maruActivity.id,
   label: maruActivity.title,
-  start: decimalToTimeStr(maruActivity.start),
-  end: decimalToTimeStr(maruActivity.end),
+  start: decimalToTime(maruActivity.start),
+  end: decimalToTime(maruActivity.end),
   color: maruActivity.color,
   description: maruActivity.description || '',
   notes: maruActivity.notes || '',

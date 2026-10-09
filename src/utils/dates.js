@@ -54,10 +54,21 @@ export const timeToDecimal = (timeString) => {
 };
 
 /**
- * Convierte horas decimales (9.5 = 09:30) a una hora en formato HH:MM
+ * Convierte horas decimales (9.5 = 09:30) a una hora en formato 'HH:MM'
+ * con dos dígitos por componente.
+ *
+ * Implementación canónica y única del proyecto: valores no finitos (NaN,
+ * Infinity, null, cadenas no numéricas…) o negativos devuelven '00:00'.
+ *
+ * @param {number} decimal horas decimales (p. ej. 9.5 → '09:30').
+ * @returns {string} 'HH:MM' ( cero relleno); '00:00' si la entrada no es
+ *   un número finito no negativo.
  */
 export const decimalToTime = (decimal) => {
-  const hours = Math.floor(decimal);
-  const minutes = Math.round((decimal - hours) * 60);
+  const value = Number(decimal);
+  if (!Number.isFinite(value) || value < 0) return '00:00';
+  const totalMinutes = Math.round(value * 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };

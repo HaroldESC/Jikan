@@ -12,6 +12,7 @@
  * (day/title/start/end/color/description/notes), ordenados Lunes → Domingo.
  */
 
+import { decimalToTime } from './dates';
 import { DAY_ORDER, DEFAULT_COLOR } from './csv';
 
 const BRAND = [124, 92, 255]; // #7c5cff
@@ -29,12 +30,6 @@ const parseTime = (value) => {
   const minutes = Number(match[2]);
   if (hours > 23 || minutes > 59) return null;
   return hours * 60 + minutes;
-};
-
-/** Horas decimales → 'HH:MM' (9.5 → '09:30'). */
-const decimalToTime = (decimal) => {
-  const total = Math.max(0, Math.round((Number(decimal) || 0) * 60));
-  return `${pad2(Math.floor(total / 60))}:${pad2(total % 60)}`;
 };
 
 /** Duración legible: 90 → '1h 30m'. */

@@ -7,6 +7,8 @@
  * - `color`: '#RRGGBB' (vacío o inválido → color por defecto).
  */
 
+import { decimalToTime } from './dates';
+
 export const CSV_HEADER = ['day', 'title', 'start', 'end', 'color', 'description', 'notes'];
 export const DEFAULT_COLOR = '#7c5cff';
 // Orden de exportación por defecto: semana empezando en lunes (igual que useActivities).
@@ -44,13 +46,6 @@ export const normalizeDay = (value) => {
   if (value == null) return null;
   const key = stripAccents(String(value).trim().toLowerCase());
   return DAY_ALIASES[key] || null;
-};
-
-/** Horas decimales → 'HH:MM' (9.5 → '09:30'). */
-export const decimalToTime = (decimal) => {
-  if (!Number.isFinite(decimal)) return '00:00';
-  const total = Math.max(0, Math.round(decimal * 60));
-  return `${pad2(Math.floor(total / 60))}:${pad2(total % 60)}`;
 };
 
 /** 'HH:MM' o 'H:MM' → minutos desde medianoche (o null si es inválido). */
