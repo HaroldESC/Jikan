@@ -3,15 +3,17 @@
  *
  * Una sola base (`jikan`) con varios object stores:
  *   - `activities` → filas del horario (modo invitado, ver `activityStore.js`)
+ *   - `exams`      → calendario de exámenes (modo invitado, ver `examStore.js`)
  *   - `backups`    → snapshots versionados (ver `backupStore.js`)
  *
- * Todo es asíncrono: nada en el proyecto debe asumir sincronía para actividades
- * ni para backups.
+ * Todo es asíncrono: nada en el proyecto debe asumir sincronía para actividades,
+ * exámenes ni backups.
  */
 
 export const DB_NAME = 'jikan';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 export const ACTIVITIES_STORE = 'activities';
+export const EXAMS_STORE = 'exams';
 export const BACKUPS_STORE = 'backups';
 
 let dbPromise = null;
@@ -33,6 +35,10 @@ export function openDb() {
         if (!db.objectStoreNames.contains(ACTIVITIES_STORE)) {
           const store = db.createObjectStore(ACTIVITIES_STORE, { keyPath: 'id' });
           store.createIndex('day_of_week', 'day_of_week', { unique: false });
+        }
+        if (!db.objectStoreNames.contains(EXAMS_STORE)) {
+          const store = db.createObjectStore(EXAMS_STORE, { keyPath: 'id' });
+          store.createIndex('date', 'date', { unique: false });
         }
         if (!db.objectStoreNames.contains(BACKUPS_STORE)) {
           const store = db.createObjectStore(BACKUPS_STORE, { keyPath: 'id' });

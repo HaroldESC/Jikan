@@ -1,9 +1,13 @@
 /**
  * GuestMigrationModal Component
  *
- * Diálogo de oferta de migración entre el horario local (modo invitado,
+ * Diálogo de oferta de migración entre los datos locales (modo invitado,
  * IndexedDB) y la cuenta de Supabase. Se muestra una sola vez por sesión y
  * siempre antes de tocar nada: la migración hace append, nunca sobrescribe.
+ *
+ * Desde v5.0 D2 el mismo diálogo cubre también el calendario de exámenes: si
+ * `prompt.examCount > 0` se añade una línea con ese recuento (sin ella, la
+ * vista es exactamente la de siempre).
  *
  * Soporta ambas variantes: Maru (glass) y Sei (Tailwind plano).
  */
@@ -18,6 +22,7 @@ const GuestMigrationModal = ({ prompt, busy, onConfirm, onClose, isMaru, isDarkM
 
   const isUpload = prompt.mode === 'upload';
   const count = prompt.count;
+  const examCount = prompt.examCount ?? 0;
 
   const cardClass = isMaru
     ? 'bg-white/10 backdrop-blur-lg rounded-3xl p-8 max-w-lg w-full text-white'
@@ -61,6 +66,11 @@ const GuestMigrationModal = ({ prompt, busy, onConfirm, onClose, isMaru, isDarkM
         <p className={`text-sm mb-6 ${mutedClass}`}>
           {isUpload ? t('guest.migrateUploadDesc', { count }) : t('guest.migrateImportDesc')}
         </p>
+
+        {/* Exámenes: solo aparece si la oferta los incluye. */}
+        {examCount > 0 && (
+          <p className={`text-sm mb-6 ${mutedClass}`}>{t('guest.migrateExams', { exams: examCount })}</p>
+        )}
 
         <div className={`flex flex-wrap justify-end gap-3 ${isMaru ? '' : 'pt-2'}`}>
           <button onClick={() => onConfirm('discard')} disabled={busy} className={dangerClass}>

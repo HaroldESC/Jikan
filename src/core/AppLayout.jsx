@@ -9,6 +9,7 @@ import DaySelector from '../components/DaySelector';
 import ActivityCard from '../components/ActivityCard';
 import Daily from './stats/Daily';
 import Reminders from './stats/Reminders';
+import Exams from './stats/Exams';
 import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
 import ImportModal from './common/ImportModal';
@@ -20,6 +21,7 @@ import DetailViewSei from './activities/DetailViewSei';
 import { toSeiActivity, DAYS_FULL } from './utils/adapter';
 import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
+import { examTimestamp } from '../utils/exams';
 import { useReminders } from '../hooks/useReminders';
 import { useTheme } from '../hooks/useTheme';
 import { usePanels } from '../hooks/usePanels';
@@ -28,8 +30,8 @@ import { useNotifications } from '../hooks/useNotifications';
 
 // Panel groups per style: the wheel lives in its own column, so it only
 // supports hide/show; the content column supports hide + drag-to-reorder.
-const MARU_CONTENT_PANELS = ['current', 'stats', 'reminders', 'pomodoro'];
-const SEI_CONTENT_PANELS = ['current', 'list', 'reminders', 'pomodoro'];
+const MARU_CONTENT_PANELS = ['current', 'stats', 'reminders', 'exams', 'pomodoro'];
+const SEI_CONTENT_PANELS = ['current', 'list', 'reminders', 'exams', 'pomodoro'];
 const WHEEL_PANELS = ['wheel'];
 
 // Sentinel: distinguishes "no previous activity tracked yet" from "there is
@@ -77,6 +79,7 @@ export default function AppLayout({
   onExitGuest,
   privacy,
   pwa,
+  exams,
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
@@ -171,6 +174,13 @@ export default function AppLayout({
   const rawActivities = schedules[currentDay] || [];
   const seiActivities = useMemo(() => rawActivities.map(toSeiActivity), [rawActivities]);
 
+  // Lista plana de la semana para el `<select>` de actividad vinculada del
+  // panel de exámenes (los exámenes no dependen del día seleccionado).
+  const flatActivities = useMemo(
+    () => Object.values(schedules ?? {}).flat().filter(Boolean),
+    [schedules]
+  );
+
   const realDayIndex = currentTime.getDay();
   const realDayName = DAYS_FULL[realDayIndex];
   const realRaw = schedules[realDayName] || [];
@@ -195,6 +205,7 @@ export default function AppLayout({
   const {
     permission: notifyPermission,
     preMinutes,
+    examPreHours,
     requestPermission,
     setEnabled: setNotifyEnabled,
     notify,
@@ -272,6 +283,52 @@ export default function AppLayout({
     preMinutes,
     realRaw,
     currentMinutes,
+    currentTime,
+    notify,
+    t,
+  ]);
+
+  // Ref of already-notified pre-exams (v5.0 D2), keyed by exam id.
+  const examNotifiedRef = useRef(new Set());
+
+  // Aviso de pre-examen (v5.0 D2): notifica una vez cuando el examen cae
+  // dentro de la ventana `examPreHours`. Se reevalúa en cada tick de
+  // `useClock` (no hay intervalo propio) y `examPreHours === 0` lo desactiva.
+  //
+  // Sin hora, `examTimestamp` sitúa el examen a las 00:00 de ese día: con 24 h
+  // de margen el aviso salta a medianoche del día anterior. Es predecible y el
+  // dedupe evita duplicados.
+  const examRows = exams?.rows;
+  useEffect(() => {
+    if (!notifications.enabled || notifyPermission !== 'granted') return;
+    if (examPreHours <= 0 || !examRows || examRows.length === 0) return;
+
+    examRows.forEach((exam) => {
+      const moment = examTimestamp(exam.date, exam.time);
+      if (!moment) return;
+      const deltaMs = moment.getTime() - currentTime.getTime();
+      if (deltaMs <= 0 || deltaMs > examPreHours * 3600_000) return;
+      if (examNotifiedRef.current.has(exam.id)) return;
+      examNotifiedRef.current.add(exam.id);
+
+      void notify(t('notifications.examSoon'), {
+        body: exam.time
+          ? t('notifications.examBody', {
+              subject: exam.subject,
+              date: exam.date,
+              time: exam.time,
+            })
+          : t('notifications.examBodyNoTime', { subject: exam.subject, date: exam.date }),
+        tag: `jikan-exam-${exam.id}`,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+      });
+    });
+  }, [
+    notifications.enabled,
+    notifyPermission,
+    examPreHours,
+    examRows,
     currentTime,
     notify,
     t,
@@ -386,6 +443,8 @@ export default function AppLayout({
                       )
                     ) : id === 'stats' ? (
                       <Daily schedule={rawActivities} />
+                    ) : id === 'exams' ? (
+                      <Exams exams={exams} activities={flatActivities} />
                     ) : id === 'pomodoro' ? (
                       <Pomodoro {...pomodoroPanelProps} isMaru />
                     ) : (
@@ -425,6 +484,10 @@ export default function AppLayout({
                   ) : id === 'list' ? (
                     <ActivityList activities={seiActivities} isDarkMode={dark} isViewingToday={isViewingToday}
                       currentActivityId={seiCurrentId} dayName={currentDay} onActivitySelect={handleSeiClick} />
+                  ) : id === 'exams' ? (
+                    <div className="w-full mt-6">
+                      <Exams exams={exams} activities={flatActivities} />
+                    </div>
                   ) : id === 'pomodoro' ? (
                     <div className="w-full mt-6">
                       <Pomodoro {...pomodoroPanelProps} isMaru={false} />

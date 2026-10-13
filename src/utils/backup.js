@@ -10,6 +10,7 @@
  *   scope: 'guest' | 'account',
  *   data: {
  *     activities:    [ { day_of_week, start_time, end_time, title, description, notes, color, links } ],
+ *     exams:         [ { subject, date, time, activity_id, notes, color } ],
  *     reminders:     [ { id, text, time } ],
  *     panels:        { 'maru.content': { order: [...], visible: {...} } },
  *     settings:      { themeMode, style, font, locale },
@@ -20,12 +21,19 @@
  *
  * Es el formato de "exportación completa" (GDPR): incluye todo lo que la app
  * guarda en el navegador. La **importación** solo consume `data.activities` y
- * siempre hace append: nunca sobrescribe ni borra lo que ya existe.
+ * `data.exams` (v5.0 D2) y siempre hace append: nunca sobrescribe ni borra lo
+ * que ya existe.
+ *
+ * `data.exams` es **opcional** al importar (los backups anteriores a D2 no lo
+ * traen), pero `BACKUP_VERSION` sigue en 1: el campo es aditivo y se valida con
+ * `validateExams`. Los exámenes no llevan `id`, `user_id` ni `created_at`: son
+ * datos, no filas de la base de datos.
  */
 
 import { normalizeDay, DEFAULT_COLOR } from './csv';
 import { sanitizeLinks } from './links';
 import { exportDateKey } from './export';
+import { isValidExamDate, sanitizeExam } from './exams';
 
 export const BACKUP_APP = 'jikan';
 export const BACKUP_VERSION = 1;
@@ -96,12 +104,15 @@ export function collectLocalState(userId) {
  *
  * @param {object} params
  * @param {Array}  params.activities filas crudas del store (`useActivities().rows`)
- * @param {string} [params.userId]    id de usuario (o 'anon')
- * @param {boolean} [params.isGuest]  marca el origen del backup
+ * @param {Array}  [params.exams]   filas crudas (`useExams().rows`); las
+ *   inservibles (sin asignatura o con fecha inválida) se descartan
+ * @param {string} [params.userId]   id de usuario (o 'anon')
+ * @param {boolean} [params.isGuest] marca el origen del backup
  * @returns {object} payload listo para serializar
  */
-export function buildBackup({ activities = [], userId, isGuest = false } = {}) {
+export function buildBackup({ activities = [], exams = [], userId, isGuest = false } = {}) {
   const rows = Array.isArray(activities) ? activities : [];
+  const examRows = Array.isArray(exams) ? exams : [];
   return {
     app: BACKUP_APP,
     version: BACKUP_VERSION,
@@ -118,6 +129,9 @@ export function buildBackup({ activities = [], userId, isGuest = false } = {}) {
         color: row.color ?? DEFAULT_COLOR,
         links: sanitizeLinks(row.links),
       })),
+      // `sanitizeExam` es la whitelist: devuelve exactamente los seis campos de
+      // la fila canónica, así que aquí no puede colarse `id` ni `user_id`.
+      exams: examRows.map((row) => sanitizeExam(row)).filter((exam) => exam),
       ...collectLocalState(userId),
     },
   };
@@ -253,14 +267,68 @@ export function validateActivities(list, offset = 1) {
 }
 
 /**
+ * Valida una lista de exámenes crudos (los del backup o de un snapshot).
+ *
+ * Mismo criterio que `validateActivities`: un error por fila, con su número
+ * 1-indexado, y normalización de lo que sí se puede guardar. Las dos únicas
+ * causas de rechazo son la asignatura vacía (`backup.errSubject`) y la fecha
+ * ausente o imposible (`backup.errDate`); el resto de campos pasan por
+ * `sanitizeExam`, que es la fuente de verdad de la fila canónica.
+ *
+ * @param {Array} list
+ * @param {number} [offset] número de fila del primer elemento (1-indexado)
+ * @returns {{ rows: Array, errors: Array<{row:number,key:string,message:string}> }}
+ */
+export function validateExams(list, offset = 1) {
+  const errors = [];
+  const rows = [];
+
+  (Array.isArray(list) ? list : []).forEach((entry, index) => {
+    const row = offset + index;
+    if (!entry || typeof entry !== 'object') {
+      errors.push({ row, key: 'backup.errRow', message: 'Not an object' });
+      return;
+    }
+
+    const subject = typeof entry.subject === 'string' ? entry.subject.trim() : '';
+    if (subject === '') {
+      errors.push({ row, key: 'backup.errSubject', message: 'Empty subject' });
+      return;
+    }
+
+    const date = typeof entry.date === 'string' ? entry.date.trim() : '';
+    if (!isValidExamDate(date)) {
+      errors.push({ row, key: 'backup.errDate', message: 'Invalid date' });
+      return;
+    }
+
+    const exam = sanitizeExam(entry);
+    if (!exam) {
+      // Salvaguarda: `sanitizeExam` solo devuelve `null` por esos dos motivos.
+      errors.push({ row, key: 'backup.errDate', message: 'Invalid exam' });
+      return;
+    }
+
+    rows.push(exam);
+  });
+
+  return { rows, errors };
+}
+
+/**
  * Parsea y valida un backup.
  *
  * Nunca lanza: los errores se acumulan por fila con su número (1-indexado, como
  * en `parseActivitiesCsv`) y los errores de formato se reportan en la fila 1.
  *
+ * `data.exams` es opcional (los backups de antes de v5.0 D2 no lo tienen): si no
+ * viene, `examRows` sale vacío y **no** se genera ningún error.
+ *
  * @param {string} text contenido del archivo.
- * @returns {{ payload: object|null, rows: Array, errors: Array<{row:number,key:string}> }}
- *   `rows` son actividades listas para `useActivities().appendRows()`.
+ * @returns {{ payload: object|null, rows: Array, examRows: Array,
+ *   errors: Array<{row:number,key:string}> }}
+ *   `rows` son actividades listas para `useActivities().appendRows()` y
+ *   `examRows` exámenes para `useExams().appendExamRows()`.
  */
 export function parseBackup(text) {
   const errors = [];
@@ -273,30 +341,31 @@ export function parseBackup(text) {
     payload = JSON.parse(clean);
   } catch {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Invalid JSON' });
-    return { payload: null, rows: [], errors };
+    return { payload: null, rows: [], examRows: [], errors };
   }
 
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Not a backup object' });
-    return { payload: null, rows: [], errors };
+    return { payload: null, rows: [], examRows: [], errors };
   }
   if (payload.app !== BACKUP_APP) {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Not a Jikan backup' });
-    return { payload: null, rows: [], errors };
+    return { payload: null, rows: [], examRows: [], errors };
   }
   if (typeof payload.version !== 'number' || payload.version > BACKUP_VERSION) {
     errors.push({ row: 1, key: 'backup.errVersion', message: 'Unsupported version' });
-    return { payload: null, rows: [], errors };
+    return { payload: null, rows: [], examRows: [], errors };
   }
 
   const activities = payload.data?.activities;
   if (!Array.isArray(activities)) {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Missing data.activities' });
-    return { payload, rows: [], errors };
+    return { payload, rows: [], examRows: [], errors };
   }
 
   const { rows, errors: rowErrors } = validateActivities(activities, 1);
-  return { payload, rows, errors: [...errors, ...rowErrors] };
+  const { rows: examRows, errors: examErrors } = validateExams(payload.data?.exams ?? [], 1);
+  return { payload, rows, examRows, errors: [...errors, ...rowErrors, ...examErrors] };
 }
 
 /**

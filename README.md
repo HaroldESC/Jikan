@@ -23,6 +23,7 @@
 - **Copy Day** — Duplicate an entire day's schedule to another day in one click
 - **Statistics Dashboard** — Daily metrics: total time, averages, efficiency, activity distribution
 - **Reminders** — Basic reminder system for your activities
+- **Exam Calendar** — Track exams by subject, date and optional time, optionally linked to an activity: the panel highlights the next exam with a countdown and notifies you a configurable time before it (works without an account too)
 - **Activity Notes** — Free-text notes per activity block, editable in the editor and shown in the detail view
 - **Resource Links** — Up to 10 resource links per activity (label + URL), editable in the editor and shown in the detail view
 - **Pomodoro Timer** — Shared focus/break panel with configurable durations and a daily session counter
@@ -31,7 +32,7 @@
 - **PDF & XLSX Export** — Export the full week as a landscape PDF (summary + one table per day, color-coded) or as an XLSX workbook (Week + Summary sheets)
 - **Local Auto-Backup** — A versioned snapshot is written to IndexedDB whenever your state changes (at most every 30 min), keeping the 10 most recent copies per user; browse, restore or delete them from Settings (no internet required)
 - **Full JSON Export / Import (GDPR)** — The "Data" section of Settings exports everything the app keeps in your browser (activities, reminders, panels, settings, pomodoro, notifications) to a `jikan-backup-YYYY-MM-DD.json` file, and imports it back with per-row validation
-- **Private Mode** — Opt out of saving notes, descriptions or reminders; disabled categories are discarded on save (and on import), living only in memory for the current session. Configured in the new "Privacy" section of Settings, next to the "Data" section
+- **Private Mode** - Opt out of saving notes, descriptions, resource links, exam notes or reminders; disabled categories are discarded on save (and on import), living only in memory for the current session. Configured in the new "Privacy" section of Settings, next to the "Data" section
 - **Local Encryption** — AES-GCM 256 + PBKDF2-SHA256 (250 000 iterations) over your whole local schedule and your local snapshots, with a full-screen lock asking for the passphrase on every launch; set up from the "Privacy" section of Settings (enable / change passphrase / disable)
 - **Cloud Backup (Google Drive)** — Manually upload the full backup to your own Drive, list the stored copies and restore or delete them from Settings → Data; the access token lives only in memory (no refresh token is stored) and uploads are encrypted client-side whenever local encryption is enabled
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
@@ -182,7 +183,7 @@ jikan/
 │   │   │                    #  settings/ — the settings dialog split per section and styled
 │   │   │                    #  for both Maru and Sei: settingsStyles.js, ui.jsx,
 │   │   │                    #  LanguageSelector.jsx + one file per section)
-│   │   ├── stats/           # Daily statistics dashboard, reminders
+│   │   ├── stats/           # Daily statistics dashboard, reminders, exam calendar (Exams.jsx)
 │   │   ├── wheel/           # SVG circular chart (WheelMaru / WheelSei)
 │   │   ├── utils/           # Maru ↔ Sei adapters
 │   │   ├── AppLayout.jsx    # Dual-style layout (renders both styles)
@@ -191,6 +192,7 @@ jikan/
 │   │   └── ResetPassword.jsx # Password recovery
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useActivities.js # Store-aware activity CRUD (local or Supabase) + day copy / row append
+│   │   ├── useExams.js      # Exam calendar CRUD (local or Supabase) + next exam / countdown
 │   │   ├── useGuestMigration.js # Guest ↔ account migration offer (once per session)
 │   │   ├── useSession.js    # User session (+ isGuest, startGuest, exitGuest, guestUser)
 │   │   ├── useTheme.jsx     # Theme + visual style state
@@ -214,15 +216,19 @@ jikan/
 │   │   │                    #  replaceDay, clear, count); getActivityStore(isGuest) picks one;
 │   │   │                    #  local part now goes through localDb.js; encryptAll / decryptAll /
 │   │   │                    #  reencryptAll migrate rows to/from `{ id, enc }`
-│   │   ├── localDb.js       # IndexedDB bootstrap (db `jikan` v2 → stores `activities`, `backups`)
+│   │   ├── localDb.js       # IndexedDB bootstrap (db `jikan` v3 → stores `activities`, `exams`, `backups`)
+│   │   ├── examStore.js     # Store adapter for exams: IndexedDB `exams` (guest) / Supabase table
+│   │   │                    # `exams`; same async API as activityStore minus replaceDay, plus
+│   │   │                    #  encryptAll / decryptAll / reencryptAll (rows stored as `{ id, enc }`)
 │   │   ├── backupStore.js   # Versioned local snapshots in the `backups` store (list/latest/create/
 │   │   │                    #  remove/clear/prune); same encryptAll/decryptAll/reencryptAll
 │   │   ├── crypto.js        # Web Crypto: AES-GCM 256 + PBKDF2, session key (memory only)
 │   │   ├── gdrive.js        # Google Drive client (GIS token flow, scope drive.file; the OAuth
 │   │   │                    #  access token lives only in module memory)
 │   │   └── supabase.js      # Supabase client
-│   ├── utils/               # Utility functions (dates, csv, export, links.js, backup.js: pure
-│   │                        #  build/serialize/parse helpers, BACKUP_VERSION = 1, retention 10)
+│   ├── utils/               # Utility functions (dates, csv, export, links.js, exams.js: pure
+│   │                        #  exam validation/sorting helpers, backup.js: pure build/serialize/
+│   │                        #  parse helpers, BACKUP_VERSION = 1, retention 10)
 │   ├── styles/              # CSS by theme
 │   │   ├── maru/            # Maru style (glassmorphism)
 │   │   └── sei/             # Sei style (mostly Tailwind)
@@ -278,7 +284,7 @@ jikan/
 ### v5.0 — Study & Content Tools
 - [x] **Custom fonts**
 - [x] **Resource links** per activity (class materials, URLs)
-- [ ] **Exam calendar** with auto-preparation
+- [x] **Exam calendar** with auto-preparation (next-exam countdown + pre-exam alerts; works without an account)
 - [ ] **Integrated flashcards** for review during breaks
 - [ ] **Productivity graphs & comparative charts** (month vs month)
 

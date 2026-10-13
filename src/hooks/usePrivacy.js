@@ -10,13 +10,20 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
  *   description → la descripción de actividad se descarta al guardar
  *   links       → los enlaces a recursos se descartan al guardar
  *   reminders   → los recordatorios no se persisten (solo viven en memoria)
+ *   examNotes   → las notas de examen se descartan al guardar (v5.0 D2)
  *
  * Ajustes en localStorage: `jikan.privacy.<userId | 'anon'>`.
  */
 
-export const PRIVACY_CATEGORIES = ['notes', 'description', 'links', 'reminders'];
+export const PRIVACY_CATEGORIES = ['notes', 'description', 'links', 'reminders', 'examNotes'];
 
-const DEFAULT_PRIVACY = { notes: true, description: true, links: true, reminders: true };
+const DEFAULT_PRIVACY = {
+  notes: true,
+  description: true,
+  links: true,
+  reminders: true,
+  examNotes: true,
+};
 
 const storageKey = (userId) => `jikan.privacy.${userId || 'anon'}`;
 

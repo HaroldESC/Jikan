@@ -1,0 +1,338 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Exams (v5.0 D2) — calendario de exámenes.
+   Base con el glass de Maru (misma receta que reminders.css); la variante Sei
+   se aplana al final con los overrides `.theme-sei`. Las clases son globales:
+   el panel se renderiza dentro de `.theme-maru` / `.theme-sei`, y solo la
+   variante Sei necesita scoping.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.exams-card {
+  background: rgba(255,255,255,.1);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  color: white;
+}
+
+.exams-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: .75rem;
+}
+
+.exams-list {
+  display: grid;
+  gap: .5rem;
+}
+
+.exams-empty {
+  font-size: .75rem;
+  opacity: .6;
+  text-align: center;
+}
+
+/* ── Próximo examen destacado ── */
+.next-exam {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .6rem .75rem;
+  margin-bottom: .75rem;
+}
+
+.next-exam__label {
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  opacity: .7;
+  margin-bottom: .25rem;
+}
+
+.next-exam__text {
+  font-size: .85rem;
+  font-weight: 600;
+}
+
+.next-exam__time {
+  font-size: .7rem;
+  opacity: .75;
+  margin-top: .15rem;
+}
+
+.next-exam__countdown {
+  font-size: .7rem;
+  opacity: .9;
+  margin-top: .15rem;
+  font-weight: 600;
+}
+
+/* ── Items ── */
+.exam-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: rgba(255,255,255,.1);
+  border-radius: .5rem;
+  padding: .5rem .6rem;
+  border-left: 3px solid transparent;
+}
+
+.exam-item--past {
+  opacity: .45;
+}
+
+.exam-item--past .exam-subject {
+  text-decoration: line-through;
+}
+
+.exam-item__dot {
+  flex-shrink: 0;
+  width: .55rem;
+  height: .55rem;
+  border-radius: 9999px;
+}
+
+.exam-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.exam-subject {
+  font-size: .85rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-date {
+  font-size: .7rem;
+  opacity: .75;
+  margin-top: .2rem;
+}
+
+.exam-linked {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .7rem;
+  opacity: .7;
+  margin-top: .15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exam-edit-btn,
+.exam-delete-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: .375rem;
+  background: rgba(255,255,255,.1);
+  transition: .2s;
+}
+
+.exam-edit-btn:hover {
+  background: rgba(255,255,255,.25);
+}
+
+.exam-delete-btn:hover {
+  background: rgba(239, 68, 68, .35);
+}
+
+/* ── Formulario inline ── */
+.exams-form {
+  margin-top: .75rem;
+  display: grid;
+  gap: .5rem;
+}
+
+.exam-item__flag {
+  margin-left: .4rem;
+  font-size: .65rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  opacity: .7;
+}
+
+.exams-form-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.exams-form-row--actions {
+  justify-content: flex-end;
+}
+
+.exams-input {
+  width: 100%;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .45rem .6rem;
+  font-size: .8rem;
+  color: inherit;
+}
+
+.exams-input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.45);
+}
+
+.exams-input--subject {
+  flex: 1 1 8rem;
+}
+
+.exams-input--date,
+.exams-input--time {
+  flex: 0 1 auto;
+  width: auto;
+}
+
+.exams-input--select {
+  flex: 1 1 8rem;
+  min-width: 0;
+  appearance: none;
+}
+
+.exams-textarea {
+  width: 100%;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .45rem .6rem;
+  font-size: .8rem;
+  font-family: inherit;
+  color: inherit;
+  resize: vertical;
+}
+
+.exams-textarea:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.45);
+}
+
+/* El <option> se pinta con colores del sistema: sin fondo propio. */
+.exams-option {
+  background: white;
+  color: #0f172a;
+}
+
+/* ── Swatches de color ── */
+.exams-swatches {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  flex-wrap: wrap;
+}
+
+.exams-swatch {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(255,255,255,.2);
+  transition: .2s;
+}
+
+.exams-swatch:hover {
+  border-color: rgba(255,255,255,.5);
+}
+
+.exams-swatch--active {
+  border-color: white;
+  transform: scale(1.12);
+}
+
+/* ── Botones ── */
+.exams-add-btn {
+  margin-top: .75rem;
+  width: 100%;
+  background: rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .5rem;
+  font-size: .8rem;
+  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  gap: .5rem;
+  transition: .2s;
+}
+
+.exams-add-btn:hover {
+  background: rgba(255,255,255,.3);
+}
+
+.exams-form-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  border-radius: .5rem;
+  padding: .45rem .7rem;
+  font-size: .8rem;
+  font-weight: 500;
+  background: rgba(255,255,255,.1);
+  transition: .2s;
+}
+
+.exams-form-btn:hover {
+  background: rgba(255,255,255,.25);
+}
+
+.exams-form-btn--save {
+  background: rgba(34, 197, 94, .35);
+}
+
+.exams-form-btn--save:hover {
+  background: rgba(34, 197, 94, .55);
+}
+
+.exams-form-btn:disabled {
+  opacity: .6;
+  cursor: progress;
+}
+
+.exams-form-error {
+  font-size: .7rem;
+  color: #fca5a5;
+}
+
+/* ── Variante Sei (plana, sin glass) ── */
+.theme-sei .exams-card {
+  background: transparent;
+  backdrop-filter: none;
+  padding: 0;
+  color: inherit;
+}
+
+.theme-sei .exam-item,
+.theme-sei .next-exam {
+  background: rgba(148, 163, 184, .12);
+  border: 1px solid rgba(148, 163, 184, .25);
+  border-left-width: 3px;
+}
+
+.theme-sei .exams-add-btn,
+.theme-sei .exams-form-btn,
+.theme-sei .exam-edit-btn,
+.theme-sei .exam-delete-btn,
+.theme-sei .exams-input,
+.theme-sei .exams-textarea {
+  background: rgba(148, 163, 184, .15);
+  border: 1px solid rgba(148, 163, 184, .25);
+}
+
+.theme-sei .exams-add-btn:hover,
+.theme-sei .exams-form-btn:hover,
+.theme-sei .exam-edit-btn:hover {
+  background: rgba(148, 163, 184, .3);
+}

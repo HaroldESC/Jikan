@@ -4,6 +4,7 @@ import { useTranslation } from '../i18n/useTranslation';
 import { useClock } from '../hooks/useClock';
 import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
+import { useExams } from '../hooks/useExams';
 import { useGuestMigration } from '../hooks/useGuestMigration';
 import { useLocalBackup } from '../hooks/useLocalBackup';
 import { useCloudBackup } from '../hooks/useCloudBackup';
@@ -47,6 +48,9 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
     copyDay: copyDayStore,
     appendRows,
   } = useActivities(user, { isGuest, privacy });
+  // Calendario de exámenes (v5.0 D2). Mismo patrón que actividades: store local
+  // (invitado) o Supabase, y la puerta de privacidad `examNotes` al guardar.
+  const exams = useExams(user, { isGuest, privacy });
   const currentTime = useClock();
   const { themeMode, toggleTheme, bgColor, isDarkMode, style } = useTheme();
   const { t, localeForDate } = useTranslation();
@@ -68,13 +72,14 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   const localBackup = useLocalBackup({
     userId: user?.id,
     activities: rows,
+    exams: exams.rows,
     loading,
     isGuest,
   });
 
   // Backup en la nube (v4.0 C5): Google Drive, manual. El hook y el estado del
   // modal se declaran ANTES del early return de `loading` (orden de hooks).
-  const cloud = useCloudBackup({ rows, user, isGuest, encryption });
+  const cloud = useCloudBackup({ rows, exams: exams.rows, user, isGuest, encryption });
   const [showCloudModal, setShowCloudModal] = useState(false);
 
   const [currentDay, setCurrentDay] = useState(getCurrentDay());
@@ -129,13 +134,25 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   // Ejecuta la oferta de migración (subir / importar / descartar) y avisa.
   const handleMigrationConfirm = async (mode) => {
     try {
-      const count = await migration.run(mode);
+      // v5.0 D2: `run` devuelve `{ count, examCount }`; con exámenes de por
+      // medio se usan los mensajes *WithExams para no mentir sobre lo migrado.
+      const result = await migration.run(mode);
+      const count = result?.count ?? 0;
+      const examCount = result?.examCount ?? 0;
       // Tras subir filas a la cuenta, el store activo (Supabase) debe releer.
       if (mode === 'upload') {
         await reload();
-        alert(t('guest.migrateUploadSuccess', { count }));
+        alert(
+          examCount > 0
+            ? t('guest.migrateUploadSuccessWithExams', { count, exams: examCount })
+            : t('guest.migrateUploadSuccess', { count })
+        );
       } else if (mode === 'import') {
-        alert(t('guest.migrateImportSuccess', { count }));
+        alert(
+          examCount > 0
+            ? t('guest.migrateImportSuccessWithExams', { count, exams: examCount })
+            : t('guest.migrateImportSuccess', { count })
+        );
       }
     } catch (error) {
       alert(t('guest.migrateError', { msg: error.message }));
@@ -152,10 +169,15 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
 
   // ── Backup local (v4.0 C2) ───────────────────────────────────────────────
 
-  /** Exportación completa en JSON (actividades + ajustes locales, formato GDPR). */
+  /** Exportación completa en JSON (actividades + exámenes + ajustes locales, formato GDPR). */
   const handleExportBackup = () => {
     try {
-      const payload = buildBackup({ activities: rows, userId: user?.id, isGuest });
+      const payload = buildBackup({
+        activities: rows,
+        exams: exams.rows,
+        userId: user?.id,
+        isGuest,
+      });
       downloadTextFile(serializeBackup(payload), backupFileName());
     } catch (error) {
       alert(t('backup.exportError', { msg: error.message }));
@@ -170,20 +192,31 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
 
     const reader = new FileReader();
     reader.onload = () => {
-      const { rows: validRows, errors } = parseBackup(String(reader.result ?? ''));
-      setBackupImportPreview({ fileName: file.name, rows: validRows, errors });
+      const { rows: validRows, examRows, errors } = parseBackup(String(reader.result ?? ''));
+      setBackupImportPreview({ fileName: file.name, rows: validRows, examRows, errors });
     };
     reader.onerror = () => alert(t('backup.importError', { msg: 'read error' }));
     reader.readAsText(file);
   };
 
   const handleConfirmImportBackup = async () => {
-    if (!backupImportPreview || backupImportPreview.rows.length === 0) return;
+    if (!backupImportPreview) return;
+    // Un backup puede traer solo exámenes (v5.0 D2): si no hay nada que
+    // importar en ninguna de las dos entidades, no se hace nada.
+    const examRows = backupImportPreview.examRows || [];
+    if (backupImportPreview.rows.length === 0 && examRows.length === 0) return;
 
     try {
       const payload = backupImportPreview.rows.map((row) => ({ ...row, user_id: user.id }));
       await appendRows(payload);
-      alert(t('backup.importSuccess', { count: payload.length }));
+      // Los exámenes viajan como sección opcional del backup (v5.0 D2): si el
+      // archivo no los trae (backup v1), `examRows` viene vacío y no se hace nada.
+      const addedExams = examRows.length > 0 ? await exams.appendExamRows(examRows) : [];
+      alert(
+        addedExams.length > 0
+          ? t('messages.appendedWithExams', { count: payload.length, exams: addedExams.length })
+          : t('backup.importSuccess', { count: payload.length })
+      );
     } catch (error) {
       alert(t('backup.importError', { msg: error.message }));
     } finally {
@@ -200,22 +233,34 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   /**
    * Restaura un snapshot local: **append** de sus actividades al horario actual,
    * sin borrar nada. Pide confirmación porque puede duplicar bloques.
+   * Los exámenes del snapshot se añaden igual (append) cuando los hay (v5.0 D2).
    */
   const handleRestoreSnapshot = async (snapshot) => {
     const { rows: validRows } = localBackup.readSnapshotActivities(snapshot);
-    if (validRows.length === 0) {
+    const examRows = localBackup.readSnapshotExams(snapshot)?.rows || [];
+    // Un snapshot puede traer solo exámenes (v5.0 D2): si no hay nada que
+    // restaurar en ninguna de las dos entidades, no se hace nada.
+    if (validRows.length === 0 && examRows.length === 0) {
       alert(t('backup.restoreEmpty'));
       return;
     }
 
     const when = new Date(snapshot.created_at).toLocaleString(localeForDate);
-    if (!window.confirm(t('backup.restoreConfirm', { count: validRows.length, when }))) return;
+    const question = examRows.length > 0
+      ? t('backup.restoreConfirmWithExams', { count: validRows.length, exams: examRows.length, when })
+      : t('backup.restoreConfirm', { count: validRows.length, when });
+    if (!window.confirm(question)) return;
 
     try {
       const payload = validRows.map((row) => ({ ...row, user_id: user.id }));
       await appendRows(payload);
+      const addedExams = await exams.appendExamRows(examRows);
       setShowBackupModal(false);
-      alert(t('backup.restoreSuccess', { count: payload.length }));
+      alert(
+        addedExams.length > 0
+          ? t('messages.appendedWithExams', { count: payload.length, exams: addedExams.length })
+          : t('backup.restoreSuccess', { count: payload.length })
+      );
     } catch (error) {
       alert(t('backup.localError', { msg: error.message }));
     }
@@ -321,21 +366,32 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
       parsed = parseBackup(text);
     }
 
-    if (!parsed.payload || parsed.rows.length === 0) {
+    // Un backup en la nube puede traer solo exámenes (v5.0 D2).
+    const parsedExamCount = parsed.examRows?.length ?? 0;
+    if (!parsed.payload || (parsed.rows.length === 0 && parsedExamCount === 0)) {
       alert(t('backup.restoreEmpty'));
       throw { code: 'empty' };
     }
 
     const when = new Date(item.createdTime).toLocaleString(localeForDate);
-    if (!window.confirm(t('backup.restoreConfirm', { count: parsed.rows.length, when }))) {
+    const question = parsedExamCount > 0
+      ? t('backup.restoreConfirmWithExams', { count: parsed.rows.length, exams: parsedExamCount, when })
+      : t('backup.restoreConfirm', { count: parsed.rows.length, when });
+    if (!window.confirm(question)) {
       throw { code: 'cancelled' };
     }
 
     try {
       const payload = parsed.rows.map((row) => ({ ...row, user_id: user.id }));
       await appendRows(payload);
+      // Sección opcional de exámenes del backup en la nube (v5.0 D2).
+      const addedExams = await exams.appendExamRows(parsed.examRows);
       setShowCloudModal(false);
-      alert(t('backup.restoreSuccess', { count: payload.length }));
+      alert(
+        addedExams.length > 0
+          ? t('messages.appendedWithExams', { count: payload.length, exams: addedExams.length })
+          : t('backup.restoreSuccess', { count: payload.length })
+      );
     } catch (error) {
       cloudAlert(error, 'backup.cloudRestoreError');
       throw { code: 'append' };
@@ -711,6 +767,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
         user={user}
         isGuest={isGuest}
         onExitGuest={onExitGuest}
+        exams={exams}
         privacy={{
           privacy,
           encryption: {
@@ -746,6 +803,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
         fileName={backupImportPreview?.fileName || ''}
         rows={backupImportPreview?.rows || []}
         errors={backupImportPreview?.errors || []}
+        extraCount={backupImportPreview?.examRows?.length || 0}
         onConfirm={handleConfirmImportBackup}
         onClose={() => setBackupImportPreview(null)}
         isMaru={style === 'maru'}
@@ -754,6 +812,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
           title: t('backup.importTitle'),
           file: t('backup.importFile', { file: backupImportPreview?.fileName || '' }),
           confirm: t('backup.importConfirm', { count: backupImportPreview?.rows?.length || 0 }),
+          extra: t('backup.importExams', { count: backupImportPreview?.examRows?.length || 0 }),
           nothingToImport: t('backup.nothingToImport'),
           confirmButton: t('backup.importConfirmButton'),
         }}

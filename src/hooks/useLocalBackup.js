@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { backupStore } from '../lib/backupStore';
-import { BACKUP_RETENTION, buildBackup, validateActivities } from '../utils/backup';
+import { BACKUP_RETENTION, buildBackup, validateActivities, validateExams } from '../utils/backup';
 
 /** Cada cuánto se revisa si hay que guardar un snapshot aunque no haya mutaciones. */
 const PERIODIC_CHECK_MS = 30 * 60 * 1000;
@@ -19,20 +19,22 @@ const signatureOf = (payload) => {
  * Auto-backup local (v4.0 C2).
  *
  * Guarda un snapshot versionado en IndexedDB (`backups`) cada vez que cambia el
- * estado (actividades, recordatorios, paneles, ajustes, pomodoro) y al menos
- * cada `PERIODIC_CHECK_MS` minutos. Todo ocurre en el dispositivo, sin red.
+ * estado (actividades, exámenes, recordatorios, paneles, ajustes, pomodoro) y al
+ * menos cada `PERIODIC_CHECK_MS` minutos. Todo ocurre en el dispositivo, sin red.
  *
  * Retención: se conservan las `retention` copias más recientes por usuario.
  *
  * @param {object} params
  * @param {string}  params.userId      id de usuario (o 'anon' para invitados)
  * @param {Array}   params.activities  filas crudas del store (`useActivities().rows`)
+ * @param {Array}   [params.exams]     filas crudas (`useExams().rows`)
  * @param {boolean} params.loading    mientras `true` no se hace nada
  * @param {boolean} params.isGuest
  * @returns {{ snapshots, busy, lastBackupAt, refresh, createSnapshot,
- *             readSnapshotActivities, deleteSnapshot, clearSnapshots }}
+ *             readSnapshotActivities, readSnapshotExams, deleteSnapshot,
+ *             clearSnapshots }}
  */
-export function useLocalBackup({ userId, activities = [], loading = false, isGuest = false, retention = BACKUP_RETENTION, enabled = true }) {
+export function useLocalBackup({ userId, activities = [], exams = [], loading = false, isGuest = false, retention = BACKUP_RETENTION, enabled = true }) {
   const [snapshots, setSnapshots] = useState([]);
   const [busy, setBusy] = useState(false);
   // Firma del último snapshot creado o confirmado en esta sesión (evita bucles).
@@ -49,22 +51,26 @@ export function useLocalBackup({ userId, activities = [], loading = false, isGue
 
   /** Crea un snapshot y aplica la retención. Devuelve el snapshot o null. */
   const writeSnapshot = useCallback(async () => {
-    const payload = buildBackup({ activities, userId, isGuest });
+    const payload = buildBackup({ activities, exams, userId, isGuest });
     lastSignatureRef.current = signatureOf(payload);
 
     const snapshot = await backupStore.create({ userId, payload });
     await backupStore.prune(userId, retention);
     setSnapshots(await backupStore.list(userId));
     return snapshot;
-  }, [activities, isGuest, retention, userId]);
+  }, [activities, exams, isGuest, retention, userId]);
 
   /**
    * Compara el estado actual con el último snapshot guardado:
    * si no hay cambios no escribe nada.
+   *
+   * `signatureOf` serializa el payload entero salvo `exportedAt`, así que los
+   * exámenes entran en la comparación sin ningún código extra: añadir o quitar
+   * un examen cambia `data.exams` y genera snapshot solo.
    */
   const sync = useCallback(async () => {
     if (!enabled || loading) return;
-    const payload = buildBackup({ activities, userId, isGuest });
+    const payload = buildBackup({ activities, exams, userId, isGuest });
     const signature = signatureOf(payload);
     if (signature === lastSignatureRef.current) return;
 
@@ -85,14 +91,14 @@ export function useLocalBackup({ userId, activities = [], loading = false, isGue
     } finally {
       setBusy(false);
     }
-  }, [activities, enabled, isGuest, loading, retention, userId]);
+  }, [activities, enabled, exams, isGuest, loading, retention, userId]);
 
   // Reacciona a los cambios de estado (cada mutación reload() y produce rows nuevos).
   useEffect(() => {
     sync();
   }, [sync]);
 
-  // Revisión periódica: captura cambios que no pasan por `activities`
+  // Revisión periódica: captura cambios que no pasan por `activities`/`exams`
   // (idioma, tema, estilo, recordatorios, pomodoro).
   useEffect(() => {
     if (!enabled) return undefined;
@@ -131,6 +137,18 @@ export function useLocalBackup({ userId, activities = [], loading = false, isGue
     return validateActivities(Array.isArray(activities) ? activities : [], 1);
   }, []);
 
+  /**
+   * Exámenes de un snapshot, ya validados y listos para `appendExamRows`.
+   * `data.exams` es opcional (snapshots anteriores a v5.0 D2): si no está, sale
+   * vacío sin errores.
+   * @param {object} snapshot
+   * @returns {{ rows: Array, errors: Array }}
+   */
+  const readSnapshotExams = useCallback((snapshot) => {
+    const exams = snapshot?.payload?.data?.exams;
+    return validateExams(Array.isArray(exams) ? exams : [], 1);
+  }, []);
+
   const deleteSnapshot = useCallback(
     async (id) => {
       await backupStore.remove(id);
@@ -153,6 +171,7 @@ export function useLocalBackup({ userId, activities = [], loading = false, isGue
     refresh,
     createSnapshot,
     readSnapshotActivities,
+    readSnapshotExams,
     deleteSnapshot,
     clearSnapshots,
   };

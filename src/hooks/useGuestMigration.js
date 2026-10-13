@@ -1,25 +1,37 @@
 import { useCallback, useEffect, useState } from 'react';
 import { localStore, supabaseStore, normalizeRow } from '../lib/activityStore';
+import {
+  localStore as examStore,
+  supabaseStore as examSupabaseStore,
+  normalizeRow as normalizeExamRow,
+} from '../lib/examStore';
 import { guestFlags } from './useSession';
 
 /**
- * Oferta de migración entre el horario local (invitado, IndexedDB) y la cuenta.
+ * Oferta de migración entre los datos locales (invitado, IndexedDB) y la cuenta.
  *
- * Se evalúa una sola vez por sesión y solo hay dos direcciones posibles:
+ * Se evalúa una sola vez por sesión (flag `jikan.guest.answered`) y solo hay dos
+ * direcciones posibles. Desde v5.0 D2 cada dirección mueve **dos** entidades:
+ * el horario y el calendario de exámenes, con un único modal y una única
+ * decisión para el usuario:
  *
- *   'upload' → hay N actividades locales y una sesión real → subirlas a la
- *               cuenta (append, nunca sobrescribe).
- *   'import' → el usuario entró como invitado en este dispositivo, el store
- *               local está vacío y su cuenta tiene actividades → copiar una
- *               copia local (la cuenta no se toca).
+ *   'upload' → hay N actividades y/o M exámenes locales y una sesión real →
+ *               subirlos a la cuenta (append, nunca sobrescribe).
+ *   'import' → el usuario entró como invitado en este dispositivo, los stores
+ *               locales están vacíos y su cuenta tiene datos → copiar una copia
+ *               local (la cuenta no se toca).
+ *
+ * `count` cuenta actividades y `examCount` exámenes, en el prompt y en el
+ * `done` final, para que la UI pueda nombrarlos por separado.
  *
  * `null` = no hay nada que ofrecer (o ya se respondió y se marcó
  * `jikan.guest.answered`).
  */
 export function useGuestMigration(user, isGuest) {
-  const [prompt, setPrompt] = useState(null); // { mode: 'upload' | 'import', count: number }
+  // { mode: 'upload' | 'import', count: number, examCount: number }
+  const [prompt, setPrompt] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(null); // { mode, count } al terminar bien
+  const [done, setDone] = useState(null); // { mode, count, examCount } al terminar bien
 
   const evaluate = useCallback(async () => {
     if (isGuest || !user) {
@@ -33,18 +45,24 @@ export function useGuestMigration(user, isGuest) {
 
     try {
       const localCount = await localStore.count();
+      const examCount = await examStore.count();
 
-      if (localCount > 0) {
-        setPrompt({ mode: 'upload', count: localCount });
+      if (localCount + examCount > 0) {
+        setPrompt({ mode: 'upload', count: localCount, examCount });
         return;
       }
 
-      // Store local vacío: solo tiene sentido ofrecer la importación si el
+      // Stores locales vacíos: solo tiene sentido ofrecer la importación si el
       // usuario pasó por el modo invitado en este dispositivo.
       if (guestFlags.wasGuest()) {
         const remoteRows = await supabaseStore.list();
-        if (remoteRows.length > 0) {
-          setPrompt({ mode: 'import', count: remoteRows.length });
+        const remoteExams = await examSupabaseStore.list();
+        if (remoteRows.length > 0 || remoteExams.length > 0) {
+          setPrompt({
+            mode: 'import',
+            count: remoteRows.length,
+            examCount: remoteExams.length,
+          });
           return;
         }
       }
@@ -62,12 +80,15 @@ export function useGuestMigration(user, isGuest) {
 
   /**
    * Ejecuta la acción elegida.
+   *
    * @param {'upload' | 'import' | 'discard'} mode
-   * @returns {Promise<number>} número de actividades migradas (0 al descartar)
+   * @returns {Promise<{count: number, examCount: number}>} cuántas actividades
+   *   y cuántos exámenes se han movido (a 0 al descartar). Lo usan los alerts
+   *   de `MainShell`, que nombran las dos entidades por separado.
    */
   const run = useCallback(
     async (mode) => {
-      if (!user) return 0;
+      if (!user) return { count: 0, examCount: 0 };
       setBusy(true);
       try {
         if (mode === 'upload') {
@@ -76,11 +97,21 @@ export function useGuestMigration(user, isGuest) {
             normalizeRow({ ...row, user_id: user.id, id: undefined })
           );
           await supabaseStore.insertMany(payload);
+
+          // Los exámenes viajan con la misma decisión: el `id` lo pone el store
+          // remoto y el `user_id` pasa a ser el de la cuenta (RLS).
+          const localExams = await examStore.list();
+          const examPayload = localExams.map((row) =>
+            normalizeExamRow({ ...row, user_id: user.id, id: undefined })
+          );
+          await examSupabaseStore.insertMany(examPayload);
+
           await localStore.clear();
+          await examStore.clear();
           guestFlags.clear();
           setPrompt(null);
-          setDone({ mode, count: localRows.length });
-          return localRows.length;
+          setDone({ mode, count: localRows.length, examCount: localExams.length });
+          return { count: localRows.length, examCount: localExams.length };
         }
 
         if (mode === 'import') {
@@ -89,18 +120,26 @@ export function useGuestMigration(user, isGuest) {
             normalizeRow({ ...row, user_id: null, id: undefined })
           );
           await localStore.insertMany(payload);
+
+          const remoteExams = await examSupabaseStore.list();
+          const examPayload = remoteExams.map((row) =>
+            normalizeExamRow({ ...row, user_id: null, id: undefined })
+          );
+          await examStore.insertMany(examPayload);
+
           guestFlags.markAnswered();
           setPrompt(null);
-          setDone({ mode, count: remoteRows.length });
-          return remoteRows.length;
+          setDone({ mode, count: remoteRows.length, examCount: remoteExams.length });
+          return { count: remoteRows.length, examCount: remoteExams.length };
         }
 
-        // 'discard': se borra lo local y no se toca la cuenta.
+        // 'discard': se borra lo local de las dos entidades y no se toca la cuenta.
         await localStore.clear();
+        await examStore.clear();
         guestFlags.clear();
         setPrompt(null);
-        setDone({ mode, count: 0 });
-        return 0;
+        setDone({ mode, count: 0, examCount: 0 });
+        return { count: 0, examCount: 0 };
       } finally {
         setBusy(false);
       }

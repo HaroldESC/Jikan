@@ -4,6 +4,10 @@
  * Vista previa de la importación de un CSV: cuenta de filas válidas,
  * errores de fila y confirmación antes del insert en Supabase.
  * Soporta ambas variantes: Maru (glass) y Sei (Tailwind plano).
+ *
+ * `extraCount` + `labels.extra` permiten previewar una segunda entidad en la
+ * misma importación (v5.0 D2: los exámenes de un backup JSON), sin duplicar el
+ * componente. Con 0 (por defecto) el modal se comporta como antes.
  */
 
 import { X, Upload, AlertTriangle } from 'lucide-react';
@@ -21,6 +25,7 @@ const ImportModal = ({
   isMaru,
   isDarkMode,
   labels,
+  extraCount = 0,
 }) => {
   const { t } = useTranslation();
 
@@ -38,7 +43,9 @@ const ImportModal = ({
     ...(labels || {}),
   };
 
-  const canImport = rows.length > 0;
+  // Un backup puede traer solo exámenes (sin actividades): basta con que haya
+  // algo que importar en cualquiera de las dos entidades.
+  const canImport = rows.length > 0 || extraCount > 0;
   const shownErrors = errors.slice(0, MAX_ERRORS_SHOWN);
 
   const cardClass = isMaru
@@ -86,6 +93,13 @@ const ImportModal = ({
           ) : (
             <p className={`text-sm font-medium ${isMaru ? 'text-white/70' : isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
               {copy.nothingToImport}
+            </p>
+          )}
+
+          {canImport && copy.extra && (
+            <p className="text-sm font-medium">
+              <Upload size={16} className="inline mr-2 -mt-0.5" />
+              {copy.extra}
             </p>
           )}
 

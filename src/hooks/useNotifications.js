@@ -7,8 +7,9 @@ import { useCallback, useEffect, useState } from 'react';
  * - `permission` mirrors `Notification.permission` ('default' | 'granted' |
  *   'denied'); `requestPermission()` prompts the browser the first time.
  * - User settings are persisted per user in localStorage:
- *   `jikan.notify.<userId || 'anon'>` → { enabled: boolean, preMinutes: number }
- *   defaults: { enabled: false, preMinutes: 5 }.
+ *   `jikan.notify.<userId || 'anon'>` → { enabled: boolean, preMinutes: number,
+ *   examPreHours: number }
+ *   defaults: { enabled: false, preMinutes: 5, examPreHours: 24 }.
  * - `notify(title, options)` is a safe fire-and-forget helper: it only fires
  *   when permission is granted, guards against unsupported/insecure contexts
  *   and passes a stable `tag` so duplicate notifications collapse.
@@ -19,13 +20,16 @@ import { useCallback, useEffect, useState } from 'react';
  * most browsers. The plain constructor stays as a fallback so notifications keep
  * working in dev (no service worker) and on browsers without one.
  *
- * This hook owns no scheduling: the event logic (activity change / pre-aviso)
- * lives in AppLayout, driven by `useClock`.
+ * This hook owns no scheduling: the event logic (activity change / pre-aviso /
+ * pre-examen) lives in AppLayout, driven by `useClock`.
  */
 
 const storageKey = (userId) => `jikan.notify.${userId || 'anon'}`;
 
-const DEFAULTS = { enabled: false, preMinutes: 5 };
+const DEFAULTS = { enabled: false, preMinutes: 5, examPreHours: 24 };
+
+/** Tope del aviso de pre-examen: una semana (v5.0 D2). */
+const EXAM_PRE_MAX_HOURS = 168;
 
 /**
  * Registro **activo** del service worker, o `null` si no hay ninguno.
@@ -51,15 +55,28 @@ const clampPreMinutes = (value) => {
   return Math.min(60, Math.max(0, numeric));
 };
 
+/**
+ * Antigüedad del aviso de pre-examen, en horas (v5.0 D2). `0` lo desactiva.
+ * Máximo una semana; cualquier valor no numérico cae en el defecto (24 h).
+ */
+const clampExamPreHours = (value) => {
+  const numeric = Math.round(Number(value));
+  if (!Number.isFinite(numeric)) return DEFAULTS.examPreHours;
+  return Math.min(EXAM_PRE_MAX_HOURS, Math.max(0, numeric));
+};
+
 const readSettings = (userId) => {
   try {
     const raw = window.localStorage.getItem(storageKey(userId));
     if (!raw) return { ...DEFAULTS };
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return { ...DEFAULTS };
+    // Ojo: se reconstruye el objeto clave a clave, así que cualquier clave
+    // nueva (como `examPreHours`) tiene que añadirse explícitamente aquí.
     return {
       enabled: parsed.enabled === true,
       preMinutes: clampPreMinutes(parsed.preMinutes ?? DEFAULTS.preMinutes),
+      examPreHours: clampExamPreHours(parsed.examPreHours ?? DEFAULTS.examPreHours),
     };
   } catch (error) {
     console.error('Error reading notification settings:', error);
@@ -139,6 +156,11 @@ export function useNotifications(userId) {
     setSettings((prev) => ({ ...prev, preMinutes: clampPreMinutes(value) }));
   }, []);
 
+  /** Horas de aviso previas al examen (`0` = sin aviso de pre-examen). */
+  const setExamPreHours = useCallback((value) => {
+    setSettings((prev) => ({ ...prev, examPreHours: clampExamPreHours(value) }));
+  }, []);
+
   /**
    * Fires a notification. Returns a promise resolving to true when it was
    * actually handed to the platform.
@@ -179,6 +201,9 @@ export function useNotifications(userId) {
     setEnabled,
     preMinutes: settings.preMinutes,
     setPreMinutes,
+    /** Margen del aviso de pre-examen en horas (`0` = desactivado). */
+    examPreHours: settings.examPreHours,
+    setExamPreHours,
     notify,
     /** `true` cuando las notificaciones salen por el service worker (C4). */
     viaServiceWorker: hasServiceWorker,

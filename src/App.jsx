@@ -6,6 +6,7 @@ import UnlockScreen from './core/common/UnlockScreen';
 import { useSession } from './hooks/useSession';
 import { useEncryption } from './hooks/useEncryption';
 import { localStore } from './lib/activityStore';
+import { localStore as examStore } from './lib/examStore';
 import { backupStore } from './lib/backupStore';
 import { clearEncryptionSettings } from './hooks/useEncryption';
 
@@ -27,10 +28,12 @@ export default function App() {
   /**
    * Salida de emergencia: sin la passphrase los datos cifrados no son
    * recuperables, así que se borran del dispositivo y Jikan empieza de cero.
+   * Se borra todo lo local: actividades, exámenes y snapshots.
    */
   const handleForgetPassphrase = useCallback(async () => {
     try {
       await localStore.clear();
+      await examStore.clear();
       await backupStore.clear(user?.id ?? 'guest');
     } catch (error) {
       console.error('Error wiping encrypted local data:', error);
