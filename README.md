@@ -24,6 +24,7 @@
 - **Statistics Dashboard** — Daily metrics: total time, averages, efficiency, activity distribution
 - **Reminders** — Basic reminder system for your activities
 - **Activity Notes** — Free-text notes per activity block, editable in the editor and shown in the detail view
+- **Resource Links** — Up to 10 resource links per activity (label + URL), editable in the editor and shown in the detail view
 - **Pomodoro Timer** — Shared focus/break panel with configurable durations and a daily session counter
 - **Browser Notifications** — Alert on activity change plus a configurable pre-activity warning
 - **CSV Import / Export** — Export the full week to CSV (UTF-8) and import schedules back with per-row validation
@@ -220,7 +221,7 @@ jikan/
 │   │   ├── gdrive.js        # Google Drive client (GIS token flow, scope drive.file; the OAuth
 │   │   │                    #  access token lives only in module memory)
 │   │   └── supabase.js      # Supabase client
-│   ├── utils/               # Utility functions (dates, csv, export, backup.js: pure
+│   ├── utils/               # Utility functions (dates, csv, export, links.js, backup.js: pure
 │   │                        #  build/serialize/parse helpers, BACKUP_VERSION = 1, retention 10)
 │   ├── styles/              # CSS by theme
 │   │   ├── maru/            # Maru style (glassmorphism)
@@ -276,7 +277,7 @@ jikan/
 
 ### v5.0 — Study & Content Tools
 - [ ] **Custom fonts**
-- [ ] **Resource links** per activity (class materials, URLs)
+- [x] **Resource links** per activity (class materials, URLs)
 - [ ] **Exam calendar** with auto-preparation
 - [ ] **Integrated flashcards** for review during breaks
 - [ ] **Productivity graphs & comparative charts** (month vs month)

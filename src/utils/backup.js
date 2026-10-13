@@ -9,7 +9,7 @@
  *   exportedAt: '2026-10-04T12:00:00.000Z',
  *   scope: 'guest' | 'account',
  *   data: {
- *     activities:    [ { day_of_week, start_time, end_time, title, description, notes, color } ],
+ *     activities:    [ { day_of_week, start_time, end_time, title, description, notes, color, links } ],
  *     reminders:     [ { id, text, time } ],
  *     panels:        { 'maru.content': { order: [...], visible: {...} } },
  *     settings:      { themeMode, style, locale },
@@ -24,6 +24,7 @@
  */
 
 import { normalizeDay, DEFAULT_COLOR } from './csv';
+import { sanitizeLinks } from './links';
 import { exportDateKey } from './export';
 
 export const BACKUP_APP = 'jikan';
@@ -114,6 +115,7 @@ export function buildBackup({ activities = [], userId, isGuest = false } = {}) {
         description: row.description ?? '',
         notes: row.notes ?? '',
         color: row.color ?? DEFAULT_COLOR,
+        links: sanitizeLinks(row.links),
       })),
       ...collectLocalState(userId),
     },
@@ -242,6 +244,7 @@ export function validateActivities(list, offset = 1) {
       description: typeof activity.description === 'string' ? activity.description : '',
       notes: typeof activity.notes === 'string' ? activity.notes : '',
       color: /^#[0-9a-fA-F]{6}$/.test(rawColor) ? rawColor.toLowerCase() : DEFAULT_COLOR,
+      links: sanitizeLinks(activity.links),
     });
   });
 

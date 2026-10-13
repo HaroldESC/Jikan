@@ -21,9 +21,10 @@
  *   count()                 → number
  *
  * Forma de fila (`Row`):
- *   { id, user_id, day_of_week, start_time, end_time, title, description, notes, color }
+ *   { id, user_id, day_of_week, start_time, end_time, title, description, notes, color, links }
  * `day_of_week` es el nombre del día tal y como aparece en `src/utils/dates.js`
  * ('Lunes' … 'Domingo'); `start_time` / `end_time` son strings "HH:MM".
+ * `links` es un array de `{ label, url }` (ver `src/utils/links.js`).
  *
  * Con cifrado local activo (v4.0 C3) la fila **completa** se guarda cifrada en
  * un sobre `{ id, enc }`: nada del contenido (título, descripción, notas,
@@ -33,6 +34,7 @@
  */
 
 import { supabase } from './supabase';
+import { sanitizeLinks } from '../utils/links';
 import {
   ACTIVITIES_STORE,
   getAllFromStore,
@@ -58,6 +60,7 @@ export function normalizeRow(row = {}) {
     description: row.description ?? '',
     notes: row.notes ?? '',
     color: row.color ?? '#7c5cff',
+    links: sanitizeLinks(row.links ?? []),
   };
 }
 

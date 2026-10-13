@@ -9,11 +9,12 @@
  * no penalizar el bundle inicial de la app.
  *
  * Contenido: los mismos 7 días y las mismas columnas que el CSV
- * (day/title/start/end/color/description/notes), ordenados Lunes → Domingo.
+ * (day/title/start/end/color/description/notes/links), ordenados Lunes → Domingo.
  */
 
 import { decimalToTime } from './dates';
 import { DAY_ORDER, DEFAULT_COLOR } from './csv';
+import { sanitizeLinks } from './links';
 
 const BRAND = [124, 92, 255]; // #7c5cff
 const INK = [30, 41, 59];
@@ -56,7 +57,7 @@ export const exportFileName = (extension, date = new Date()) =>
  * @param {object} activities mapa `{ [día]: actividad[] }` (schedules).
  * @param {string[]} [dayOrder] orden de los días de la semana.
  * @returns {Array<{day, title, start, end, durationMinutes, color,
- *   description, notes}>}
+ *   description, notes, links}>}
  */
 export function buildWeekRows(activities, dayOrder = DAY_ORDER) {
   const entries = [];
@@ -100,6 +101,7 @@ export function buildWeekRows(activities, dayOrder = DAY_ORDER) {
       color: activity.color || DEFAULT_COLOR,
       description: activity.description ?? '',
       notes: activity.notes ?? '',
+      links: sanitizeLinks(activity.links),
     };
   });
 }
@@ -143,6 +145,20 @@ const hexToRgb = (hex) => {
     parseInt(value.slice(4, 6), 16),
   ];
 };
+
+/** Resumen de enlaces para la columna fija del PDF: nº + primera entrada truncada. */
+const summarizeLinks = (links) => {
+  if (!Array.isArray(links) || links.length === 0) return '';
+  const first = links[0]?.label || links[0]?.url || '';
+  const short = first.length > 32 ? `${first.slice(0, 31)}…` : first;
+  return links.length === 1 ? short : `${links.length} · ${short}`;
+};
+
+/** Texto completo de enlaces para el XLSX: un enlace por línea `label (url)`. */
+const formatLinksCell = (links) =>
+  (Array.isArray(links) ? links : [])
+    .map((link) => (link.label ? `${link.label} (${link.url})` : link.url))
+    .join('\n');
 
 /**
  * Genera y descarga un PDF A4 apaisado con la semana completa: portada de
@@ -203,8 +219,9 @@ export async function exportWeekToPdf({ rows, dayOrder = DAY_ORDER, labels, file
     { width: 58 },
     { width: 22, align: 'center' },
     { width: 26, align: 'center', fontSize: 7 },
-    { width: 62 },
-    { width: 61 },
+    { width: 48 },
+    { width: 47 },
+    { width: 28, fontSize: 7 },
   ];
   const scale = (pageWidth - margin * 2) / columns.reduce((total, column) => total + column.width, 0);
   const columnStyles = {};
@@ -214,7 +231,7 @@ export async function exportWeekToPdf({ rows, dayOrder = DAY_ORDER, labels, file
   });
 
   const head = [
-    [labels.colStart, labels.colEnd, labels.colTitle, labels.colDuration, labels.colColor, labels.colDescription, labels.colNotes],
+    [labels.colStart, labels.colEnd, labels.colTitle, labels.colDuration, labels.colColor, labels.colDescription, labels.colNotes, labels.colLinks],
   ];
 
   let firstTable = true;
@@ -245,6 +262,7 @@ export async function exportWeekToPdf({ rows, dayOrder = DAY_ORDER, labels, file
         String(row.color).toUpperCase(),
         row.description,
         row.notes,
+        summarizeLinks(row.links),
       ]),
       margin: { left: margin, right: margin, bottom: margin },
       theme: 'grid',
@@ -305,6 +323,7 @@ export async function exportWeekToXlsx({ rows, dayOrder = DAY_ORDER, labels, fil
     labels.colColor,
     labels.colDescription,
     labels.colNotes,
+    labels.colLinks,
   ];
 
   const weekAoa = [
@@ -318,6 +337,7 @@ export async function exportWeekToXlsx({ rows, dayOrder = DAY_ORDER, labels, fil
       row.color,
       row.description,
       row.notes,
+      formatLinksCell(row.links),
     ]),
   ];
 
@@ -329,6 +349,7 @@ export async function exportWeekToXlsx({ rows, dayOrder = DAY_ORDER, labels, fil
     { wch: 9 },
     { wch: 11 },
     { wch: 11 },
+    { wch: 40 },
     { wch: 40 },
     { wch: 40 },
   ];

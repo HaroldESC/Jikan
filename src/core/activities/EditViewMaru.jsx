@@ -1,5 +1,6 @@
-import { ChevronLeft, Trash2, Clock, Palette, FileText, Save, Plus } from 'lucide-react';
+import { ChevronLeft, Trash2, Clock, Palette, FileText, Save, Plus, X } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { MAX_LINKS } from '../../utils/links';
 
 const COLOR_PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'];
 
@@ -28,6 +29,32 @@ export default function EditViewMaru({
 }) {
   const { t } = useTranslation();
   const duration = tempActivity.end - tempActivity.start;
+  const links = Array.isArray(tempActivity.links) ? tempActivity.links : [];
+
+  const isInvalidUrl = (url) => {
+    const value = (url ?? '').trim();
+    if (!value) return false;
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol !== 'http:' && parsed.protocol !== 'https:';
+    } catch {
+      return true;
+    }
+  };
+
+  const updateLink = (index, field, value) => {
+    const next = links.map((link, i) => (i === index ? { ...link, [field]: value } : link));
+    onTempActivityChange({ ...tempActivity, links: next });
+  };
+
+  const addLink = () => {
+    if (links.length >= MAX_LINKS) return;
+    onTempActivityChange({ ...tempActivity, links: [...links, { label: '', url: '' }] });
+  };
+
+  const removeLink = (index) => {
+    onTempActivityChange({ ...tempActivity, links: links.filter((_, i) => i !== index) });
+  };
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${bgColor} p-6 transition-all duration-1000`}>
@@ -77,6 +104,56 @@ export default function EditViewMaru({
                     rows="3"
                     placeholder={t('activity.notesPlaceholder')}
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2 opacity-80">{t('activity.links')}</label>
+                  <div className="space-y-3">
+                    {links.map((link, index) => (
+                      <div key={index} className="space-y-1">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={link.label ?? ''}
+                            onChange={(e) => updateLink(index, 'label', e.target.value)}
+                            aria-label={t('activity.linkLabel')}
+                            placeholder={t('activity.linkLabel')}
+                            className="w-1/3 bg-white/10 rounded-lg p-3 text-white placeholder-white/50 border border-white/20 focus:border-white/50 focus:outline-none transition text-sm"
+                          />
+                          <input
+                            type="url"
+                            value={link.url ?? ''}
+                            onChange={(e) => updateLink(index, 'url', e.target.value)}
+                            aria-label={t('activity.linkUrl')}
+                            placeholder={t('activity.linksPlaceholder')}
+                            className="flex-1 min-w-0 bg-white/10 rounded-lg p-3 text-white placeholder-white/50 border border-white/20 focus:border-white/50 focus:outline-none transition text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeLink(index)}
+                            aria-label={t('activity.removeLink')}
+                            className="flex items-center justify-center w-11 shrink-0 bg-white/10 rounded-lg border border-white/20 hover:bg-white/20 transition"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                        {(link.url ?? '').trim() !== '' && isInvalidUrl(link.url) && (
+                          <p className="text-xs text-red-300">{t('activity.errInvalidUrl')}</p>
+                        )}
+                      </div>
+                    ))}
+                    {links.length >= MAX_LINKS && (
+                      <p className="text-xs opacity-60">{t('activity.errTooManyLinks')}</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={addLink}
+                      disabled={links.length >= MAX_LINKS}
+                      className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white/10"
+                    >
+                      <Plus size={16} />
+                      {t('activity.addLink')}
+                    </button>
+                  </div>
                 </div>
               </div>
             </SectionBlock>

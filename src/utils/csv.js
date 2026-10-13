@@ -1,15 +1,18 @@
 /**
  * Utilidades CSV (puras: sin React ni Supabase).
  *
- * Formato de fila: day,title,start,end,color,description,notes
+ * Formato de fila: day,title,start,end,color,description,notes,links
  * - `day`: nombre canónico en español ('Lunes'…'Domingo').
  * - `start`/`end`: 'HH:MM' (se acepta también 'H:MM').
  * - `color`: '#RRGGBB' (vacío o inválido → color por defecto).
+ * - `links`: `label|url;label|url` (columna opcional; ausente → `[]`;
+ *   las entradas malformadas se descartan sin invalidar la fila).
  */
 
 import { decimalToTime } from './dates';
+import { linksToCsvValue, linksFromCsvValue } from './links';
 
-export const CSV_HEADER = ['day', 'title', 'start', 'end', 'color', 'description', 'notes'];
+export const CSV_HEADER = ['day', 'title', 'start', 'end', 'color', 'description', 'notes', 'links'];
 export const DEFAULT_COLOR = '#7c5cff';
 // Orden de exportación por defecto: semana empezando en lunes (igual que useActivities).
 export const DAY_ORDER = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -34,6 +37,7 @@ const HEADER_COLUMNS = {
   color: ['color'],
   description: ['description', 'descripcion', 'desc'],
   notes: ['notes', 'nota', 'notas'],
+  links: ['links', 'enlaces', 'enlace', 'resources', 'recursos', 'resource_links'],
 };
 const REQUIRED_COLUMNS = ['day', 'title', 'start', 'end'];
 
@@ -113,6 +117,7 @@ export function exportActivitiesToCsv(activities, dayOrder = DAY_ORDER) {
       escapeField(activity.color || DEFAULT_COLOR),
       escapeField(activity.description ?? ''),
       escapeField(activity.notes ?? ''),
+      escapeField(linksToCsvValue(activity.links)),
     ].join(','));
   });
 
@@ -191,7 +196,7 @@ const isBlankRecord = (record) => record.cells.every((cellValue) => cellValue.tr
  * @param {string} text contenido del archivo.
  * @returns {{ rows: Array, errors: Array<{row: number, key: string, message: string}> }}
  *   `rows` listos para insertar en Supabase (`day_of_week`, `start_time`,
- *   `end_time`, `title`, `description`, `color`, `notes`).
+ *   `end_time`, `title`, `description`, `color`, `notes`, `links`).
  */
 export function parseActivitiesCsv(text) {
   const rows = [];
@@ -261,6 +266,7 @@ export function parseActivitiesCsv(text) {
       description: cell(record, column.description),
       color,
       notes: cell(record, column.notes),
+      links: linksFromCsvValue(cell(record, column.links)),
     });
   }
 

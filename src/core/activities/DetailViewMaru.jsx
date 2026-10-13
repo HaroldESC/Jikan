@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, FileText, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Clock, FileText, AlertCircle, Link } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
 import { decimalToMinutes } from '../../utils/dates';
 import ThemeToggle from '../common/ThemeToggle';
@@ -162,6 +162,35 @@ const DetailViewMaru = ({
             {activity.notes && activity.notes.trim() !== '' && (
               <DetailBlock title={t('activity.notes')} icon={<FileText size={18} />}>
                 <p className="text-white/90 leading-relaxed whitespace-pre-wrap">{activity.notes}</p>
+              </DetailBlock>
+            )}
+
+            {Array.isArray(activity.links) && activity.links.length > 0 && (
+              <DetailBlock title={t('activity.links')} icon={<Link size={18} />}>
+                <ul className="space-y-2">
+                  {activity.links.map((link, index) => {
+                    const label = (link?.label ?? '').trim();
+                    const url = (link?.url ?? '').trim();
+                    if (!url) {
+                      if (!label) return null;
+                      return (
+                        <li key={index} className="text-white/90 break-words">{label}</li>
+                      );
+                    }
+                    return (
+                      <li key={index}>
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-white underline underline-offset-2 hover:text-white/80 break-all"
+                        >
+                          {label || url}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
               </DetailBlock>
             )}
           </div>

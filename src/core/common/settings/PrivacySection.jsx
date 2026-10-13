@@ -15,6 +15,7 @@ const PRIVACY_ITEMS = [
   { key: 'notes', label: 'privacy.notes' },
   { key: 'description', label: 'privacy.description' },
   { key: 'reminders', label: 'privacy.reminders' },
+  { key: 'links', label: 'privacy.links' },
 ];
 
 export default function PrivacySection({ s, privacy }) {

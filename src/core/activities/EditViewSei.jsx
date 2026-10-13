@@ -1,5 +1,6 @@
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Plus, X } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
+import { MAX_LINKS } from '../../utils/links';
 
 const COLOR_PALETTE = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'];
 
@@ -23,6 +24,33 @@ export default function EditViewSei({
   const duration = tempActivity.end - tempActivity.start;
   const durHours = Math.floor(duration);
   const durMinutes = Math.round((duration - durHours) * 60);
+  const links = Array.isArray(tempActivity.links) ? tempActivity.links : [];
+  const fieldClass = `w-full rounded-xl p-3 text-sm outline-none transition ${dark ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-400'}`;
+
+  const isInvalidUrl = (url) => {
+    const value = (url ?? '').trim();
+    if (!value) return false;
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol !== 'http:' && parsed.protocol !== 'https:';
+    } catch {
+      return true;
+    }
+  };
+
+  const updateLink = (index, field, value) => {
+    const next = links.map((link, i) => (i === index ? { ...link, [field]: value } : link));
+    onTempActivityChange({ ...tempActivity, links: next });
+  };
+
+  const addLink = () => {
+    if (links.length >= MAX_LINKS) return;
+    onTempActivityChange({ ...tempActivity, links: [...links, { label: '', url: '' }] });
+  };
+
+  const removeLink = (index) => {
+    onTempActivityChange({ ...tempActivity, links: links.filter((_, i) => i !== index) });
+  };
 
   return (
     <div className={`min-h-screen ${dark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'} p-6 transition-all duration-1000`}>
@@ -72,6 +100,57 @@ export default function EditViewSei({
               placeholder={t('activity.notesPlaceholder')}
               className={`w-full rounded-xl p-3 text-sm outline-none resize-none transition ${dark ? 'bg-slate-700 text-white placeholder-slate-400' : 'bg-slate-100 text-slate-800 placeholder-slate-400'}`}
             />
+          </section>
+
+          <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>
+            <h2 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-3">{t('activity.links')}</h2>
+            <div className="space-y-3">
+              {links.map((link, index) => (
+                <div key={index} className="space-y-1">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={link.label ?? ''}
+                      onChange={(e) => updateLink(index, 'label', e.target.value)}
+                      aria-label={t('activity.linkLabel')}
+                      placeholder={t('activity.linkLabel')}
+                      className={`${fieldClass} w-1/3`}
+                    />
+                    <input
+                      type="url"
+                      value={link.url ?? ''}
+                      onChange={(e) => updateLink(index, 'url', e.target.value)}
+                      aria-label={t('activity.linkUrl')}
+                      placeholder={t('activity.linksPlaceholder')}
+                      className={`${fieldClass} flex-1 min-w-0`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeLink(index)}
+                      aria-label={t('activity.removeLink')}
+                      className={`flex items-center justify-center w-11 shrink-0 rounded-xl transition ${dark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  {(link.url ?? '').trim() !== '' && isInvalidUrl(link.url) && (
+                    <p className={`text-xs ${dark ? 'text-red-400' : 'text-red-500'}`}>{t('activity.errInvalidUrl')}</p>
+                  )}
+                </div>
+              ))}
+              {links.length >= MAX_LINKS && (
+                <p className={`text-xs ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{t('activity.errTooManyLinks')}</p>
+              )}
+              <button
+                type="button"
+                onClick={addLink}
+                disabled={links.length >= MAX_LINKS}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed ${dark ? 'bg-slate-700 text-slate-200 hover:bg-slate-600 disabled:hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:hover:bg-slate-100'}`}
+              >
+                <Plus size={16} />
+                {t('activity.addLink')}
+              </button>
+            </div>
           </section>
 
           <section className={`${dark ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-5 shadow-sm`}>

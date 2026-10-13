@@ -1,4 +1,5 @@
 import { decimalToTime } from '../../utils/dates';
+import { sanitizeLinks } from '../../utils/links';
 
 export const toSeiActivity = (maruActivity) => ({
   id: maruActivity.id,
@@ -8,6 +9,7 @@ export const toSeiActivity = (maruActivity) => ({
   color: maruActivity.color,
   description: maruActivity.description || '',
   notes: maruActivity.notes || '',
+  links: sanitizeLinks(maruActivity.links),
   type: maruActivity.type || 'general',
 });
 

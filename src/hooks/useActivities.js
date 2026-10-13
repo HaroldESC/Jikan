@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getActivityStore, GUEST_USER_ID } from '../lib/activityStore';
+import { sanitizeLinks } from '../utils/links';
 import { timeToDecimal, decimalToTime } from '../utils/dates';
 
 // Función para convertir decimal a string de hora legible
@@ -42,6 +43,7 @@ export function groupActivitiesByDay(rows = []) {
       description: a.description,
       notes: a.notes || '',
       color: a.color,
+      links: sanitizeLinks(a.links),
     });
   });
 
@@ -62,7 +64,7 @@ export function groupActivitiesByDay(rows = []) {
  * @param {object} user
  * @param {object} [options]
  * @param {boolean} [options.isGuest]
- * @param {{notes?: boolean, description?: boolean}} [options.privacy]
+ * @param {{notes?: boolean, description?: boolean, links?: boolean}} [options.privacy]
  *   Modo privado (v4.0 C3): las categorías desactivadas se descartan al guardar,
  *   así que nunca se escriben ni se sincronizan.
  */
@@ -105,10 +107,11 @@ export function useActivities(user, { isGuest = false, privacy } = {}) {
       // Modo privado: si la categoría está apagada, el dato no se escribe.
       description: privacy?.description ? (activity.description ?? '') : '',
       notes: privacy?.notes ? (activity.notes ?? '') : '',
+      links: privacy?.links ? sanitizeLinks(activity.links) : [],
       color: activity.color ?? '#7c5cff',
       user_id: userId,
     }),
-    [privacy?.description, privacy?.notes, userId]
+    [privacy?.description, privacy?.links, privacy?.notes, userId]
   );
 
   /** Crea una actividad nueva y recarga. Devuelve la fila creada. */
@@ -173,12 +176,13 @@ export function useActivities(user, { isGuest = false, privacy } = {}) {
         ...payload,
         description: privacy?.description ? (payload.description ?? '') : '',
         notes: privacy?.notes ? (payload.notes ?? '') : '',
+        links: privacy?.links ? sanitizeLinks(payload.links) : [],
       }));
       const created = await store.insertMany(sanitized);
       await reload();
       return created;
     },
-    [privacy?.description, privacy?.notes, reload, store]
+    [privacy?.description, privacy?.links, privacy?.notes, reload, store]
   );
 
   // Función para obtener actividades de un día específico

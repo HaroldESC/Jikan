@@ -80,7 +80,15 @@
     "activityCount_plural": "{count} アクティビティ",
     "totalHours": "予定時間 {hours}時間",
     "hours": "時間",
-    "minutes": "分"
+    "minutes": "分",
+    "links": "リンク",
+    "linkLabel": "ラベル",
+    "linkUrl": "URL",
+    "addLink": "リンクを追加",
+    "removeLink": "リンクを削除",
+    "linksPlaceholder": "例：授業資料",
+    "errTooManyLinks": "リンクは最大10件まで",
+    "errInvalidUrl": "無効なURL（http/https）"
   },
   "detail": {
     "back": "スケジュールに戻る",
@@ -221,6 +229,7 @@
     "notes": "活動のメモ",
     "description": "活動の説明",
     "reminders": "リマインダー",
+    "links": "リソースリンク",
     "on": "保存する",
     "off": "保存しない",
     "offHint": "端末に保存も同期もされません。すでに保存済みのデータは再保存時に破棄されます。",
@@ -444,6 +453,7 @@
     "colColor": "色",
     "colDescription": "説明",
     "colNotes": "メモ",
+    "colLinks": "リンク",
     "sheetWeek": "週間",
     "sheetSummary": "サマリー",
     "pageNumber": "ページ {page} / {total}"

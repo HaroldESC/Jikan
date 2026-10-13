@@ -95,6 +95,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
     activity: '',
     description: '',
     notes: '',
+    links: [],
     color: '#7c5cff',
   });
   const [tempStartTime, setTempStartTime] = useState('09:00');
@@ -117,6 +118,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
       colColor: t('export.colColor'),
       colDescription: t('export.colDescription'),
       colNotes: t('export.colNotes'),
+      colLinks: t('export.colLinks'),
       sheetWeek: t('export.sheetWeek'),
       sheetSummary: t('export.sheetSummary'),
       pageNumber: t('export.pageNumber'),
@@ -566,6 +568,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
       activity: '',
       description: '',
       notes: '',
+      links: [],
       color: '#7c5cff',
     });
     setTempStartTime(startStr);
@@ -586,6 +589,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
       activity: activity.title,
       description: activity.description || '',
       notes: activity.notes || '',
+      links: Array.isArray(activity.links) ? activity.links : [],
       color: activity.color || '#7c5cff',
     });
     setTempStartTime(startStr);

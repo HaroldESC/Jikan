@@ -80,7 +80,15 @@
     "activityCount_plural": "{count} activities",
     "totalHours": "{hours}h of scheduled activity",
     "hours": "h",
-    "minutes": "m"
+    "minutes": "m",
+    "links": "Links",
+    "linkLabel": "Label",
+    "linkUrl": "URL",
+    "addLink": "Add link",
+    "removeLink": "Remove link",
+    "linksPlaceholder": "E.g. Class material",
+    "errTooManyLinks": "Maximum 10 links",
+    "errInvalidUrl": "Invalid URL (http/https)"
   },
   "detail": {
     "back": "Back to schedule",
@@ -221,6 +229,7 @@
     "notes": "Activity notes",
     "description": "Activity descriptions",
     "reminders": "Reminders",
+    "links": "Resource links",
     "on": "Kept",
     "off": "Not kept",
     "offHint": "It is not written to the device nor synced. Data already stored is dropped the next time you save.",
@@ -444,6 +453,7 @@
     "colColor": "Color",
     "colDescription": "Description",
     "colNotes": "Notes",
+    "colLinks": "Links",
     "sheetWeek": "Week",
     "sheetSummary": "Summary",
     "pageNumber": "Page {page} of {total}"

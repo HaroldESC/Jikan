@@ -1,4 +1,4 @@
-import { X, Info, ChevronRight, Edit3 } from 'lucide-react';
+import { X, Info, ChevronRight, Edit3, Link } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
 
 function calcDuration(activity) {
@@ -47,6 +47,37 @@ export default function DetailViewSei({ activity, isDarkMode, onClose, onEdit })
                 <Info size={14} /> {t('activity.notes')}
               </h3>
               <p className="text-sm leading-relaxed whitespace-pre-wrap opacity-90">{activity.notes}</p>
+            </div>
+          )}
+          {Array.isArray(activity.links) && activity.links.length > 0 && (
+            <div className={`p-4 rounded-xl ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-50'}`}>
+              <h3 className="text-xs uppercase font-bold tracking-wider opacity-50 mb-2 flex items-center gap-2">
+                <Link size={14} /> {t('activity.links')}
+              </h3>
+              <ul className="space-y-2">
+                {activity.links.map((link, index) => {
+                  const label = (link?.label ?? '').trim();
+                  const url = (link?.url ?? '').trim();
+                  if (!url) {
+                    if (!label) return null;
+                    return (
+                      <li key={index} className="text-sm break-words opacity-90">{label}</li>
+                    );
+                  }
+                  return (
+                    <li key={index}>
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`text-sm underline underline-offset-2 break-all ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'}`}
+                      >
+                        {label || url}
+                      </a>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
           {onEdit && (

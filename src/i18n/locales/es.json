@@ -80,7 +80,15 @@
     "activityCount_plural": "{count} actividades",
     "totalHours": "{hours}h de actividad programada",
     "hours": "h",
-    "minutes": "m"
+    "minutes": "m",
+    "links": "Enlaces",
+    "linkLabel": "Etiqueta",
+    "linkUrl": "URL",
+    "addLink": "Añadir enlace",
+    "removeLink": "Eliminar enlace",
+    "linksPlaceholder": "Ej. Material de clase",
+    "errTooManyLinks": "Máximo 10 enlaces",
+    "errInvalidUrl": "URL no válida (http/https)"
   },
   "detail": {
     "back": "Volver al horario",
@@ -221,6 +229,7 @@
     "notes": "Notas de actividad",
     "description": "Descripciones de actividad",
     "reminders": "Recordatorios",
+    "links": "Enlaces a recursos",
     "on": "Se guarda",
     "off": "No se guarda",
     "offHint": "No se escribe en el dispositivo ni se sincroniza. Los datos que ya estaban guardados se eliminan al volver a guardarlos.",
@@ -444,6 +453,7 @@
     "colColor": "Color",
     "colDescription": "Descripción",
     "colNotes": "Notas",
+    "colLinks": "Enlaces",
     "sheetWeek": "Semana",
     "sheetSummary": "Resumen",
     "pageNumber": "Página {page} de {total}"
