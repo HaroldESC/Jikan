@@ -45,7 +45,7 @@
 
 The settings dialog uses a **sidebar + panel** layout: the sidebar lists every section with an icon and a label, and the right panel shows the active one (on phones the sidebar becomes a horizontally scrollable chip row). It renders correctly in both visual styles and covers six sections:
 
-- **Appearance** — visual style (Maru / Sei) and interface language
+- **Appearance** — visual style (Maru / Sei), interface typeface and interface language
 - **Notifications** — pre-activity warning offset, permission status and service-worker delivery
 - **Data** — CSV / PDF / XLSX import and export, the "Local backup" sub-block (snapshots to browse / restore / delete and the full JSON export & import) and the "Cloud backup" sub-block (connect Google Drive, upload, list, restore and delete copies — shown only when `VITE_GOOGLE_CLIENT_ID` is configured)
 - **Privacy** — private mode (opt out per category) and the "Local encryption" sub-block
@@ -276,7 +276,7 @@ jikan/
 - [x] **PWA** — offline support, installable (home screen widgets are not a standard PWA capability and are out of scope)
 
 ### v5.0 — Study & Content Tools
-- [ ] **Custom fonts**
+- [x] **Custom fonts**
 - [x] **Resource links** per activity (class materials, URLs)
 - [ ] **Exam calendar** with auto-preparation
 - [ ] **Integrated flashcards** for review during breaks

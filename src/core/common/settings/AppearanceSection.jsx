@@ -11,7 +11,7 @@ import LanguageSelector from './LanguageSelector';
 import { Section, SubGroup, ActionGrid, OptionButton } from './ui';
 
 export default function AppearanceSection({ s }) {
-  const { style, setStyle } = useTheme();
+  const { style, setStyle, font, setFont } = useTheme();
   const { t } = useTranslation();
 
   return (
@@ -28,6 +28,27 @@ export default function AppearanceSection({ s }) {
             </OptionButton>
             <OptionButton s={s} active={style === 'sei'} onClick={() => setStyle('sei')}>
               Sei
+            </OptionButton>
+          </ActionGrid>
+        </div>
+      </SubGroup>
+
+      <SubGroup s={s} title={t('settings.font')} description={t('settings.fontIntro')}>
+        {/* Group semantics instead of per-button aria-label: the buttons keep
+            their own accessible names. */}
+        <div role="group" aria-label={t('settings.font')}>
+          <ActionGrid>
+            <OptionButton s={s} active={font === 'system'} onClick={() => setFont('system')}>
+              {t('settings.fontSystem')}
+            </OptionButton>
+            <OptionButton s={s} active={font === 'serif'} onClick={() => setFont('serif')}>
+              {t('settings.fontSerif')}
+            </OptionButton>
+            <OptionButton s={s} active={font === 'mono'} onClick={() => setFont('mono')}>
+              {t('settings.fontMono')}
+            </OptionButton>
+            <OptionButton s={s} active={font === 'rounded'} onClick={() => setFont('rounded')}>
+              {t('settings.fontRounded')}
             </OptionButton>
           </ActionGrid>
         </div>

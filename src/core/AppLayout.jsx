@@ -21,6 +21,7 @@ import { toSeiActivity, DAYS_FULL } from './utils/adapter';
 import { getCurrentDay } from '../utils/dates';
 import { DAYS_OF_WEEK } from '../utils/index';
 import { useReminders } from '../hooks/useReminders';
+import { useTheme } from '../hooks/useTheme';
 import { usePanels } from '../hooks/usePanels';
 import { usePomodoro } from '../hooks/usePomodoro';
 import { useNotifications } from '../hooks/useNotifications';
@@ -80,6 +81,7 @@ export default function AppLayout({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
   const { t } = useTranslation();
+  const { fontFamily } = useTheme();
   const { reminders, addReminder, deleteReminder } = useReminders(user?.id, {
     // Modo privado: con la categoría apagada los recordatorios no se persisten.
     persist: privacy?.privacy?.reminders !== false,
@@ -301,7 +303,7 @@ export default function AppLayout({
   const isViewingToday = currentDay === realDayName;
 
   return (
-    <div className={`theme-${style} ${isMaru ? `min-h-screen bg-gradient-to-br ${bgColor}` : `min-h-screen ${dark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`} p-6 transition-all duration-1000 font-sans`}>
+    <div style={{ fontFamily }} className={`theme-${style} ${isMaru ? `min-h-screen bg-gradient-to-br ${bgColor}` : `min-h-screen ${dark ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-800'}`} p-6 transition-all duration-1000 font-sans`}>
       <div className={isMaru ? 'max-w-6xl mx-auto' : ''}>
         {/* ── HEADER ── */}
         <Header

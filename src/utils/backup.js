@@ -12,7 +12,7 @@
  *     activities:    [ { day_of_week, start_time, end_time, title, description, notes, color, links } ],
  *     reminders:     [ { id, text, time } ],
  *     panels:        { 'maru.content': { order: [...], visible: {...} } },
- *     settings:      { themeMode, style, locale },
+ *     settings:      { themeMode, style, font, locale },
  *     pomodoro:      { 'YYYY-MM-DD': n },
  *     notifications: { enabled, preMinutes }
  *   }
@@ -83,6 +83,7 @@ export function collectLocalState(userId) {
     settings: {
       themeMode: readRaw('jikan-theme', 'auto'),
       style: readRaw('jikan-style', 'maru'),
+      font: readRaw('jikan-font', 'system'),
       locale: readRaw('jikan-lang', 'es'),
     },
     pomodoro: readJson(`jikan.pomodoro.${uid}`, {}),
