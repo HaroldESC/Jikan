@@ -50,6 +50,8 @@ const requireConnected = () => {
  * @param {object} params
  * @param {Array}  params.rows       crudas del store (`useActivities().rows`)
  * @param {Array}  [params.exams]    crudas del store (`useExams().rows`)
+ * @param {Array}  [params.decks]    crudas del store (`useFlashcards().decks`)
+ * @param {Array}  [params.cards]    crudas del store (`useFlashcards().cards`)
  * @param {object} params.user       usuario actual (o invitado)
  * @param {boolean} [params.isGuest]
  * @param {object} [params.encryption] retorno de `useEncryption()`
@@ -57,7 +59,15 @@ const requireConnected = () => {
  *             connect, disconnect, upload, list, download, remove }}
  *   status: 'disconnected' | 'connected' | 'expired'
  */
-export function useCloudBackup({ rows = [], exams = [], user, isGuest = false, encryption }) {
+export function useCloudBackup({
+  rows = [],
+  exams = [],
+  decks = [],
+  cards = [],
+  user,
+  isGuest = false,
+  encryption,
+}) {
   const configured = isConfigured();
   const [status, setStatus] = useState(() => (isConnected() ? 'connected' : 'disconnected'));
   const [expiresAt, setExpiresAt] = useState(() => readTokenExpiresAt());
@@ -151,8 +161,9 @@ export function useCloudBackup({ rows = [], exams = [], user, isGuest = false, e
   /**
    * Uploads the current state as a new cloud backup.
    *
-   * `buildBackup` serializa también `data.exams` (v5.0 D2), así que la copia en
-   * la nube y la exportación GDPR llevan el mismo conjunto de datos.
+   * `buildBackup` serializa también `data.exams` (v5.0 D2) y `data.decks` con
+   * sus cartas anidadas (v5.0 D3), así que la copia en la nube y la exportación
+   * GDPR llevan el mismo conjunto de datos.
    *
    * With local encryption active the payload is encrypted with the session
    * key first and wrapped in a cloud envelope (`env` + KDF material); without
@@ -165,7 +176,14 @@ export function useCloudBackup({ rows = [], exams = [], user, isGuest = false, e
     setBusy(true);
     try {
       requireConnected();
-      const payload = buildBackup({ activities: rows, exams, userId: user?.id, isGuest });
+      const payload = buildBackup({
+        activities: rows,
+        exams,
+        decks,
+        cards,
+        userId: user?.id,
+        isGuest,
+      });
 
       let text;
       let encrypted = false;
@@ -193,7 +211,7 @@ export function useCloudBackup({ rows = [], exams = [], user, isGuest = false, e
     } finally {
       setBusy(false);
     }
-  }, [encryption, exams, isGuest, list, rows, user]);
+  }, [cards, decks, encryption, exams, isGuest, list, rows, user]);
 
   /**
    * Downloads the raw file text. Decryption/parse (restore) happens in

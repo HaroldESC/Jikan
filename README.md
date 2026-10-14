@@ -24,6 +24,7 @@
 - **Statistics Dashboard** — Daily metrics: total time, averages, efficiency, activity distribution
 - **Reminders** — Basic reminder system for your activities
 - **Exam Calendar** — Track exams by subject, date and optional time, optionally linked to an activity: the panel highlights the next exam with a countdown and notifies you a configurable time before it (works without an account too)
+- **Flashcards** — Decks of question/answer cards, optionally linked to an exam, with a spaced-repetition review (light SM-2): the Pomodoro shows a "Review" button during the break and the panel reports how many cards are due. "Don't know" resets the card to 1 day, "I know" grows its interval (works without an account too)
 - **Activity Notes** — Free-text notes per activity block, editable in the editor and shown in the detail view
 - **Resource Links** — Up to 10 resource links per activity (label + URL), editable in the editor and shown in the detail view
 - **Pomodoro Timer** — Shared focus/break panel with configurable durations and a daily session counter
@@ -31,8 +32,8 @@
 - **CSV Import / Export** — Export the full week to CSV (UTF-8) and import schedules back with per-row validation
 - **PDF & XLSX Export** — Export the full week as a landscape PDF (summary + one table per day, color-coded) or as an XLSX workbook (Week + Summary sheets)
 - **Local Auto-Backup** — A versioned snapshot is written to IndexedDB whenever your state changes (at most every 30 min), keeping the 10 most recent copies per user; browse, restore or delete them from Settings (no internet required)
-- **Full JSON Export / Import (GDPR)** — The "Data" section of Settings exports everything the app keeps in your browser (activities, reminders, panels, settings, pomodoro, notifications) to a `jikan-backup-YYYY-MM-DD.json` file, and imports it back with per-row validation
-- **Private Mode** - Opt out of saving notes, descriptions, resource links, exam notes or reminders; disabled categories are discarded on save (and on import), living only in memory for the current session. Configured in the new "Privacy" section of Settings, next to the "Data" section
+- **Full JSON Export / Import (GDPR)** — The "Data" section of Settings exports everything the app keeps in your browser (activities, exams, flashcards, reminders, panels, settings, pomodoro, notifications) to a `jikan-backup-YYYY-MM-DD.json` file, and imports it back with per-row validation
+- **Private Mode** - Opt out of saving notes, descriptions, resource links, exam notes, flashcard backs or reminders; disabled categories are discarded on save (and on import), living only in memory for the current session. Configured in the new "Privacy" section of Settings, next to the "Data" section
 - **Local Encryption** — AES-GCM 256 + PBKDF2-SHA256 (250 000 iterations) over your whole local schedule and your local snapshots, with a full-screen lock asking for the passphrase on every launch; set up from the "Privacy" section of Settings (enable / change passphrase / disable)
 - **Cloud Backup (Google Drive)** — Manually upload the full backup to your own Drive, list the stored copies and restore or delete them from Settings → Data; the access token lives only in memory (no refresh token is stored) and uploads are encrypted client-side whenever local encryption is enabled
 - **Dark / Light / Auto Theme** — Three-mode theme toggle with dynamic day/night backgrounds
@@ -145,7 +146,7 @@ accounts added as test users can connect (the "Google hasn't verified this app" 
 |---|---|
 | Supabase Auth | Authentication (email/password) |
 | Supabase PostgreSQL | Data storage |
-| IndexedDB | Local storage (device only, db `jikan` v2 → `activities` + `backups`) |
+| IndexedDB | Local storage (device only, db `jikan` v4 → `activities`, `exams`, `decks`, `cards` + `backups`) |
 | Supabase Realtime | Live sync — not wired yet (data refreshes via explicit `reload()`) |
 
 ### Dev Tools
@@ -182,8 +183,12 @@ jikan/
 │   │   │                    #  PassphraseModal.jsx — enable/change/disable encryption;
 │   │   │                    #  settings/ — the settings dialog split per section and styled
 │   │   │                    #  for both Maru and Sei: settingsStyles.js, ui.jsx,
-│   │   │                    #  LanguageSelector.jsx + one file per section)
-│   │   ├── stats/           # Daily statistics dashboard, reminders, exam calendar (Exams.jsx)
+│   │   │                    #  LanguageSelector.jsx + one file per section,
+│   │   │                    #  ReviewModal.jsx — the spaced-repetition session (deck picker,
+│   │   │                    #  front → show answer → again/good, final summary), opened by the
+│   │   │                    #  Flashcards panel and by the Pomodoro break)
+│   │   ├── stats/           # Daily statistics dashboard, reminders, exam calendar (Exams.jsx),
+│   │   │                    # flashcards (Flashcards.jsx: decks, cards and inline forms)
 │   │   ├── wheel/           # SVG circular chart (WheelMaru / WheelSei)
 │   │   ├── utils/           # Maru ↔ Sei adapters
 │   │   ├── AppLayout.jsx    # Dual-style layout (renders both styles)
@@ -193,6 +198,8 @@ jikan/
 │   ├── hooks/               # Custom React hooks
 │   │   ├── useActivities.js # Store-aware activity CRUD (local or Supabase) + day copy / row append
 │   │   ├── useExams.js      # Exam calendar CRUD (local or Supabase) + next exam / countdown
+│   │   ├── useFlashcards.js # Decks + cards CRUD (local or Supabase) in ONE hook: due counters,
+│   │   │                    #  review queue, grading and the nested backup restore
 │   │   ├── useGuestMigration.js # Guest ↔ account migration offer (once per session)
 │   │   ├── useSession.js    # User session (+ isGuest, startGuest, exitGuest, guestUser)
 │   │   ├── useTheme.jsx     # Theme + visual style state
@@ -206,7 +213,8 @@ jikan/
 │   │                        # (captures beforeinstallprompt + service worker status)
 │   │   ├── useLocalBackup.js # Auto local snapshots in IndexedDB (≤ every 30 min, keep 10 per user)
 │   │   ├── useCloudBackup.js # Google Drive connection state + manual cloud backups (v4.0 C5)
-│   │   ├── usePrivacy.js    # Private mode: opt-out per category (notes, description, reminders)
+│   │   ├── usePrivacy.js    # Private mode: opt-out per category (notes, description, reminders,
+│   │   │                    #  links, exam notes, flashcard backs)
 │   │   ├── useEncryption.js # Encryption state (enable/unlock/change/disable + row migration)
 │   │   └── useClock.js      # Real-time clock
 │   ├── i18n/                # Translations (es / en / ja) + provider
@@ -216,10 +224,15 @@ jikan/
 │   │   │                    #  replaceDay, clear, count); getActivityStore(isGuest) picks one;
 │   │   │                    #  local part now goes through localDb.js; encryptAll / decryptAll /
 │   │   │                    #  reencryptAll migrate rows to/from `{ id, enc }`
-│   │   ├── localDb.js       # IndexedDB bootstrap (db `jikan` v3 → stores `activities`, `exams`, `backups`)
+│   │   ├── localDb.js       # IndexedDB bootstrap (db `jikan` v4 → stores `activities`, `exams`,
+│   │   │                    #  `decks`, `cards`, `backups`) + withTransaction / withTransactionMany
 │   │   ├── examStore.js     # Store adapter for exams: IndexedDB `exams` (guest) / Supabase table
 │   │   │                    # `exams`; same async API as activityStore minus replaceDay, plus
 │   │   │                    #  encryptAll / decryptAll / reencryptAll (rows stored as `{ id, enc }`)
+│   │   ├── flashcardStore.js # Store adapter for BOTH flashcards entities: IndexedDB `decks` +
+│   │   │                    #  `cards` (guest) / Supabase tables `decks` + `cards`; shared private
+│   │   │                    #  helpers instead of a third copy of the encryption plumbing, and a
+│   │   │                    #  manual cascade on deck delete (withTransactionMany)
 │   │   ├── backupStore.js   # Versioned local snapshots in the `backups` store (list/latest/create/
 │   │   │                    #  remove/clear/prune); same encryptAll/decryptAll/reencryptAll
 │   │   ├── crypto.js        # Web Crypto: AES-GCM 256 + PBKDF2, session key (memory only)
@@ -227,8 +240,10 @@ jikan/
 │   │   │                    #  access token lives only in module memory)
 │   │   └── supabase.js      # Supabase client
 │   ├── utils/               # Utility functions (dates, csv, export, links.js, exams.js: pure
-│   │                        #  exam validation/sorting helpers, backup.js: pure build/serialize/
-│   │                        #  parse helpers, BACKUP_VERSION = 1, retention 10)
+│   │                        #  exam validation/sorting helpers, flashcards.js: pure SM-2 review
+│   │                        #  helpers (sanitizeDeck/sanitizeCard/scheduleCard/pickReviewCards),
+│   │                        #  backup.js: pure build/serialize/parse helpers,
+│   │                        #  BACKUP_VERSION = 1, retention 10)
 │   ├── styles/              # CSS by theme
 │   │   ├── maru/            # Maru style (glassmorphism)
 │   │   └── sei/             # Sei style (mostly Tailwind)
@@ -285,7 +300,7 @@ jikan/
 - [x] **Custom fonts**
 - [x] **Resource links** per activity (class materials, URLs)
 - [x] **Exam calendar** with auto-preparation (next-exam countdown + pre-exam alerts; works without an account)
-- [ ] **Integrated flashcards** for review during breaks
+- [x] **Integrated flashcards** for review during breaks (decks + cards, optionally linked to an exam; works without an account)
 - [ ] **Productivity graphs & comparative charts** (month vs month)
 
 ### v6.0 — University Module

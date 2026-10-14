@@ -2,9 +2,9 @@
  * "Privacidad" section of the Settings modal.
  *
  * Owns the per-category private-mode toggles (notes, description, reminders,
- * links, exam notes) plus the local-encryption sub-block. Every action is
- * delegated to the `privacy` prop (`toggle`, `onOpen`), so this file stays
- * purely presentational.
+ * links, exam notes, card backs) plus the local-encryption sub-block. Every
+ * action is delegated to the `privacy` prop (`toggle`, `onOpen`), so this file
+ * stays purely presentational.
  */
 
 import { ShieldCheck, Lock, LockOpen, KeyRound } from 'lucide-react';
@@ -18,6 +18,7 @@ const PRIVACY_ITEMS = [
   { key: 'reminders', label: 'privacy.reminders' },
   { key: 'links', label: 'privacy.links' },
   { key: 'examNotes', label: 'privacy.examNotes' },
+  { key: 'cardBacks', label: 'privacy.cardBacks' },
 ];
 
 export default function PrivacySection({ s, privacy }) {

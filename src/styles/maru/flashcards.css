@@ -1,0 +1,382 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Flashcards (v5.0 D3) — mazos y tarjetas de repaso.
+   Base con el glass de Maru (misma receta que exams.css); la variante Sei se
+   aplana al final con los overrides `.theme-sei`. Las clases son globales: el
+   panel se renderiza dentro de `.theme-maru` / `.theme-sei` y solo la variante
+   Sei necesita scoping.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+.flashcards-card {
+  background: rgba(255,255,255,.1);
+  backdrop-filter: blur(12px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  color: white;
+}
+
+.flashcards-title {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .85rem;
+  font-weight: 600;
+  margin-bottom: .75rem;
+}
+
+/* ── Resumen (cartas que tocan hoy) ── */
+.flashcards-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .5rem .7rem;
+  margin-bottom: .75rem;
+  flex-wrap: wrap;
+}
+
+.flashcards-summary__count {
+  font-size: .8rem;
+  font-weight: 600;
+}
+
+.flashcards-summary__hint {
+  display: block;
+  font-size: .65rem;
+  opacity: .6;
+  margin-top: .1rem;
+}
+
+/* ── Lista de mazos ── */
+.flashcards-list {
+  display: grid;
+  gap: .5rem;
+}
+
+.flashcards-empty {
+  font-size: .75rem;
+  opacity: .6;
+  text-align: center;
+}
+
+.deck-item {
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.12);
+  border-left: 3px solid transparent;
+  border-radius: .5rem;
+  padding: .5rem .6rem;
+}
+
+.deck-item--due {
+  border-left-color: rgba(255,255,255,.7);
+}
+
+.deck-item__row {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+
+.deck-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.deck-title {
+  font-size: .85rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-linked {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .7rem;
+  opacity: .7;
+  margin-top: .15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.deck-meta {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  font-size: .7rem;
+  opacity: .75;
+  margin-top: .2rem;
+}
+
+.deck-meta__due {
+  font-weight: 600;
+  opacity: 1;
+}
+
+/* ── Botones de mazo ── */
+.deck-review-btn,
+.deck-toggle-btn,
+.deck-edit-btn,
+.deck-delete-btn,
+.card-edit-btn,
+.card-delete-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: .375rem;
+  background: rgba(255,255,255,.1);
+  transition: .2s;
+}
+
+.deck-edit-btn:hover,
+.deck-toggle-btn:hover,
+.card-edit-btn:hover {
+  background: rgba(255,255,255,.25);
+}
+
+.deck-delete-btn:hover,
+.card-delete-btn:hover {
+  background: rgba(239, 68, 68, .35);
+}
+
+/* ── Mazo desplegado (cartas) ── */
+.deck-cards {
+  display: grid;
+  gap: .35rem;
+  margin-top: .5rem;
+  padding-top: .5rem;
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+
+.card-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .4rem;
+  background: rgba(255,255,255,.08);
+  border-radius: .4rem;
+  padding: .4rem .5rem;
+}
+
+.card-item__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-front {
+  font-size: .8rem;
+  font-weight: 500;
+}
+
+.card-back {
+  font-size: .75rem;
+  opacity: .7;
+  margin-top: .15rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Formulario inline (mazo) ── */
+.flashcards-form {
+  margin-top: .75rem;
+  display: grid;
+  gap: .5rem;
+}
+
+.flashcards-form-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+
+.flashcards-form-row--actions {
+  justify-content: flex-end;
+}
+
+.flashcards-input {
+  width: 100%;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .45rem .6rem;
+  font-size: .8rem;
+  color: inherit;
+}
+
+.flashcards-input:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.45);
+}
+
+.flashcards-input--title {
+  flex: 1 1 8rem;
+}
+
+.flashcards-input--select {
+  flex: 1 1 8rem;
+  min-width: 0;
+  appearance: none;
+}
+
+.flashcards-textarea {
+  width: 100%;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .45rem .6rem;
+  font-size: .8rem;
+  font-family: inherit;
+  color: inherit;
+  resize: vertical;
+}
+
+.flashcards-textarea:focus {
+  outline: none;
+  border-color: rgba(255,255,255,.45);
+}
+
+/* El <option> se pinta con colores del sistema: sin fondo propio. */
+.flashcards-option {
+  background: white;
+  color: #0f172a;
+}
+
+.flashcards-form-error {
+  font-size: .7rem;
+  color: #fca5a5;
+}
+
+/* ── Botones de formulario ── */
+.flashcards-form-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  border-radius: .5rem;
+  padding: .45rem .7rem;
+  font-size: .8rem;
+  font-weight: 500;
+  background: rgba(255,255,255,.1);
+  transition: .2s;
+}
+
+.flashcards-form-btn:hover {
+  background: rgba(255,255,255,.25);
+}
+
+.flashcards-form-btn--save {
+  background: rgba(34, 197, 94, .35);
+}
+
+.flashcards-form-btn--save:hover {
+  background: rgba(34, 197, 94, .55);
+}
+
+.flashcards-form-btn:disabled {
+  opacity: .6;
+  cursor: progress;
+}
+
+.flashcards-add-btn {
+  margin-top: .75rem;
+  width: 100%;
+  background: rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .5rem;
+  font-size: .8rem;
+  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .5rem;
+  transition: .2s;
+}
+
+.flashcards-add-btn:hover {
+  background: rgba(255,255,255,.3);
+}
+
+.flashcards-start-btn {
+  margin-top: .5rem;
+  width: 100%;
+  background: rgba(255,255,255,.2);
+  border-radius: .5rem;
+  padding: .45rem;
+  font-size: .8rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .4rem;
+  transition: .2s;
+}
+
+.flashcards-start-btn:hover {
+  background: rgba(255,255,255,.3);
+}
+
+/* ── Variante Sei (plana, sin glass) ── */
+.theme-sei .flashcards-card {
+  background: transparent;
+  backdrop-filter: none;
+  padding: 0;
+  color: inherit;
+}
+
+.theme-sei .flashcards-summary,
+.theme-sei .deck-item {
+  background: rgba(148, 163, 184, .12);
+  border: 1px solid rgba(148, 163, 184, .25);
+  border-left-width: 3px;
+}
+
+.theme-sei .card-item {
+  background: rgba(148, 163, 184, .1);
+  border: 1px solid rgba(148, 163, 184, .2);
+}
+
+.theme-sei .deck-cards {
+  border-top-color: rgba(148, 163, 184, .25);
+}
+
+.theme-sei .flashcards-add-btn,
+.theme-sei .flashcards-start-btn,
+.theme-sei .flashcards-form-btn,
+.theme-sei .deck-review-btn,
+.theme-sei .deck-toggle-btn,
+.theme-sei .deck-edit-btn,
+.theme-sei .deck-delete-btn,
+.theme-sei .card-edit-btn,
+.theme-sei .card-delete-btn,
+.theme-sei .flashcards-input,
+.theme-sei .flashcards-textarea {
+  background: rgba(148, 163, 184, .15);
+  border: 1px solid rgba(148, 163, 184, .25);
+}
+
+.theme-sei .flashcards-add-btn:hover,
+.theme-sei .flashcards-start-btn:hover,
+.theme-sei .flashcards-form-btn:hover,
+.theme-sei .deck-edit-btn:hover,
+.theme-sei .deck-toggle-btn:hover,
+.theme-sei .card-edit-btn:hover {
+  background: rgba(148, 163, 184, .3);
+}
+
+.theme-sei .flashcards-form-btn--save {
+  background: rgba(34, 197, 94, .25);
+  border-color: rgba(34, 197, 94, .45);
+}
+
+.theme-sei .flashcards-form-btn--save:hover {
+  background: rgba(34, 197, 94, .45);
+}

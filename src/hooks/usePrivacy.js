@@ -11,11 +11,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
  *   links       → los enlaces a recursos se descartan al guardar
  *   reminders   → los recordatorios no se persisten (solo viven en memoria)
  *   examNotes   → las notas de examen se descartan al guardar (v5.0 D2)
+ *   cardBacks   → el reverso de las flashcards se descarta al guardar (v5.0 D3);
+ *                 el anverso sí se guarda siempre (es el "título" de la carta)
  *
  * Ajustes en localStorage: `jikan.privacy.<userId | 'anon'>`.
  */
 
-export const PRIVACY_CATEGORIES = ['notes', 'description', 'links', 'reminders', 'examNotes'];
+export const PRIVACY_CATEGORIES = ['notes', 'description', 'links', 'reminders', 'examNotes', 'cardBacks'];
 
 const DEFAULT_PRIVACY = {
   notes: true,
@@ -23,6 +25,7 @@ const DEFAULT_PRIVACY = {
   links: true,
   reminders: true,
   examNotes: true,
+  cardBacks: true,
 };
 
 const storageKey = (userId) => `jikan.privacy.${userId || 'anon'}`;

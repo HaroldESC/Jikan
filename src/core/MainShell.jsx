@@ -5,6 +5,7 @@ import { useClock } from '../hooks/useClock';
 import { useTheme } from '../hooks/useTheme';
 import { useActivities } from '../hooks/useActivities';
 import { useExams } from '../hooks/useExams';
+import { useFlashcards } from '../hooks/useFlashcards';
 import { useGuestMigration } from '../hooks/useGuestMigration';
 import { useLocalBackup } from '../hooks/useLocalBackup';
 import { useCloudBackup } from '../hooks/useCloudBackup';
@@ -51,6 +52,9 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   // Calendario de exámenes (v5.0 D2). Mismo patrón que actividades: store local
   // (invitado) o Supabase, y la puerta de privacidad `examNotes` al guardar.
   const exams = useExams(user, { isGuest, privacy });
+  // Mazos y tarjetas (v5.0 D3). Tercer store del mismo patrón (local o
+  // Supabase) con su puerta de privacidad `cardBacks` al guardar el reverso.
+  const flashcards = useFlashcards(user, { isGuest, privacy });
   const currentTime = useClock();
   const { themeMode, toggleTheme, bgColor, isDarkMode, style } = useTheme();
   const { t, localeForDate } = useTranslation();
@@ -68,18 +72,29 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   // Oferta de migración del horario local (invitado) a la cuenta y viceversa.
   const migration = useGuestMigration(user, isGuest);
 
-  // Auto-backup local en IndexedDB (v4.0 C2), sin conexión.
+  // Auto-backup local en IndexedDB (v4.0 C2), sin conexión. Desde v5.0 D3 los
+  // mazos entran anidados con sus cartas (`decks` + `cards`).
   const localBackup = useLocalBackup({
     userId: user?.id,
     activities: rows,
     exams: exams.rows,
+    decks: flashcards.decks,
+    cards: flashcards.cards,
     loading,
     isGuest,
   });
 
   // Backup en la nube (v4.0 C5): Google Drive, manual. El hook y el estado del
   // modal se declaran ANTES del early return de `loading` (orden de hooks).
-  const cloud = useCloudBackup({ rows, exams: exams.rows, user, isGuest, encryption });
+  const cloud = useCloudBackup({
+    rows,
+    exams: exams.rows,
+    decks: flashcards.decks,
+    cards: flashcards.cards,
+    user,
+    isGuest,
+    encryption,
+  });
   const [showCloudModal, setShowCloudModal] = useState(false);
 
   const [currentDay, setCurrentDay] = useState(getCurrentDay());
@@ -134,24 +149,31 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   // Ejecuta la oferta de migración (subir / importar / descartar) y avisa.
   const handleMigrationConfirm = async (mode) => {
     try {
-      // v5.0 D2: `run` devuelve `{ count, examCount }`; con exámenes de por
-      // medio se usan los mensajes *WithExams para no mentir sobre lo migrado.
+      // v5.0 D2/D3: `run` devuelve `{ count, examCount, deckCount, cardCount }`;
+      // según lo que se haya movido se usan los mensajes *WithExams o *WithDecks
+      // para no mentir sobre lo migrado.
       const result = await migration.run(mode);
       const count = result?.count ?? 0;
       const examCount = result?.examCount ?? 0;
+      const deckCount = result?.deckCount ?? 0;
+      const cardCount = result?.cardCount ?? 0;
       // Tras subir filas a la cuenta, el store activo (Supabase) debe releer.
       if (mode === 'upload') {
         await reload();
         alert(
-          examCount > 0
-            ? t('guest.migrateUploadSuccessWithExams', { count, exams: examCount })
-            : t('guest.migrateUploadSuccess', { count })
+          deckCount > 0
+            ? t('guest.migrateUploadSuccessWithDecks', { count, exams: examCount, decks: deckCount, cards: cardCount })
+            : examCount > 0
+              ? t('guest.migrateUploadSuccessWithExams', { count, exams: examCount })
+              : t('guest.migrateUploadSuccess', { count })
         );
       } else if (mode === 'import') {
         alert(
-          examCount > 0
-            ? t('guest.migrateImportSuccessWithExams', { count, exams: examCount })
-            : t('guest.migrateImportSuccess', { count })
+          deckCount > 0
+            ? t('guest.migrateImportSuccessWithDecks', { count, exams: examCount, decks: deckCount, cards: cardCount })
+            : examCount > 0
+              ? t('guest.migrateImportSuccessWithExams', { count, exams: examCount })
+              : t('guest.migrateImportSuccess', { count })
         );
       }
     } catch (error) {
@@ -169,12 +191,54 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
 
   // ── Backup local (v4.0 C2) ───────────────────────────────────────────────
 
-  /** Exportación completa en JSON (actividades + exámenes + ajustes locales, formato GDPR). */
+  /**
+   * Mensaje de "se ha añadido": nombra solo las entidades que han entrado de
+   * verdad, para no mentir con un "0 exámenes" o un "0 mazos".
+   *
+   * @param {{activities: number, exams: number, decks: number, cards: number}} counts
+   * @param {string} fallbackKey mensaje de solo actividades, cuando no hay más
+   */
+  const appendedMessage = (counts, fallbackKey) => {
+    if (counts.decks > 0) {
+      return t('messages.appendedAll', {
+        activities: counts.activities,
+        exams: counts.exams,
+        decks: counts.decks,
+        cards: counts.cards,
+      });
+    }
+    if (counts.exams > 0) {
+      return t('messages.appendedWithExams', { count: counts.activities, exams: counts.exams });
+    }
+    return t(fallbackKey, { count: counts.activities });
+  };
+
+  /**
+   * Confirmación de una restauración (append) que nombra las entidades que trae
+   * el archivo, para no prometer solo el horario cuando también hay exámenes o
+   * mazos (v5.0 D2/D3).
+   *
+   * @param {{activities: number, exams: number, decks: number, when: string}} counts
+   * @returns {string}
+   */
+  const restoreQuestion = ({ activities, exams, decks, when }) => {
+    if (decks > 0) {
+      return t('backup.restoreConfirmWithDecks', { count: activities, exams, decks, when });
+    }
+    if (exams > 0) {
+      return t('backup.restoreConfirmWithExams', { count: activities, exams, when });
+    }
+    return t('backup.restoreConfirm', { count: activities, when });
+  };
+
+  /** Exportación completa en JSON (actividades + exámenes + mazos + ajustes, formato GDPR). */
   const handleExportBackup = () => {
     try {
       const payload = buildBackup({
         activities: rows,
         exams: exams.rows,
+        decks: flashcards.decks,
+        cards: flashcards.cards,
         userId: user?.id,
         isGuest,
       });
@@ -192,8 +256,8 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
 
     const reader = new FileReader();
     reader.onload = () => {
-      const { rows: validRows, examRows, errors } = parseBackup(String(reader.result ?? ''));
-      setBackupImportPreview({ fileName: file.name, rows: validRows, examRows, errors });
+      const { rows: validRows, examRows, deckRows, errors } = parseBackup(String(reader.result ?? ''));
+      setBackupImportPreview({ fileName: file.name, rows: validRows, examRows, deckRows, errors });
     };
     reader.onerror = () => alert(t('backup.importError', { msg: 'read error' }));
     reader.readAsText(file);
@@ -201,10 +265,11 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
 
   const handleConfirmImportBackup = async () => {
     if (!backupImportPreview) return;
-    // Un backup puede traer solo exámenes (v5.0 D2): si no hay nada que
-    // importar en ninguna de las dos entidades, no se hace nada.
+    // Un backup puede traer solo exámenes o solo mazos (v5.0 D2/D3): si no hay
+    // nada que importar en ninguna de las tres entidades, no se hace nada.
     const examRows = backupImportPreview.examRows || [];
-    if (backupImportPreview.rows.length === 0 && examRows.length === 0) return;
+    const deckRows = backupImportPreview.deckRows || [];
+    if (backupImportPreview.rows.length === 0 && examRows.length === 0 && deckRows.length === 0) return;
 
     try {
       const payload = backupImportPreview.rows.map((row) => ({ ...row, user_id: user.id }));
@@ -212,10 +277,19 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
       // Los exámenes viajan como sección opcional del backup (v5.0 D2): si el
       // archivo no los trae (backup v1), `examRows` viene vacío y no se hace nada.
       const addedExams = examRows.length > 0 ? await exams.appendExamRows(examRows) : [];
+      // Los mazos vienen con sus cartas anidadas (v5.0 D3): `appendDecks`
+      // recrea los ids y cuelga cada carta del mazo recién creado.
+      const addedDecks = deckRows.length > 0 ? await flashcards.appendDecks(deckRows) : [];
       alert(
-        addedExams.length > 0
-          ? t('messages.appendedWithExams', { count: payload.length, exams: addedExams.length })
-          : t('backup.importSuccess', { count: payload.length })
+        appendedMessage(
+          {
+            activities: payload.length,
+            exams: addedExams.length,
+            decks: addedDecks.length,
+            cards: addedDecks.reduce((total, deck) => total + (deck?.cards?.length ?? 0), 0),
+          },
+          'backup.importSuccess'
+        )
       );
     } catch (error) {
       alert(t('backup.importError', { msg: error.message }));
@@ -233,33 +307,45 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
   /**
    * Restaura un snapshot local: **append** de sus actividades al horario actual,
    * sin borrar nada. Pide confirmación porque puede duplicar bloques.
-   * Los exámenes del snapshot se añaden igual (append) cuando los hay (v5.0 D2).
+   * Los exámenes y los mazos del snapshot se añaden igual (append) cuando los
+   * hay (v5.0 D2/D3).
    */
   const handleRestoreSnapshot = async (snapshot) => {
     const { rows: validRows } = localBackup.readSnapshotActivities(snapshot);
     const examRows = localBackup.readSnapshotExams(snapshot)?.rows || [];
-    // Un snapshot puede traer solo exámenes (v5.0 D2): si no hay nada que
-    // restaurar en ninguna de las dos entidades, no se hace nada.
-    if (validRows.length === 0 && examRows.length === 0) {
+    const deckRows = localBackup.readSnapshotDecks?.(snapshot)?.rows || [];
+    // Un snapshot puede traer solo exámenes o solo mazos (v5.0 D2/D3): si no hay
+    // nada que restaurar en ninguna de las tres entidades, no se hace nada.
+    if (validRows.length === 0 && examRows.length === 0 && deckRows.length === 0) {
       alert(t('backup.restoreEmpty'));
       return;
     }
 
     const when = new Date(snapshot.created_at).toLocaleString(localeForDate);
-    const question = examRows.length > 0
-      ? t('backup.restoreConfirmWithExams', { count: validRows.length, exams: examRows.length, when })
-      : t('backup.restoreConfirm', { count: validRows.length, when });
+    const question = restoreQuestion({
+      activities: validRows.length,
+      exams: examRows.length,
+      decks: deckRows.length,
+      when,
+    });
     if (!window.confirm(question)) return;
 
     try {
       const payload = validRows.map((row) => ({ ...row, user_id: user.id }));
       await appendRows(payload);
       const addedExams = await exams.appendExamRows(examRows);
+      const addedDecks = deckRows.length > 0 ? await flashcards.appendDecks(deckRows) : [];
       setShowBackupModal(false);
       alert(
-        addedExams.length > 0
-          ? t('messages.appendedWithExams', { count: payload.length, exams: addedExams.length })
-          : t('backup.restoreSuccess', { count: payload.length })
+        appendedMessage(
+          {
+            activities: payload.length,
+            exams: addedExams.length,
+            decks: addedDecks.length,
+            cards: addedDecks.reduce((total, deck) => total + (deck?.cards?.length ?? 0), 0),
+          },
+          'backup.restoreSuccess'
+        )
       );
     } catch (error) {
       alert(t('backup.localError', { msg: error.message }));
@@ -366,17 +452,21 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
       parsed = parseBackup(text);
     }
 
-    // Un backup en la nube puede traer solo exámenes (v5.0 D2).
+    // Un backup en la nube puede traer solo exámenes o solo mazos (v5.0 D2/D3).
     const parsedExamCount = parsed.examRows?.length ?? 0;
-    if (!parsed.payload || (parsed.rows.length === 0 && parsedExamCount === 0)) {
+    const parsedDeckCount = parsed.deckRows?.length ?? 0;
+    if (!parsed.payload || (parsed.rows.length === 0 && parsedExamCount === 0 && parsedDeckCount === 0)) {
       alert(t('backup.restoreEmpty'));
       throw { code: 'empty' };
     }
 
     const when = new Date(item.createdTime).toLocaleString(localeForDate);
-    const question = parsedExamCount > 0
-      ? t('backup.restoreConfirmWithExams', { count: parsed.rows.length, exams: parsedExamCount, when })
-      : t('backup.restoreConfirm', { count: parsed.rows.length, when });
+    const question = restoreQuestion({
+      activities: parsed.rows.length,
+      exams: parsedExamCount,
+      decks: parsedDeckCount,
+      when,
+    });
     if (!window.confirm(question)) {
       throw { code: 'cancelled' };
     }
@@ -386,11 +476,19 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
       await appendRows(payload);
       // Sección opcional de exámenes del backup en la nube (v5.0 D2).
       const addedExams = await exams.appendExamRows(parsed.examRows);
+      // Sección opcional de mazos con sus cartas (v5.0 D3).
+      const addedDecks = parsedDeckCount > 0 ? await flashcards.appendDecks(parsed.deckRows) : [];
       setShowCloudModal(false);
       alert(
-        addedExams.length > 0
-          ? t('messages.appendedWithExams', { count: payload.length, exams: addedExams.length })
-          : t('backup.restoreSuccess', { count: payload.length })
+        appendedMessage(
+          {
+            activities: payload.length,
+            exams: addedExams.length,
+            decks: addedDecks.length,
+            cards: addedDecks.reduce((total, deck) => total + (deck?.cards?.length ?? 0), 0),
+          },
+          'backup.restoreSuccess'
+        )
       );
     } catch (error) {
       cloudAlert(error, 'backup.cloudRestoreError');
@@ -768,6 +866,7 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
         isGuest={isGuest}
         onExitGuest={onExitGuest}
         exams={exams}
+        flashcards={flashcards}
         privacy={{
           privacy,
           encryption: {
@@ -803,7 +902,13 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
         fileName={backupImportPreview?.fileName || ''}
         rows={backupImportPreview?.rows || []}
         errors={backupImportPreview?.errors || []}
-        extraCount={backupImportPreview?.examRows?.length || 0}
+        // `extraCount` es la bandera de "hay algo más que importar" (con ella
+        // aparece el botón Importar). Desde v5.0 D3 la segunda entidad son los
+        // mazos, pero los exámenes de D2 siguen contando para que un backup con
+        // solo exámenes se pueda importar.
+        extraCount={
+          (backupImportPreview?.deckRows?.length || 0) + (backupImportPreview?.examRows?.length || 0)
+        }
         onConfirm={handleConfirmImportBackup}
         onClose={() => setBackupImportPreview(null)}
         isMaru={style === 'maru'}
@@ -812,7 +917,18 @@ export default function MainShell({ user, isGuest = false, onExitGuest, encrypti
           title: t('backup.importTitle'),
           file: t('backup.importFile', { file: backupImportPreview?.fileName || '' }),
           confirm: t('backup.importConfirm', { count: backupImportPreview?.rows?.length || 0 }),
-          extra: t('backup.importExams', { count: backupImportPreview?.examRows?.length || 0 }),
+          // Los mazos viajan con sus cartas, así que la línea secundaria los nombra
+          // con su número de cartas; si no hay mazos, se anuncia el número de
+          // exámenes (clave de D2).
+          extra: (backupImportPreview?.deckRows?.length || 0) > 0
+            ? t('backup.importDecks', {
+                decks: backupImportPreview?.deckRows?.length || 0,
+                cards: backupImportPreview?.deckRows?.reduce(
+                  (total, deck) => total + (Array.isArray(deck?.cards) ? deck.cards.length : 0),
+                  0
+                ) ?? 0,
+              })
+            : t('backup.importExams', { count: backupImportPreview?.examRows?.length || 0 }),
           nothingToImport: t('backup.nothingToImport'),
           confirmButton: t('backup.importConfirmButton'),
         }}

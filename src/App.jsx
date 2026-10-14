@@ -7,6 +7,7 @@ import { useSession } from './hooks/useSession';
 import { useEncryption } from './hooks/useEncryption';
 import { localStore } from './lib/activityStore';
 import { localStore as examStore } from './lib/examStore';
+import { localDecks, localCards } from './lib/flashcardStore';
 import { backupStore } from './lib/backupStore';
 import { clearEncryptionSettings } from './hooks/useEncryption';
 
@@ -28,12 +29,17 @@ export default function App() {
   /**
    * Salida de emergencia: sin la passphrase los datos cifrados no son
    * recuperables, así que se borran del dispositivo y Jikan empieza de cero.
-   * Se borra todo lo local: actividades, exámenes y snapshots.
+   * Se borra todo lo local: actividades, exámenes, mazos con sus cartas y
+   * snapshots.
    */
   const handleForgetPassphrase = useCallback(async () => {
     try {
       await localStore.clear();
       await examStore.clear();
+      // Mazos antes que sus cartas: si la cascada fallara, al menos no quedarían
+      // tarjetas huérfanas.
+      await localDecks.clear();
+      await localCards.clear();
       await backupStore.clear(user?.id ?? 'guest');
     } catch (error) {
       console.error('Error wiping encrypted local data:', error);

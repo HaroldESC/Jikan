@@ -10,9 +10,11 @@ import ActivityCard from '../components/ActivityCard';
 import Daily from './stats/Daily';
 import Reminders from './stats/Reminders';
 import Exams from './stats/Exams';
+import Flashcards from './stats/Flashcards';
 import { SettingsModal } from './common/Settings';
 import CopyDayModal from './common/CopyDayModal';
 import ImportModal from './common/ImportModal';
+import ReviewModal from './common/ReviewModal';
 import Panel from './common/Panel';
 import Pomodoro from './common/Pomodoro';
 
@@ -30,8 +32,8 @@ import { useNotifications } from '../hooks/useNotifications';
 
 // Panel groups per style: the wheel lives in its own column, so it only
 // supports hide/show; the content column supports hide + drag-to-reorder.
-const MARU_CONTENT_PANELS = ['current', 'stats', 'reminders', 'exams', 'pomodoro'];
-const SEI_CONTENT_PANELS = ['current', 'list', 'reminders', 'exams', 'pomodoro'];
+const MARU_CONTENT_PANELS = ['current', 'stats', 'reminders', 'exams', 'flashcards', 'pomodoro'];
+const SEI_CONTENT_PANELS = ['current', 'list', 'reminders', 'exams', 'flashcards', 'pomodoro'];
 const WHEEL_PANELS = ['wheel'];
 
 // Sentinel: distinguishes "no previous activity tracked yet" from "there is
@@ -80,9 +82,14 @@ export default function AppLayout({
   privacy,
   pwa,
   exams,
+  flashcards,
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [seiSelectedActivity, setSeiSelectedActivity] = useState(null);
+  // v5.0 D3: sesión de repaso. `AppLayout` es el dueño de sus modales, así que
+  // la abren tanto el panel de flashcards como el atajo del Pomodoro.
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewDeckId, setReviewDeckId] = useState(null);
   const { t } = useTranslation();
   const { fontFamily } = useTheme();
   const { reminders, addReminder, deleteReminder } = useReminders(user?.id, {
@@ -334,6 +341,18 @@ export default function AppLayout({
     t,
   ]);
 
+  // ── Repaso de flashcards (v5.0 D3): el Pomodoro no se pausa al repasar ──
+  /** Abre el `ReviewModal` sobre un mazo concreto (`null` = que elija). */
+  const openReview = (deckId = null) => {
+    setReviewDeckId(deckId ?? null);
+    setIsReviewOpen(true);
+  };
+
+  const closeReview = () => {
+    setIsReviewOpen(false);
+    setReviewDeckId(null);
+  };
+
   // Shared props for the Pomodoro panel (rendered by both style branches).
   const pomodoroPanelProps = {
     status: pomodoro.status,
@@ -344,6 +363,8 @@ export default function AppLayout({
     onToggle: pomodoro.toggle,
     onReset: pomodoro.reset,
     onSkip: pomodoro.skip,
+    onReview: flashcards ? () => openReview(null) : undefined,
+    dueCount: flashcards?.dueCount?.() ?? 0,
     isDarkMode: dark,
   };
 
@@ -445,6 +466,8 @@ export default function AppLayout({
                       <Daily schedule={rawActivities} />
                     ) : id === 'exams' ? (
                       <Exams exams={exams} activities={flatActivities} />
+                    ) : id === 'flashcards' ? (
+                      <Flashcards flashcards={flashcards} exams={examRows ?? []} onReview={openReview} />
                     ) : id === 'pomodoro' ? (
                       <Pomodoro {...pomodoroPanelProps} isMaru />
                     ) : (
@@ -487,6 +510,10 @@ export default function AppLayout({
                   ) : id === 'exams' ? (
                     <div className="w-full mt-6">
                       <Exams exams={exams} activities={flatActivities} />
+                    </div>
+                  ) : id === 'flashcards' ? (
+                    <div className="w-full mt-6">
+                      <Flashcards flashcards={flashcards} exams={examRows ?? []} onReview={openReview} />
                     </div>
                   ) : id === 'pomodoro' ? (
                     <div className="w-full mt-6">
@@ -548,6 +575,16 @@ export default function AppLayout({
         errors={importPreview?.errors || []}
         onConfirm={onConfirmImport}
         onClose={onCloseImport}
+        isMaru={isMaru}
+        isDarkMode={dark}
+      />
+
+      <ReviewModal
+        isOpen={isReviewOpen}
+        onClose={closeReview}
+        flashcards={flashcards}
+        exams={examRows ?? []}
+        initialDeckId={reviewDeckId}
         isMaru={isMaru}
         isDarkMode={dark}
       />

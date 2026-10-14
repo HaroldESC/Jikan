@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { backupStore } from '../lib/backupStore';
-import { BACKUP_RETENTION, buildBackup, validateActivities, validateExams } from '../utils/backup';
+import {
+  BACKUP_RETENTION,
+  buildBackup,
+  validateActivities,
+  validateDecks,
+  validateExams,
+} from '../utils/backup';
 
 /** Cada cuánto se revisa si hay que guardar un snapshot aunque no haya mutaciones. */
 const PERIODIC_CHECK_MS = 30 * 60 * 1000;
@@ -19,22 +25,39 @@ const signatureOf = (payload) => {
  * Auto-backup local (v4.0 C2).
  *
  * Guarda un snapshot versionado en IndexedDB (`backups`) cada vez que cambia el
- * estado (actividades, exámenes, recordatorios, paneles, ajustes, pomodoro) y al
- * menos cada `PERIODIC_CHECK_MS` minutos. Todo ocurre en el dispositivo, sin red.
+ * estado (actividades, exámenes, mazos con sus cartas, recordatorios, paneles,
+ * ajustes, pomodoro) y al menos cada `PERIODIC_CHECK_MS` minutos. Todo ocurre en
+ * el dispositivo, sin red.
  *
  * Retención: se conservan las `retention` copias más recientes por usuario.
+ *
+ * Los mazos viajan **anidados** en `data.decks` (cada uno con sus cartas), así
+ * que basta con pasar `decks` y `cards` tal cual: el enlace mazo → carta se
+ * rehace al restaurar.
  *
  * @param {object} params
  * @param {string}  params.userId      id de usuario (o 'anon' para invitados)
  * @param {Array}   params.activities  filas crudas del store (`useActivities().rows`)
  * @param {Array}   [params.exams]     filas crudas (`useExams().rows`)
+ * @param {Array}   [params.decks]     filas crudas (`useFlashcards().decks`)
+ * @param {Array}   [params.cards]     filas crudas (`useFlashcards().cards`)
  * @param {boolean} params.loading    mientras `true` no se hace nada
  * @param {boolean} params.isGuest
  * @returns {{ snapshots, busy, lastBackupAt, refresh, createSnapshot,
- *             readSnapshotActivities, readSnapshotExams, deleteSnapshot,
- *             clearSnapshots }}
+ *             readSnapshotActivities, readSnapshotExams, readSnapshotDecks,
+ *             deleteSnapshot, clearSnapshots }}
  */
-export function useLocalBackup({ userId, activities = [], exams = [], loading = false, isGuest = false, retention = BACKUP_RETENTION, enabled = true }) {
+export function useLocalBackup({
+  userId,
+  activities = [],
+  exams = [],
+  decks = [],
+  cards = [],
+  loading = false,
+  isGuest = false,
+  retention = BACKUP_RETENTION,
+  enabled = true,
+}) {
   const [snapshots, setSnapshots] = useState([]);
   const [busy, setBusy] = useState(false);
   // Firma del último snapshot creado o confirmado en esta sesión (evita bucles).
@@ -51,26 +74,27 @@ export function useLocalBackup({ userId, activities = [], exams = [], loading = 
 
   /** Crea un snapshot y aplica la retención. Devuelve el snapshot o null. */
   const writeSnapshot = useCallback(async () => {
-    const payload = buildBackup({ activities, exams, userId, isGuest });
+    const payload = buildBackup({ activities, exams, decks, cards, userId, isGuest });
     lastSignatureRef.current = signatureOf(payload);
 
     const snapshot = await backupStore.create({ userId, payload });
     await backupStore.prune(userId, retention);
     setSnapshots(await backupStore.list(userId));
     return snapshot;
-  }, [activities, exams, isGuest, retention, userId]);
+  }, [activities, cards, decks, exams, isGuest, retention, userId]);
 
   /**
    * Compara el estado actual con el último snapshot guardado:
    * si no hay cambios no escribe nada.
    *
-   * `signatureOf` serializa el payload entero salvo `exportedAt`, así que los
-   * exámenes entran en la comparación sin ningún código extra: añadir o quitar
-   * un examen cambia `data.exams` y genera snapshot solo.
+   * `signatureOf` serializa el payload entero salvo `exportedAt`, así que
+   * exámenes y mazos entran en la comparación sin ningún código extra: añadir o
+   * quitar un examen cambia `data.exams`, y añadir una carta cambia
+   * `data.decks` (van anidados), de modo que generan snapshot solo.
    */
   const sync = useCallback(async () => {
     if (!enabled || loading) return;
-    const payload = buildBackup({ activities, exams, userId, isGuest });
+    const payload = buildBackup({ activities, exams, decks, cards, userId, isGuest });
     const signature = signatureOf(payload);
     if (signature === lastSignatureRef.current) return;
 
@@ -91,15 +115,15 @@ export function useLocalBackup({ userId, activities = [], exams = [], loading = 
     } finally {
       setBusy(false);
     }
-  }, [activities, enabled, exams, isGuest, loading, retention, userId]);
+  }, [activities, cards, decks, enabled, exams, isGuest, loading, retention, userId]);
 
   // Reacciona a los cambios de estado (cada mutación reload() y produce rows nuevos).
   useEffect(() => {
     sync();
   }, [sync]);
 
-  // Revisión periódica: captura cambios que no pasan por `activities`/`exams`
-  // (idioma, tema, estilo, recordatorios, pomodoro).
+  // Revisión periódica: captura cambios que no pasan por los stores (idioma,
+  // tema, estilo, recordatorios, pomodoro).
   useEffect(() => {
     if (!enabled) return undefined;
     const timer = setInterval(() => {
@@ -149,6 +173,18 @@ export function useLocalBackup({ userId, activities = [], exams = [], loading = 
     return validateExams(Array.isArray(exams) ? exams : [], 1);
   }, []);
 
+  /**
+   * Mazos de un snapshot (con sus cartas anidadas), ya validados y listos para
+   * `appendDecks`. `data.decks` es opcional (snapshots anteriores a v5.0 D3): si
+   * no está, sale vacío sin errores.
+   * @param {object} snapshot
+   * @returns {{ rows: Array, errors: Array }}
+   */
+  const readSnapshotDecks = useCallback((snapshot) => {
+    const decks = snapshot?.payload?.data?.decks;
+    return validateDecks(Array.isArray(decks) ? decks : [], 1);
+  }, []);
+
   const deleteSnapshot = useCallback(
     async (id) => {
       await backupStore.remove(id);
@@ -172,6 +208,7 @@ export function useLocalBackup({ userId, activities = [], exams = [], loading = 
     createSnapshot,
     readSnapshotActivities,
     readSnapshotExams,
+    readSnapshotDecks,
     deleteSnapshot,
     clearSnapshots,
   };

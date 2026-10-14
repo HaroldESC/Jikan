@@ -11,6 +11,8 @@
  *   data: {
  *     activities:    [ { day_of_week, start_time, end_time, title, description, notes, color, links } ],
  *     exams:         [ { subject, date, time, activity_id, notes, color } ],
+ *     decks:         [ { title, exam_id,
+ *                        cards: [ { front, back, ease, interval, due, reps, last_review } ] } ],
  *     reminders:     [ { id, text, time } ],
  *     panels:        { 'maru.content': { order: [...], visible: {...} } },
  *     settings:      { themeMode, style, font, locale },
@@ -20,20 +22,26 @@
  * }
  *
  * Es el formato de "exportación completa" (GDPR): incluye todo lo que la app
- * guarda en el navegador. La **importación** solo consume `data.activities` y
- * `data.exams` (v5.0 D2) y siempre hace append: nunca sobrescribe ni borra lo
- * que ya existe.
+ * guarda en el navegador. La **importación** solo consume `data.activities`,
+ * `data.exams` y `data.decks` y siempre hace append: nunca sobrescribe ni borra
+ * lo que ya existe.
  *
- * `data.exams` es **opcional** al importar (los backups anteriores a D2 no lo
- * traen), pero `BACKUP_VERSION` sigue en 1: el campo es aditivo y se valida con
- * `validateExams`. Los exámenes no llevan `id`, `user_id` ni `created_at`: son
+ * `data.exams` y `data.decks` son **opcionales** al importar (los backups
+ * anteriores a v5.0 D2/D3 no los traen), pero `BACKUP_VERSION` sigue en 1: los
+ * campos son aditivos y se validan con `validateExams` / `validateDecks`. Ni
+ * exámenes, ni mazos, ni cartas llevan `id`, `user_id` ni `created_at`: son
  * datos, no filas de la base de datos.
+ *
+ * `data.decks` va **anidado** (cada mazo con sus cartas) porque al importar los
+ * ids se regeneran: basta con crear el mazo y colgarle sus cartas del id nuevo,
+ * sin remapear nada (ver `useFlashcards().appendDecks`).
  */
 
 import { normalizeDay, DEFAULT_COLOR } from './csv';
 import { sanitizeLinks } from './links';
 import { exportDateKey } from './export';
 import { isValidExamDate, sanitizeExam } from './exams';
+import { MAX_CARDS_PER_DECK, sanitizeCard, sanitizeDeck } from './flashcards';
 
 export const BACKUP_APP = 'jikan';
 export const BACKUP_VERSION = 1;
@@ -106,13 +114,25 @@ export function collectLocalState(userId) {
  * @param {Array}  params.activities filas crudas del store (`useActivities().rows`)
  * @param {Array}  [params.exams]   filas crudas (`useExams().rows`); las
  *   inservibles (sin asignatura o con fecha inválida) se descartan
+ * @param {Array}  [params.decks]   filas crudas (`useFlashcards().decks`)
+ * @param {Array}  [params.cards]   filas crudas (`useFlashcards().cards`); se
+ *   cuelgan de su mazo por `deck_id`, así que no se exportan sueltas
  * @param {string} [params.userId]   id de usuario (o 'anon')
  * @param {boolean} [params.isGuest] marca el origen del backup
  * @returns {object} payload listo para serializar
  */
-export function buildBackup({ activities = [], exams = [], userId, isGuest = false } = {}) {
+export function buildBackup({
+  activities = [],
+  exams = [],
+  decks = [],
+  cards = [],
+  userId,
+  isGuest = false,
+} = {}) {
   const rows = Array.isArray(activities) ? activities : [];
   const examRows = Array.isArray(exams) ? exams : [];
+  const deckRows = Array.isArray(decks) ? decks : [];
+  const cardRows = Array.isArray(cards) ? cards : [];
   return {
     app: BACKUP_APP,
     version: BACKUP_VERSION,
@@ -132,6 +152,22 @@ export function buildBackup({ activities = [], exams = [], userId, isGuest = fal
       // `sanitizeExam` es la whitelist: devuelve exactamente los seis campos de
       // la fila canónica, así que aquí no puede colarse `id` ni `user_id`.
       exams: examRows.map((row) => sanitizeExam(row)).filter((exam) => exam),
+      // Mazos con sus cartas **anidadas** (v5.0 D3). `sanitizeDeck` y
+      // `sanitizeCard` son las whitelists, así que ningún `id`, `user_id` ni
+      // `created_at` puede colarse; al importar se cuelga cada carta del id del
+      // mazo recién creado. Cada mazo se recorta a `MAX_CARDS_PER_DECK`.
+      decks: deckRows
+        .map((row) => {
+          const deck = sanitizeDeck(row);
+          if (!deck) return null;
+          const deckCards = cardRows
+            .filter((card) => card?.deck_id === row?.id)
+            .map((card) => sanitizeCard(card))
+            .filter((card) => card)
+            .slice(0, MAX_CARDS_PER_DECK);
+          return { ...deck, cards: deckCards };
+        })
+        .filter((deck) => deck),
       ...collectLocalState(userId),
     },
   };
@@ -316,19 +352,67 @@ export function validateExams(list, offset = 1) {
 }
 
 /**
+ * Valida una lista de mazos crudos (los del backup o de un snapshot), con sus
+ * cartas **anidadas**.
+ *
+ * Mismo criterio que `validateExams`: un error por fila, con su número
+ * 1-indexado. La única causa de rechazo es el título vacío (`backup.errDeckTitle`).
+ * Las cartas inválidas (anverso o reverso vacíos) se **descartan en silencio**,
+ * igual que se hizo con los enlaces malformados de D1a: un mazo con una carta
+ * rota sigue siendo un mazo aprovechable. Las de más de `MAX_CARDS_PER_DECK` se
+ * recortan.
+ *
+ * @param {Array} list
+ * @param {number} [offset] número de fila del primer elemento (1-indexado)
+ * @returns {{ rows: Array, errors: Array<{row:number,key:string,message:string}> }}
+ *   `rows` sale con la forma `{ title, exam_id, cards: [...] }`, listo para
+ *   `useFlashcards().appendDecks()`.
+ */
+export function validateDecks(list, offset = 1) {
+  const errors = [];
+  const rows = [];
+
+  (Array.isArray(list) ? list : []).forEach((entry, index) => {
+    const row = offset + index;
+    if (!entry || typeof entry !== 'object') {
+      errors.push({ row, key: 'backup.errRow', message: 'Not an object' });
+      return;
+    }
+
+    const deck = sanitizeDeck(entry);
+    if (!deck) {
+      // Salvaguarda: `sanitizeDeck` solo devuelve `null` por título vacío.
+      errors.push({ row, key: 'backup.errDeckTitle', message: 'Empty deck title' });
+      return;
+    }
+
+    const cards = (Array.isArray(entry.cards) ? entry.cards : [])
+      .map((card) => sanitizeCard(card))
+      .filter((card) => card)
+      .slice(0, MAX_CARDS_PER_DECK);
+
+    rows.push({ ...deck, cards });
+  });
+
+  return { rows, errors };
+}
+
+/**
  * Parsea y valida un backup.
  *
  * Nunca lanza: los errores se acumulan por fila con su número (1-indexado, como
  * en `parseActivitiesCsv`) y los errores de formato se reportan en la fila 1.
  *
- * `data.exams` es opcional (los backups de antes de v5.0 D2 no lo tienen): si no
- * viene, `examRows` sale vacío y **no** se genera ningún error.
+ * `data.exams` y `data.decks` son opcionales (los backups de antes de v5.0 D2/D3
+ * no los tienen): si no vienen, `examRows` / `deckRows` salen vacíos y **no** se
+ * genera ningún error.
  *
  * @param {string} text contenido del archivo.
- * @returns {{ payload: object|null, rows: Array, examRows: Array,
+ * @returns {{ payload: object|null, rows: Array, examRows: Array, deckRows: Array,
  *   errors: Array<{row:number,key:string}> }}
- *   `rows` son actividades listas para `useActivities().appendRows()` y
- *   `examRows` exámenes para `useExams().appendExamRows()`.
+ *   `rows` son actividades listas para `useActivities().appendRows()`,
+ *   `examRows` exámenes para `useExams().appendExamRows()` y `deckRows` mazos
+ *   (con sus cartas anidadas) para `useFlashcards().appendDecks()`.
  */
 export function parseBackup(text) {
   const errors = [];
@@ -341,31 +425,38 @@ export function parseBackup(text) {
     payload = JSON.parse(clean);
   } catch {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Invalid JSON' });
-    return { payload: null, rows: [], examRows: [], errors };
+    return { payload: null, rows: [], examRows: [], deckRows: [], errors };
   }
 
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Not a backup object' });
-    return { payload: null, rows: [], examRows: [], errors };
+    return { payload: null, rows: [], examRows: [], deckRows: [], errors };
   }
   if (payload.app !== BACKUP_APP) {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Not a Jikan backup' });
-    return { payload: null, rows: [], examRows: [], errors };
+    return { payload: null, rows: [], examRows: [], deckRows: [], errors };
   }
   if (typeof payload.version !== 'number' || payload.version > BACKUP_VERSION) {
     errors.push({ row: 1, key: 'backup.errVersion', message: 'Unsupported version' });
-    return { payload: null, rows: [], examRows: [], errors };
+    return { payload: null, rows: [], examRows: [], deckRows: [], errors };
   }
 
   const activities = payload.data?.activities;
   if (!Array.isArray(activities)) {
     errors.push({ row: 1, key: 'backup.errFormat', message: 'Missing data.activities' });
-    return { payload, rows: [], examRows: [], errors };
+    return { payload, rows: [], examRows: [], deckRows: [], errors };
   }
 
   const { rows, errors: rowErrors } = validateActivities(activities, 1);
   const { rows: examRows, errors: examErrors } = validateExams(payload.data?.exams ?? [], 1);
-  return { payload, rows, examRows, errors: [...errors, ...rowErrors, ...examErrors] };
+  const { rows: deckRows, errors: deckErrors } = validateDecks(payload.data?.decks ?? [], 1);
+  return {
+    payload,
+    rows,
+    examRows,
+    deckRows,
+    errors: [...errors, ...rowErrors, ...examErrors, ...deckErrors],
+  };
 }
 
 /**

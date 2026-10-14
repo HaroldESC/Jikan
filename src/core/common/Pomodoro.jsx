@@ -9,8 +9,12 @@
  * - Maru: glassmorphism card (like Daily / Reminders inside Panel).
  * - Sei: pure Tailwind with `isDarkMode` ternaries (same convention as the
  *   rest of the Sei content — there is no `.dark` class strategy in the app).
+ *
+ * v5.0 D3: en el descanso (`status === 'break'`) aparece un atajo al repaso de
+ * flashcards (`onReview` + `dueCount`). El temporizador **no** se pausa al
+ * repasar: el descanso es corto y el repaso es una actividad aparte.
  */
-import { Play, Pause, RotateCcw, SkipForward, Timer } from 'lucide-react';
+import { Layers, Play, Pause, RotateCcw, SkipForward, Timer } from 'lucide-react';
 import { useTranslation } from '../../i18n/useTranslation';
 
 const STATE_KEYS = {
@@ -38,6 +42,8 @@ const maruSkin = {
     'flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition bg-white/20 hover:bg-white/30 text-white disabled:opacity-40 disabled:cursor-not-allowed',
   secondary:
     'inline-flex items-center justify-center px-3 py-2.5 rounded-xl transition bg-white/10 hover:bg-white/20 text-white/85 disabled:opacity-40 disabled:cursor-not-allowed',
+  review:
+    'mt-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition bg-white/20 hover:bg-white/30 text-white',
 };
 
 const seiSkin = (dark) => ({
@@ -61,6 +67,11 @@ const seiSkin = (dark) => ({
       ? 'bg-slate-700 hover:bg-slate-600 text-slate-200'
       : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
   }`,
+  review: `mt-3 w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition ${
+    dark
+      ? 'bg-slate-700 hover:bg-slate-600 text-slate-200'
+      : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+  }`,
 });
 
 export default function Pomodoro({
@@ -72,6 +83,8 @@ export default function Pomodoro({
   onToggle,
   onReset,
   onSkip,
+  onReview,
+  dueCount = 0,
   isMaru = true,
   isDarkMode = false,
 }) {
@@ -139,6 +152,25 @@ export default function Pomodoro({
           <SkipForward size={16} />
         </button>
       </div>
+
+      {/* ── Atajo al repaso (solo en descanso; no pausa el temporizador) ── */}
+      {onReview && status === 'break' && (
+        <button
+          type="button"
+          onClick={onReview}
+          className={skin.review}
+          aria-label={t('pomodoro.review')}
+          title={t('pomodoro.review')}
+        >
+          <Layers size={16} />
+          {t('pomodoro.review')}
+          {dueCount > 0 && (
+            <span className="text-xs font-normal opacity-75 tabular-nums">
+              {t('pomodoro.dueCount', { count: dueCount })}
+            </span>
+          )}
+        </button>
+      )}
     </section>
   );
 }

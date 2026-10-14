@@ -12,6 +12,7 @@ import {
 } from '../lib/crypto';
 import { localStore } from '../lib/activityStore';
 import { localStore as examStore } from '../lib/examStore';
+import { localDecks, localCards } from '../lib/flashcardStore';
 import { backupStore } from '../lib/backupStore';
 
 /**
@@ -28,9 +29,10 @@ import { backupStore } from '../lib/backupStore';
  * La clave AES vive en memoria (`setSessionKey`), así que al recargar la app
  * queda bloqueada hasta que el usuario escribe su passphrase.
  *
- * Cubre los tres stores locales: actividades (`activityStore`), exámenes
- * (`examStore`, v5.0 D2) y snapshots (`backupStore`). El orden de las llamadas
- * importa: la clave nueva se instala en memoria antes de reescribir filas.
+ * Cubre los cinco stores locales: actividades (`activityStore`), exámenes
+ * (`examStore`, v5.0 D2), mazos y cartas (`flashcardStore`, v5.0 D3) y snapshots
+ * (`backupStore`). El orden de las llamadas importa: la clave nueva se instala
+ * en memoria antes de reescribir filas.
  */
 
 const KEY = 'jikan.encryption';
@@ -106,6 +108,8 @@ export function useEncryption() {
       writeSettings(next);
       await localStore.encryptAll(key);
       await examStore.encryptAll(key);
+      await localDecks.encryptAll(key);
+      await localCards.encryptAll(key);
       await backupStore.encryptAll(key);
       setSettings(next);
       setUnlocked(true);
@@ -192,6 +196,8 @@ export function useEncryption() {
         setSessionKey(next.key);
         await localStore.reencryptAll(current.key, next.key);
         await examStore.reencryptAll(current.key, next.key);
+        await localDecks.reencryptAll(current.key, next.key);
+        await localCards.reencryptAll(current.key, next.key);
         await backupStore.reencryptAll(current.key, next.key);
         writeSettings(nextSettings);
         setSettings(nextSettings);
@@ -234,6 +240,8 @@ export function useEncryption() {
         setSessionKey(key);
         await localStore.decryptAll(key);
         await examStore.decryptAll(key);
+        await localDecks.decryptAll(key);
+        await localCards.decryptAll(key);
         await backupStore.decryptAll(key);
         clearSessionKey();
         writeSettings(null);
